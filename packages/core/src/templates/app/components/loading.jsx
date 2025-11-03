@@ -53,8 +53,8 @@ const Loading = ({ className, id, is_fullscreen = true, is_slow_loading, status,
                 ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
-                <img src="path_to_your_icon.png" alt="DBtraders Icon" style={iconStyle} />
-                <div style={textStyle}>DBtraders</div>
+                <img src="path_to_your_icon.png" alt="ENova Icon" style={iconStyle} />
+                <div style={textStyle}>ENova</div>
             </div>
             {is_slow_loading &&
                 status.map((text, inx) => (

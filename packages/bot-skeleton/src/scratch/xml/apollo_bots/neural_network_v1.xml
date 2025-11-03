@@ -1,0 +1,148 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
+  <variables>
+    <variable type="" id="neural_prediction_id" islocal="false" iscloud="false">neural_prediction</variable>
+    <variable type="" id="confidence_score_id" islocal="false" iscloud="false">confidence_score</variable>
+    <variable type="" id="pattern_memory_id" islocal="false" iscloud="false">pattern_memory</variable>
+    <variable type="" id="learning_rate_id" islocal="false" iscloud="false">learning_rate</variable>
+    <variable type="" id="model_accuracy_id" islocal="false" iscloud="false">model_accuracy</variable>
+    <variable type="" id="training_data_id" islocal="false" iscloud="false">training_data</variable>
+  </variables>
+  <block type="trade_definition" id="neural_network_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="neural_network_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">digitmatch</field>
+            <next>
+              <block type="trade_definition_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set">
+        <field name="VAR" id="neural_prediction_id">neural_prediction</field>
+        <value name="VALUE">
+          <block type="math_number">
+            <field name="NUM">5</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set">
+            <field name="VAR" id="confidence_score_id">confidence_score</field>
+            <value name="VALUE">
+              <block type="math_number">
+                <field name="NUM">0.75</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="pattern_memory_id">pattern_memory</field>
+                <value name="VALUE">
+                  <block type="lists_create_with">
+                    <mutation items="0"></mutation>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set">
+                    <field name="VAR" id="learning_rate_id">learning_rate</field>
+                    <value name="VALUE">
+                      <block type="math_number">
+                        <field name="NUM">0.01</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set">
+                        <field name="VAR" id="model_accuracy_id">model_accuracy</field>
+                        <value name="VALUE">
+                          <block type="math_number">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set">
+                            <field name="VAR" id="training_data_id">training_data</field>
+                            <value name="VALUE">
+                              <block type="lists_create_with">
+                                <mutation items="0"></mutation>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions">
+        <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="true"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive">
+            <field name="NUM">0.35</field>
+          </shadow>
+        </value>
+        <value name="PREDICTION">
+          <shadow type="math_number">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="during_purchase" x="720" y="0">
+    <statement name="DURING_PURCHASE_STACK">
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="check_sell"></block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="after_purchase" x="720" y="248">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="trade_again"></block>
+    </statement>
+  </block>
+  <block type="before_purchase" x="0" y="576">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase">
+        <field name="PURCHASE_LIST">DIGITSMATCH</field>
+      </block>
+    </statement>
+  </block>
+</xml>

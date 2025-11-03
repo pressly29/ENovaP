@@ -29,7 +29,8 @@
     &:hover {
         background: 0;
 
-        #{$contract_result}-caption {
+        /* contract-result-caption selector */
+        &-caption {
             opacity: 0;
         }
     }
@@ -42,16 +43,18 @@
         margin-left: 10px;
     }
     &--won {
-        background-image: $COLOR_LIGHT_GREEN_GRADIENT; // TODO: Update when gradients are added.
+        background-image: $COLOR_LIGHT_GREEN_GRADIENT; /* TODO: Update when gradients are added. */
 
-        > #{$contract_result}-caption {
+        /* contract-result-caption selector */
+        > &-caption {
             color: var(--text-profit-success);
         }
     }
     &--lost {
-        background-image: $COLOR_LIGHT_RED_GRADIENT; // TODO: Update when gradients are added.
+        background-image: $COLOR_LIGHT_RED_GRADIENT; /* TODO: Update when gradients are added. */
 
-        > #{$contract_result}-caption {
+        /* contract-result-caption selector */
+        > &-caption {
             color: var(--text-loss-danger);
         }
     }

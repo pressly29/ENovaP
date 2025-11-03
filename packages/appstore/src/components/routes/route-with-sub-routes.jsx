@@ -1,6 +1,6 @@
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { redirectToLogin, isEmptyObject, routes, removeBranchName, default_title } from '@deriv/shared';
+import { redirectToLogin, isEmptyObject, routes, removeBranchName } from '@deriv/shared';
 import { getLanguage } from '@deriv/translations';
 
 const RouteWithSubRoutes = route => {
@@ -37,8 +37,7 @@ const RouteWithSubRoutes = route => {
             );
         }
 
-        const title = route.getTitle?.() || '';
-        document.title = `DBtraders`;
+        document.title = `ENova`;
         return result;
     };
 

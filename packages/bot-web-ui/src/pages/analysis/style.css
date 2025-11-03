@@ -1,8 +1,11 @@
 .main_analysis {
     position: relative;
-    width: 74%;
-    height: 100vh;
-    overflow: hidden;
+    width: 100%;
+    height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .main_analysis .analysis-iframe {
@@ -12,6 +15,49 @@
     width: 100%;
     height: 100%;
     border: none;
+}
+
+/* View Toggle Buttons */
+.analysis-view-toggle {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-bottom: 2px solid #3b82f6;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; /* Prevent toggle from shrinking */
+}
+
+.analysis-view-toggle .toggle-btn {
+    padding: 10px 20px;
+    border: 2px solid #475569;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.analysis-view-toggle .toggle-btn:hover {
+    border-color: #3b82f6;
+    color: #fff;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.analysis-view-toggle .toggle-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: #3b82f6;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
 }
 
 @media screen and (min-width: 1270px) and (max-width: 1280px) {

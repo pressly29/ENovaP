@@ -1,0 +1,143 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
+  <variables>
+    <variable type="" id="grid_upper_id" islocal="false" iscloud="false">grid_upper</variable>
+    <variable type="" id="grid_lower_id" islocal="false" iscloud="false">grid_lower</variable>
+    <variable type="" id="grid_levels_id" islocal="false" iscloud="false">grid_levels</variable>
+    <variable type="" id="grid_size_id" islocal="false" iscloud="false">grid_size</variable>
+    <variable type="" id="active_positions_id" islocal="false" iscloud="false">active_positions</variable>
+    <variable type="" id="take_profit_level_id" islocal="false" iscloud="false">take_profit_level</variable>
+  </variables>
+  <block type="trade_definition" id="grid_master_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="grid_master_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">callput</field>
+            <field name="TRADETYPE_LIST">risefall</field>
+            <next>
+              <block type="trade_definition_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set">
+        <field name="VAR" id="grid_upper_id">grid_upper</field>
+        <value name="VALUE">
+          <block type="math_number">
+            <field name="NUM">1100</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set">
+            <field name="VAR" id="grid_lower_id">grid_lower</field>
+            <value name="VALUE">
+              <block type="math_number">
+                <field name="NUM">900</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="grid_levels_id">grid_levels</field>
+                <value name="VALUE">
+                  <block type="math_number">
+                    <field name="NUM">5</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set">
+                    <field name="VAR" id="grid_size_id">grid_size</field>
+                    <value name="VALUE">
+                      <block type="math_number">
+                        <field name="NUM">40</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set">
+                        <field name="VAR" id="active_positions_id">active_positions</field>
+                        <value name="VALUE">
+                          <block type="math_number">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set">
+                            <field name="VAR" id="take_profit_level_id">take_profit_level</field>
+                            <value name="VALUE">
+                              <block type="math_number">
+                                <field name="NUM">20</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions">
+        <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive">
+            <field name="NUM">0.35</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="during_purchase" x="720" y="0">
+    <statement name="DURING_PURCHASE_STACK">
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="check_sell"></block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="after_purchase" x="720" y="248">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="trade_again"></block>
+    </statement>
+  </block>
+  <block type="before_purchase" x="0" y="576">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase">
+        <field name="PURCHASE_LIST">CALL</field>
+      </block>
+    </statement>
+  </block>
+</xml>

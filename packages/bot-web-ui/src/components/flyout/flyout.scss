@@ -8,7 +8,7 @@
 }
 
 .flyout {
-    $flyout: &;
+    /* $flyout: &; */
     $default-margin: 15px;
     $button-padding: 5px 20px;
 
@@ -166,7 +166,8 @@
             overflow-y: auto;
             height: calc(100vh - 295px);
 
-            #{$flyout}__item {
+            /* flyout__item selector */
+            .flyout__item {
                 margin-bottom: 0.8em;
             }
         }
@@ -197,7 +198,8 @@
         &-empty {
             padding: 25px 0;
         }
-        #{$flyout}__help-content {
+        /* flyout__help-content selector */
+        .flyout__help-content {
             height: calc(100% - 60px);
         }
     }

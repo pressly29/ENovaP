@@ -183,7 +183,7 @@
 
             @include mobile {
                 padding: 1.6rem;
-                height: calc(100% - 7.4rem); // - footer height
+                height: calc(100% - 7.4rem); /* - footer height */
                 &--active {
                     height: calc(70% - 7.4rem);
                 }
@@ -224,7 +224,7 @@
             border-radius: $BORDER_RADIUS;
             margin: 1.6rem;
             padding: 1.6rem;
-            height: calc(100% - 3.2rem); // - 2x margin.
+            height: calc(100% - 3.2rem); /* - 2x margin. */
         }
 
         &-icon {
@@ -511,3 +511,46 @@
         }
     }
 }
+
+/* ========================================
+   Marketplace Container
+   ======================================== */
+
+.load-strategy__container--marketplace {
+    @include desktop {
+        height: calc(80vh - 10rem);
+        
+    }
+
+    @include tablet {
+        height: calc(80vh - 10rem);
+        overflow: auto; /* Changed from overflow-y: auto to prevent double scrollbar */
+    }
+
+    @include mobile {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0;
+    }
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--general-section-1);
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--brand-red-coral);
+        border-radius: 10px;
+
+        &:hover {
+            background: var(--brand-secondary);
+        }
+    }
+}
+

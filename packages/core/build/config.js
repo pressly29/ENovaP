@@ -14,6 +14,7 @@ const copyConfig = base => {
         {
             from: path.resolve(__dirname, '../node_modules/@deriv/bot-web-ui/dist/bot/media/'),
             to: 'media',
+            noErrorOnMissing: true,
         },
         {
             from: path.resolve(__dirname, '../node_modules/@deriv/bot-web-ui/dist/bot/js/'),

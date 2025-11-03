@@ -1,0 +1,671 @@
+/* Circles Analyzer - Professional Design */
+
+.circles-analyzer {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    padding-bottom: 60px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', "Roboto", sans-serif;
+}
+
+/* Trading Guide Card */
+.ca-guide-card {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    overflow: hidden;
+}
+
+.ca-guide-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.ca-guide-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ca-guide-icon {
+    font-size: 24px;
+}
+
+.ca-guide-header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.ca-guide-toggle {
+    font-size: 14px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.ca-guide-content {
+    background: #fff;
+    padding: 24px;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.ca-guide-section {
+    margin-bottom: 20px;
+}
+
+.ca-guide-section:last-child {
+    margin-bottom: 0;
+}
+
+.ca-guide-section h4 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ca-guide-section ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.ca-guide-section li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+    position: relative;
+    padding-left: 20px;
+}
+
+.ca-guide-section li:before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #3b82f6;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.ca-guide-section li strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.ca-guide-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+    text-align: center;
+}
+
+.ca-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.ca-guide-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Configuration Card */
+.ca-config-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ca-config-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.ca-form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ca-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ca-select,
+.ca-input {
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.ca-select:focus,
+.ca-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.ca-input {
+    width: 120px;
+}
+
+/* Price Card with Circles */
+.ca-price-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.ca-price-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.ca-price-value {
+    font-size: 48px;
+    font-weight: 800;
+    color: #ff444f;
+    margin-bottom: 32px;
+    text-shadow: 0 2px 4px rgba(255, 68, 79, 0.1);
+}
+
+/* Digit Frequency Circles */
+.ca-circles-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.ca-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ca-circle:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.ca-circle-active {
+    transform: scale(1.1);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+    animation: pulse 1.5s infinite;
+}
+
+/* Triangle pointer below active circle */
+.ca-circle-active:after {
+    content: '';
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid #13cfac;
+    filter: drop-shadow(0 2px 4px rgba(19, 207, 172, 0.4));
+    animation: triangle-pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1.1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+@keyframes triangle-pulse {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-50%) translateY(2px);
+        opacity: 0.8;
+    }
+}
+
+.ca-circle-digit {
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ca-circle-percentage {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin-top: 4px;
+}
+
+/* Individual Digit Colors - All Grey Base */
+.ca-circle-0,
+.ca-circle-1,
+.ca-circle-2,
+.ca-circle-3,
+.ca-circle-4,
+.ca-circle-5,
+.ca-circle-6,
+.ca-circle-7,
+.ca-circle-8,
+.ca-circle-9 {
+    background: linear-gradient(135deg, #444 0%, #444 100%);
+}
+
+/* Highest Frequency Indicator - Green pointer at bottom */
+.ca-circle.ca-circle-top {
+    background: linear-gradient(to bottom, #444 0%, #444 80%, #43f94a 80%, #43f94a 100%) !important;
+}
+
+/* Lowest Frequency Indicator - Red pointer at bottom */
+.ca-circle.ca-circle-less {
+    background: linear-gradient(to bottom, #444 0%, #444 80%, #fb2929 80%, #fb2929 100%) !important;
+}
+
+/* Active state with indicators */
+.ca-circle-active.ca-circle-top {
+    background: linear-gradient(to bottom, #13cfac 0%, #01ac8c 80%, #43f94a 80%, #43f94a 100%) !important;
+}
+
+.ca-circle-active.ca-circle-less {
+    background: linear-gradient(to bottom, #13cfac 0%, #13cfac 80%, #fb2929 80%, #fb2929 100%) !important;
+}
+
+/* Analysis Card */
+.ca-analysis-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s;
+}
+
+.ca-analysis-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.ca-analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.ca-analysis-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.ca-streak-badge {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+/* Helper Text */
+.ca-helper-text {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+/* Threshold/Digit Selector */
+.ca-threshold-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.ca-digit-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ca-digit-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+
+.ca-digit-btn.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.ca-digit-btn-highlight {
+    border-color: #3b82f6 !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Probability Display */
+.ca-probability-display {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.ca-prob-section {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.ca-prob-over {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px solid #6ee7b7;
+}
+
+.ca-prob-under {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    border: 2px solid #fca5a5;
+}
+
+.ca-prob-matches {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #93c5fd;
+}
+
+.ca-prob-differs {
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+    border: 2px solid #fb923c;
+}
+
+.ca-prob-even {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #93c5fd;
+}
+
+.ca-prob-odd {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    border: 2px solid #f87171;
+}
+
+.ca-prob-rise {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 2px solid #6ee7b7;
+}
+
+.ca-prob-fall {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    border: 2px solid #f87171;
+}
+
+.ca-prob-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ca-prob-percentage {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+/* Probability Bars */
+.ca-prob-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.ca-prob-bar-bg {
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.ca-prob-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+    border-radius: 8px;
+}
+
+.ca-bar-over {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.ca-bar-under {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.ca-bar-matches {
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.ca-bar-differs {
+    background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+}
+
+.ca-bar-even {
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.ca-bar-odd {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.ca-bar-rise {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.ca-bar-fall {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Pattern List */
+.ca-pattern-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.ca-pattern-badge {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    min-width: 36px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ca-badge-over {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ca-badge-under {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.ca-badge-matches {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.ca-badge-differs {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.ca-badge-even {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.ca-badge-odd {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.ca-badge-rise {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ca-badge-fall {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.ca-more-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.ca-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .circles-analyzer {
+        padding: 16px;
+    }
+
+    .ca-config-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ca-circles-container {
+        gap: 12px;
+    }
+
+    .ca-circle {
+        width: 70px;
+        height: 70px;
+    }
+
+    .ca-circle-digit {
+        font-size: 22px;
+    }
+
+    .ca-circle-percentage {
+        font-size: 9px;
+    }
+
+    .ca-price-value {
+        font-size: 36px;
+    }
+
+    .ca-analysis-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .ca-threshold-selector {
+        gap: 6px;
+    }
+
+    .ca-digit-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .ca-probability-display {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ca-prob-percentage {
+        font-size: 24px;
+    }
+}

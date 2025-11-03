@@ -1,0 +1,636 @@
+/* Quantum Signal Analyzer - Professional Modern Design */
+
+.quantum-signal-analyzer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    padding-bottom: 60px; /* Extra padding at bottom for scrolling comfort */
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: auto;
+    overflow-y: visible;
+}
+
+/* Header Section */
+.qsa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.qsa-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.qsa-title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+}
+
+.qsa-subtitle {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.qsa-status-badges {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.qsa-status-badge {
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.qsa-status-badge.connected {
+    color: #10b981;
+    border: 2px solid #10b981;
+}
+
+.qsa-status-badge.disconnected {
+    color: #ef4444;
+    border: 2px solid #ef4444;
+}
+
+.qsa-status-badge.analyzing {
+    color: #fbbf24;
+    border: 2px solid #fbbf24;
+    animation: pulse 1.5s infinite;
+}
+
+.qsa-status-badge.complete {
+    color: #10b981;
+    border: 2px solid #10b981;
+}
+
+/* Market Info Card */
+.qsa-market-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.qsa-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.qsa-info-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.qsa-info-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.qsa-info-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.qsa-digit-highlight {
+    color: #3b82f6;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+/* Configuration Panel */
+.qsa-config-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.qsa-section-title {
+    margin: 0 0 20px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qsa-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.qsa-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qsa-form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.qsa-intelligence-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 10px;
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+}
+
+.qsa-badge-icon {
+    font-size: 24px;
+    animation: pulse 2s infinite;
+}
+
+.qsa-badge-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e40af;
+}
+
+.qsa-intelligence-desc {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.qsa-select,
+.qsa-input {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qsa-select:hover,
+.qsa-input:hover {
+    border-color: #3b82f6;
+}
+
+.qsa-select:focus,
+.qsa-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.qsa-select:disabled,
+.qsa-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.qsa-action-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 2px solid #f1f5f9;
+}
+
+.qsa-analyze-btn {
+    flex: 1;
+    max-width: 300px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.qsa-analyze-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+}
+
+.qsa-analyze-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.qsa-auto-trade-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.qsa-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.qsa-toggle-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.qsa-toggle-label input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Console */
+.qsa-console {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.qsa-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #1e293b;
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.qsa-console-clear {
+    padding: 4px 12px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qsa-console-clear:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.qsa-console-messages {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.qsa-console-line {
+    color: #10b981;
+    font-size: 13px;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.qsa-console-blink {
+    animation: blink 1s infinite;
+}
+
+/* Results Section */
+.qsa-results {
+    margin-bottom: 24px;
+}
+
+.qsa-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.qsa-result-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.qsa-result-card:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.qsa-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.qsa-strategy-tag {
+    padding: 6px 12px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.qsa-card-body {
+    padding: 20px;
+}
+
+.qsa-result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.qsa-result-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.qsa-result-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.qsa-result-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.qsa-pattern-text {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #3b82f6;
+}
+
+.qsa-confidence-bar {
+    flex: 1;
+    position: relative;
+    height: 24px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-left: 12px;
+}
+
+.qsa-confidence-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    transition: width 0.5s ease;
+}
+
+.qsa-confidence-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+    z-index: 1;
+}
+
+.qsa-signal-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.qsa-signal-strong {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+}
+
+.qsa-signal-moderate {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #fff;
+}
+
+.qsa-signal-weak {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: #fff;
+}
+
+.qsa-recommendation-row {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    padding: 16px;
+    margin: 12px -20px 0;
+    border-top: 2px solid #3b82f6;
+}
+
+.qsa-result-recommendation {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e40af;
+}
+
+.qsa-card-footer {
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-top: 2px solid #e2e8f0;
+}
+
+.qsa-trade-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qsa-trade-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+}
+
+.qsa-trade-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* No Signals State */
+.qsa-no-signals {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.qsa-no-signals-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.qsa-no-signals h3 {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.qsa-no-signals p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* Info Banner */
+.qsa-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.qsa-info-icon {
+    font-size: 24px;
+}
+
+.qsa-info-text {
+    font-size: 14px;
+    color: #1e40af;
+    line-height: 1.6;
+}
+
+.qsa-info-text strong {
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .quantum-signal-analyzer {
+        padding: 16px;
+    }
+
+    .qsa-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .qsa-title {
+        font-size: 24px;
+    }
+
+    .qsa-config-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .qsa-results-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .qsa-action-row {
+        flex-direction: column;
+    }
+
+    .qsa-analyze-btn {
+        max-width: 100%;
+    }
+}

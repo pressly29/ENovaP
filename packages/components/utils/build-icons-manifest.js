@@ -40,10 +40,17 @@ function buildIconsManifest() {
 
     validateIcons(svgs_map);
 
-    const buffer = ['// auto-generated file. DO NOT MODIFY.', ''];
-    buffer.push(`module.exports = ${JSON.stringify(svgs_map)}`);
+    // Generate both .js and .ts files
+    const buffer_js = ['// auto-generated file. DO NOT MODIFY.', ''];
+    buffer_js.push(`module.exports = ${JSON.stringify(svgs_map, null, 2)}`);
+    fs.writeFileSync(path.join(__dirname, '../src/components/icon/icons-manifest.js'), buffer_js.join(EOL) + EOL);
 
-    fs.writeFileSync(path.join(__dirname, '../src/components/icon/icons-manifest.js'), buffer.join(EOL) + EOL);
+    // Generate TypeScript version with named exports that can be imported as an object
+    const buffer_ts = ['// auto-generated file. DO NOT MODIFY.', ''];
+    Object.keys(svgs_map).forEach(key => {
+        buffer_ts.push(`export const ${key} = ${JSON.stringify(svgs_map[key])};`);
+    });
+    fs.writeFileSync(path.join(__dirname, '../src/components/icon/icons-manifest.ts'), buffer_ts.join(EOL) + EOL);
 }
 
 module.exports.buildIconsManifest = buildIconsManifest;

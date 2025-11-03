@@ -18,7 +18,7 @@
         width: 100%;
 
         &--active {
-            //css for onboard tour overlay
+            /* css for onboard tour overlay */
             &:before {
                 content: '';
                 position: fixed;
@@ -132,9 +132,9 @@
 
                     @include mobile {
                         margin-right: 0.2rem;
-                        // gave this -ve margin becaues we cannot
-                        // overwrite the default core padding which
-                        // will make the icon bigger
+                        /* gave this -ve margin because we cannot
+                           overwrite the default core padding which
+                           will make the icon bigger */
                         margin-top: -0.5rem;
                     }
                 }
@@ -162,7 +162,7 @@
         }
     }
 
-    &__sidebar-wrapper {
+    &__sidebar-wrapper {    
         &--active {
             position: fixed;
             right: 0;
@@ -220,7 +220,7 @@
 .dashboard {
     &__chart-wrapper {
         position: relative;
-        height: var(--tab-content-height);
+        height: 85vh;
         width: 100%;
         transition: all 0.4s;
 

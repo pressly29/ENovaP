@@ -1,55 +1,54 @@
 import React from 'react';
-import { MobileWrapper, Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
-import RecentWorkspace from './recent-workspace';
-import SaveModal from './save-modal';
-import {apollo_bot_list} from '@deriv/bot-skeleton'
+import { DBOT_TABS } from 'Constants/bot-contents';
+import { useDBotStore } from 'Stores/useDBotStore';
+import { MarketplaceGrid } from '../marketplace';
+import { ENHANCED_BOT_LIST } from '../data';
+import { BotMetadata } from '../data/types';
+import '../marketplace/marketplace-card.scss';
+import '../marketplace/marketplace-grid.scss';
 import './index.scss';
-
-type THeader = {
-    label: string;
-    className: string;
-};
-
-const HEADERS: THeader[] = [
-    {
-        label: localize('Bot name'),
-        className: 'bot-list__header__label',
-    },
-];
 
 const RecentComponent = observer(() => {
     const { ui } = useStore();
     const { is_mobile } = ui;
-    const [apollo_bots, setApolloBots] = React.useState(apollo_bot_list);
+    const { dashboard, toolbar } = useDBotStore();
+    const { loadCustomStrategy } = toolbar;
+    const { setActiveTab } = dashboard;
+    
+    const [bots] = React.useState(ENHANCED_BOT_LIST);
+    const [selectedBot, setSelectedBot] = React.useState<BotMetadata | null>(null);
+    const [loading, setLoading] = React.useState(false);
 
-    if (!apollo_bots?.length) return null;
+    // Handle bot loading
+    const handleLoadBot = async (botId: number) => {
+        setLoading(true);
+        try {
+            await loadCustomStrategy(botId);
+            setActiveTab(DBOT_TABS.BOT_BUILDER);
+        } catch (error) {
+            // Failed to load bot - error logged internally
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle bot details view (placeholder for future modal)
+    const handleViewDetails = (bot: BotMetadata) => {
+        setSelectedBot(bot);
+        // TODO: Open details modal for bot.displayName
+    };
+
+    if (!bots?.length) return null;
+
     return (
-        <div className='load-strategy__container load-strategy__container--has-footer'>
-            <div className='load-strategy__recent'>
-                <div className='load-strategy__recent__files'>
-                    <div className='load-strategy__title'>
-                        <Text size={is_mobile ? 'xs' : 's'} weight='bold'>
-                            <Localize i18n_default_text='Free bots:' />
-                        </Text>
-                    </div>
-                    <div className='apollo-list__wrapper'>
-                        {apollo_bots.map((workspace, index) => {
-                            return (
-                                <RecentWorkspace
-                                    key={workspace.id}
-                                    workspace={{ name: workspace.name }}
-                                    index={index}
-                                />
-                            );
-                        })}
-                    </div>
-                    <MobileWrapper>
-                        <SaveModal />
-                    </MobileWrapper>
-                </div>
-            </div>
+        <div className='load-strategy__container load-strategy__container--marketplace'>
+            <MarketplaceGrid
+                bots={bots}
+                onLoadBot={handleLoadBot}
+                onViewDetails={handleViewDetails}
+                loading={loading}
+            />
         </div>
     );
 });

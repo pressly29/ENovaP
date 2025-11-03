@@ -1,5 +1,3 @@
-const webpackConfig = require('./webpack.config');
-
 module.exports = {
     extends: [
         '../../.eslintrc.js',
@@ -12,8 +10,6 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 0,
     },
     settings: {
-        'import/resolver': {
-            webpack: { config: webpackConfig({}) },
-        },
+        'import/resolver': 'node',
     },
 };

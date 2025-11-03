@@ -27,7 +27,6 @@
         "deploy:production": "echo \"No deploy:production specified\""
     },
     "dependencies": {
-    },
-    "devDependencies": {
+        "clean-webpack-plugin": "^4.0.0"
     }
 }

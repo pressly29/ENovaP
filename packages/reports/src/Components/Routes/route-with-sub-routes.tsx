@@ -37,7 +37,7 @@ const RouteWithSubRoutes = (route: TRouteWithSubRoutes) => {
         }
 
         const title = route.getTitle?.() || '';
-        document.title = `DBtraders`;
+        document.title = `ENova`;
         return result;
     };
 

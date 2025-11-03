@@ -1,0 +1,422 @@
+/**
+ * Marketplace Card Component Styles
+ * 
+ * Rich, modern card design with all details (NO win rate shown)
+ */
+
+.marketplace-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: visible; /* Changed from hidden to visible to prevent content clipping */
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    
+
+    /* Subtle gradient overlay */
+    &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    &:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 12px 32px rgba(0, 0, 0, 0.12),
+            0 4px 16px rgba(0, 0, 0, 0.08),
+            0 0 0 1px rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.2);
+
+        &:before {
+            opacity: 1;
+        }
+
+        .marketplace-card__icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .marketplace-card__btn-load {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+    }
+
+    &--hovered {
+        z-index: 10;
+    }
+
+    /* Top Section */
+    &__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+
+    &__icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+
+        &:after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+            pointer-events: none;
+        }
+    }
+
+    &__icon {
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    &__badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        animation: pulse-badge 2s ease-in-out infinite;
+
+        &--popular {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff;
+        }
+
+        &--new {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+        }
+
+        &--pro {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff;
+        }
+
+        &--recommended {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
+        }
+    }
+
+    /* Header */
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__name {
+        color: #111827;
+        line-height: 1.3;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.3px;
+    }
+
+    &__category {
+        display: inline-block;
+        align-self: flex-start;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    /* Tagline */
+    &__tagline {
+        color: #6b7280;
+        line-height: 1.4;
+        font-size: 12px !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 32px;
+    }
+
+    /* Stats Section - Profit & Trades ONLY (No Win Rate) */
+    &__stats-section {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &__stat-box {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    &__stat-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    &__stat-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__stat-value {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__stat-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Info Row */
+    &__info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__risk-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: 1.5px solid;
+        font-size: 11px;
+        font-weight: 700;
+        flex: 1;
+    }
+
+    &__risk-text {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Rating */
+    &__rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__rating-stars {
+        display: flex;
+        gap: 1px;
+
+        .star {
+            color: #fbbf24;
+            font-size: 12px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+            &.half {
+                opacity: 0.5;
+            }
+        }
+    }
+
+    &__rating-value {
+        font-size: 11px;
+        font-weight: 700;
+        color: #374151;
+        margin-left: 2px;
+    }
+
+    /* Features */
+    &__features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    &__feature-pill {
+        padding: 4px 8px;
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        color: #6366f1;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Footer */
+    &__footer {
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    &__downloads {
+        color: #9ca3af !important;
+        font-size: 10px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    /* Actions */
+    &__action {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+    }
+
+    &__btn-load {
+        flex: 1;
+        height: 36px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    &__btn-info {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1.5px solid #e5e7eb;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: #f9fafb;
+            border-color: #6366f1;
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+}
+
+/* Animation */
+@keyframes pulse-badge {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+    .marketplace-card {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        border-color: rgba(255, 255, 255, 0.08);
+
+        &:before {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+        }
+
+        &:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        &__name {
+            color: #f9fafb;
+        }
+
+        &__tagline {
+            color: #9ca3af;
+        }
+
+        &__stats-section {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        }
+
+        &__stat-box {
+            background: #1f2937;
+        }
+
+        &__stat-value {
+            color: #f9fafb;
+        }
+
+        &__footer {
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+
+        &__btn-info {
+            background: #1f2937;
+            border-color: #374151;
+
+            &:hover {
+                background: #374151;
+            }
+        }
+    }
+}

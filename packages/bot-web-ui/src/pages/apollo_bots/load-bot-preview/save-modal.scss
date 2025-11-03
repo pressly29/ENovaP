@@ -1,10 +1,12 @@
 @import '../../../styles/mixins.scss';
 
+$MOBILE_WRAPPER_FOOTER_HEIGHT: 5.8rem;
+
 .dc-modal {
-    $save-modal: 'modal--save';
+    /* $save-modal: 'modal--save'; */
 
     &__container {
-        &_#{$save-modal} {
+        &_modal--save {
             min-width: 320px !important;
 
             .modal__content {
@@ -35,7 +37,7 @@
     }
 }
 
-// TODO: [fix-dc-bundle] Fix import issue with Deriv Component stylesheets (app should take precedence, and not repeat)
+/* TODO: [fix-dc-bundle] Fix import issue with Deriv Component stylesheets (app should take precedence, and not repeat) */
 div.radio-group {
     &__save-type {
         display: flex;
@@ -88,7 +90,7 @@ div.radio-group {
     }
 
     &__input {
-        // TODO: [fix-dc-bundle] Fix import issue with Deriv Component stylesheets (app should take precedence, and not repeat)
+        /* TODO: [fix-dc-bundle] Fix import issue with Deriv Component stylesheets (app should take precedence, and not repeat) */
         margin: 2rem 0 0 !important;
     }
 
@@ -154,7 +156,7 @@ div.radio-group {
             flex-direction: row;
             justify-content: flex-end;
             padding: 1.4rem;
-            height: #{$MOBILE_WRAPPER_FOOTER_HEIGHT};
+            height: $MOBILE_WRAPPER_FOOTER_HEIGHT;
             border-top: solid 0.1em var(--general-section-1);
             width: 100%;
 

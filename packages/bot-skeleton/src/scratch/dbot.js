@@ -22,6 +22,12 @@ import ap6 from './xml/apollo_bots/LAS VEGAS 📃💵.xml';
 import ap8 from './xml/apollo_bots/apollo_virtualhook 101.xml';
 import ap9 from './xml/apollo_bots/auto_analyzer_v2.xml';
 
+// Advanced Strategy Bots (Phase 1)
+import ap10 from './xml/apollo_bots/lightning_scalper_v1.xml';
+import ap11 from './xml/apollo_bots/fibonacci_recovery_v1.xml';
+import ap12 from './xml/apollo_bots/neural_network_v1.xml';
+import ap13 from './xml/apollo_bots/grid_master_v1.xml';
+
 export const apollo_bot_list = [
     { id: 0, name: 'Hybrid V🔥', xml: ap5 },
     { id: 1, name: 'Auto AI🌟', xml: ap9 },
@@ -31,6 +37,11 @@ export const apollo_bot_list = [
     { id: 5, name: "Big  Boyz Rise N' fall", xml: ap2 },
     { id: 6, name: 'Candle-Mine Version 2', xml: ap3 },
     { id: 7, name: 'Digit Differ 3', xml: ap4 },
+    // Advanced Strategy Bots (Phase 1)
+    { id: 8, name: 'Lightning Scalper', xml: ap10 },
+    { id: 9, name: 'Fibonacci Recovery', xml: ap11 },
+    { id: 10, name: 'Neural Network Predictor', xml: ap12 },
+    { id: 11, name: 'Grid Master', xml: ap13 },
 ];
 
 class DBot {

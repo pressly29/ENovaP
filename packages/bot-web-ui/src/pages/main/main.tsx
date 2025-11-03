@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import classNames from 'classnames';
 import { updateWorkspaceName } from '@deriv/bot-skeleton';
 import dbot from '@deriv/bot-skeleton/src/scratch/dbot';
@@ -20,11 +20,10 @@ import AnalysisPage from '../analysis';
 import RunStrategy from '../dashboard/run-strategy';
 import Tutorial from '../tutorials';
 import { tour_list } from '../tutorials/dbot-tours/utils';
-import Loadable from 'react-loadable';
+// Prefer React.lazy over react-loadable here to avoid setState-after-unmount race conditions on fast tab switches
 import { useWS } from '@deriv/shared';
 import { TCoreStores } from '@deriv/stores/types';
 import { TWebSocket } from 'Types';
-import { BrowserRouter as Router } from 'react-router-dom';
 import ReactGA from 'react-ga4';
 import './style.css';
 
@@ -61,12 +60,14 @@ const AppWrapper = observer(() => {
     const { DASHBOARD, BOT_BUILDER, CHART } = DBOT_TABS;
     const init_render = React.useRef(true);
     const { ui } = useStore();
-    const { url_hashed_values, is_mobile } = ui;
-    const hash = ['analysistool', 'bot_builder', 'dashboard', 'free_bots', 'manual', 'tutorial'];
+    const { is_mobile } = ui;
+    // Keep URL hash order in sync with DBOT_TABS and TAB_IDS
+    // 0: dashboard, 1: bot_builder, 2: free_bots, 3: manual, 4: copy_trader, 5: analysistool, 6: tutorial
+    const hash = ['dashboard', 'bot_builder', 'free_bots', 'manual', 'copy_trader', 'analysistool', 'tutorial'];
 
     let tab_value: number | string = active_tab;
     const GetHashedValue = (tab: number) => {
-        tab_value = url_hashed_values?.split('#')[1];
+        tab_value = window.location.hash?.split('#')[1];
         if (!tab_value) return tab;
         return Number(hash.indexOf(String(tab_value)));
     };
@@ -91,6 +92,10 @@ const AppWrapper = observer(() => {
 
         // Send pageview with dynamic path and title
         ReactGA.send({ hitType: 'pageview', page: path, title: title });
+
+        return () => {
+            window.removeEventListener('focus', checkAndHandleConnection);
+        };
     }, []);
 
     React.useEffect(() => {
@@ -158,14 +163,35 @@ const AppWrapper = observer(() => {
         [active_tab]
     );
 
-    const Trader = Loadable({
-        loader: () => import(/* webpackChunkName: "error-component" */ '@deriv/trader'),
-        loading: UILoader,
-        render(loaded, props) {
-            const Component = loaded.default;
-            return <Component passthrough={props} />;
-        },
-    });
+    const Trader = React.lazy(
+        () => import(/* webpackChunkName: "trader" */ '@deriv/trader') as Promise<{ default: React.ComponentType<any> }>
+    );
+
+    // Minimal error boundary to surface lazy-load or runtime errors instead of a blank pane
+    class ManualTabErrorBoundary extends React.Component<React.PropsWithChildren<{}>, { error?: Error }> {
+        constructor(props: React.PropsWithChildren<{}>) {
+            super(props);
+            this.state = { error: undefined };
+        }
+        static getDerivedStateFromError(error: Error) {
+            return { error };
+        }
+        componentDidCatch(error: Error, info: React.ErrorInfo) {
+            // eslint-disable-next-line no-console
+            console.error('Manual tab crashed:', error, info);
+        }
+        render() {
+            if (this.state.error) {
+                return (
+                    <div className='dc-page-error__container'>
+                        <h3>{localize('Something went wrong loading Manual')}</h3>
+                        <p>{this.state.error.message}</p>
+                    </div>
+                );
+            }
+            return this.props.children as React.ReactElement;
+        }
+    }
 
     return (
         <React.Fragment>
@@ -182,58 +208,68 @@ const AppWrapper = observer(() => {
                         onTabItemClick={handleTabChange}
                         top
                     >
-                        <div
-                            icon='IcDbotViewDetail'
-                            label={<Localize i18n_default_text='Analysistool' />}
-                            id={'id-analysis-page'}
-                        >
-                            <AnalysisPage />
-                        </div>
-
-                        <div
-                            icon='IcBotBuilderTabIcon'
-                            label={<Localize i18n_default_text='Bot Builder' />}
-                            id='id-bot-builder'
-                        />
-
+                        
                         <div
                             icon='IcDashboardComponentTab'
-                            label={<Localize i18n_default_text='Dashboard' />}
+                            label={localize('Dashboard')}
                             id='id-dbot-dashboard'
                         >
                             <Dashboard handleTabChange={handleTabChange} />
                         </div>
 
+                        
+                        <div
+                            icon='IcBotBuilderTabIcon'
+                            label={localize('Bot Builder')}
+                            id='id-bot-builder'
+                        />
+
+                        
                         <div
                             icon='IcGear'
-                            label={<Localize i18n_default_text='Free Bots' />}
+                            label={localize('Free Bots')}
                             id='id-dbot-apollo-bots'
                         >
                             <ApolloBots handleTabChange={handleTabChange} />
                         </div>
 
+                        
                         <div
                             icon='IcChartsTabDbot'
-                            label={<Localize i18n_default_text='Manual' />}
+                            label={localize('Manual')}
                             id={
                                 is_chart_modal_visible || is_trading_view_modal_visible
                                     ? 'id-charts--disabled'
                                     : 'id-charts'
                             }
                         >
-                            <Router>
-                                <Trader {...passthrough} />
-                            </Router>
-                            {/* <Chart show_digits_stats={true}/> */}
+                            {active_tab === CHART ? (
+                                <ManualTabErrorBoundary>
+                                    <Suspense fallback={<UILoader />}>
+                                        <Trader passthrough={passthrough} />
+                                    </Suspense>
+                                </ManualTabErrorBoundary>
+                            ) : null}
                         </div>
 
-                        <div icon='IcClient' label={<Localize i18n_default_text='Replicator' />} id={'id-copy-trader'}>
+                        
+                        <div icon='IcClient' label={localize('Replicator')} id={'id-copy-trader'}>
                             <CopyTrader />
                         </div>
 
+                        
+                        <div
+                            icon='IcDbotViewDetail'
+                            label={localize('Analysistool')}
+                            id={'id-analysis-page'}
+                        >
+                            <AnalysisPage />
+                        </div>
+
+                        
                         <div
                             icon='IcTutorialsTabs'
-                            label={<Localize i18n_default_text='Tutorials' />}
+                            label={localize('Tutorials')}
                             id='id-tutorials'
                         >
                             <div className='tutorials-wrapper'>

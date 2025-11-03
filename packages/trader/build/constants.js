@@ -131,7 +131,8 @@ const plugins = (base, is_test_env) => [
     new IgnorePlugin({ resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/ }),
     new MiniCssExtractPlugin(cssConfig()),
     new CircularDependencyPlugin({ exclude: /node_modules/, failOnError: true }),
-    new ForkTsCheckerWebpackPlugin(),
+    // Run TypeScript type checking only on release builds to speed up dev builds and avoid test-only type failures.
+    ...(IS_RELEASE ? [new ForkTsCheckerWebpackPlugin()] : []),
     ...(IS_RELEASE
         ? []
         : [

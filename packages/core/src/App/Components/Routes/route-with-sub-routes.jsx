@@ -81,7 +81,7 @@ const RouteWithSubRoutes = observer(route => {
         }
 
         const title = route.getTitle?.() || '';
-        document.title = `DBtraders`;
+        document.title = `ENova`;
 
         alternateLinkTagChange();
         canonicalLinkTagChange();

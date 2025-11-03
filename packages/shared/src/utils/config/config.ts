@@ -47,7 +47,7 @@ export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname)
 
 export const getAppId = () => {
     let app_id = null;
-    const user_app_id = '63233'; // you can insert Application ID of your registered application here
+    const user_app_id = '106913'; // ENova App ID - Registered October 15, 2025
     const config_app_id = window.localStorage.getItem('config.app_id');
     const current_domain = getCurrentProductionDomain() || '';
     window.localStorage.removeItem('config.platform'); // Remove config stored in localstorage if there's any.
@@ -61,7 +61,7 @@ export const getAppId = () => {
     } else if (user_app_id.length) {
         if (/app\.github\.dev/i.test(window.location.hostname)) {
             app_id = 52759;
-        } else if (/DBtraders-sgi9\.vercel\.app/i.test(window.location.hostname)) {
+        } else if (/ENova-sgi9\.vercel\.app/i.test(window.location.hostname)) {
             app_id = 63233;
         } else {
             window.localStorage.setItem('config.default_app_id', user_app_id);
@@ -135,4 +135,21 @@ export const getDebugServiceWorker = () => {
     if (debug_service_worker_flag) return !!parseInt(debug_service_worker_flag);
 
     return false;
+};
+
+// ENova Affiliate Configuration
+export const affiliate_config = {
+    token: '13C3B5B6-FC89-43E0-9AE2-5A8A2ED1680A', // Deriv Affiliate Token
+    campaign: 'dynamicworks',
+    medium: 'affiliate',
+    source: 'CU100155',
+};
+
+// ENova App Configuration
+export const enova_config = {
+    app_id: '106913',
+    app_name: 'ENova',
+    markup_percentage: 2.5,
+    oauth_redirect_url: 'http://localhost:3001/oauth/callback',
+    verification_url: 'http://localhost:3001/verify-email',
 };

@@ -26,7 +26,7 @@ const ChartModalDesktop = observer(() => {
     }, []);
 
     const modalWidth = 526;
-    const modalHeight = 524;
+    const modalHeight = 924;
 
     const xAxisValue = (screenDimensions.width - modalWidth) / 2;
     const yAxisValue = (screenDimensions.height - modalHeight) / 2;

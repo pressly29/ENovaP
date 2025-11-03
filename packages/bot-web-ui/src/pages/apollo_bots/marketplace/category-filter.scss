@@ -1,0 +1,115 @@
+/**
+ * Category Filter Styles
+ * Pill-style filter buttons with color coding
+ */
+
+.bot-category-filter {
+    width: 98%;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: var(--general-section-1);
+    border-radius: 12px;
+    border: 1px solid var(--general-section-2);
+
+    &__label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-prominent);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: var(--general-section-2);
+        border: 2px solid transparent;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-prominent);
+        white-space: nowrap;
+
+        /* Hover effect */
+        &:hover:not(&--active) {
+            background: var(--general-section-3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Active state (color applied via inline style) */
+        &--active {
+            font-weight: 600;
+            transform: translateY(-1px);
+
+            .bot-category-filter__icon {
+                transform: scale(1.15);
+            }
+
+            .bot-category-filter__text {
+                color: var(--text-prominent);
+            }
+        }
+
+        /* Disabled state */
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    }
+
+    &__icon {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    &__text {
+        transition: color 0.3s ease;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        padding: 12px 16px;
+
+        &__label {
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        &__filters {
+            gap: 6px;
+        }
+
+        &__button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        &__icon {
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        &__filters {
+            justify-content: center;
+        }
+
+        &__button {
+            flex: 0 0 auto;
+        }
+    }
+}

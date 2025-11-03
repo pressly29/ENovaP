@@ -7,6 +7,12 @@ const remoteConfigQuery = async function () {
     if (isProductionOrStaging && REMOTE_CONFIG_URL === '') {
         throw new Error('Remote Config URL is not set!');
     }
+    // In non-production/staging environments, if REMOTE_CONFIG_URL is not provided,
+    // fall back to the baked-in local JSON to avoid fetching the current HTML page.
+    if (!isProductionOrStaging && REMOTE_CONFIG_URL === '') {
+        return initData;
+    }
+
     const response = await fetch(REMOTE_CONFIG_URL);
     if (!response.ok) {
         throw new Error('Remote Config Server is out of reach!');

@@ -70,7 +70,7 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
                 requestSubscribe={wsSubscribe}
                 settings={settings}
                 symbol={symbol}
-                topWidgets={() => <ChartTitle onChange={onSymbolChange} />}
+                topWidgets={() => <ChartTitle />}
                 isConnectionOpened={is_socket_opened}
                 getMarketsOrder={getMarketsOrder}
                 isLive

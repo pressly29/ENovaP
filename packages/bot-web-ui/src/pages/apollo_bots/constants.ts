@@ -22,7 +22,7 @@ export const SIDEBAR_INTRO: TSidebarItem[] = [
         link: false,
     },
     {
-        label: localize('Welcome to DBtraders Bot!'),
+        label: localize('Welcome to ENova Bot!'),
         content: [
             {
                 data: localize(
@@ -35,14 +35,14 @@ export const SIDEBAR_INTRO: TSidebarItem[] = [
     },
     {
         label: localize('Guide'),
-        content: [{ data: localize('DBtraders Bot - your automated trading partner') }],
+        content: [{ data: localize('ENova Bot - your automated trading partner') }],
         link: true,
     },
     {
         label: localize('FAQs'),
         content: [
             {
-                data: localize('What is DBtraders Bot?'),
+                data: localize('What is ENova Bot?'),
                 faq_id: 'faq-0',
             },
             {

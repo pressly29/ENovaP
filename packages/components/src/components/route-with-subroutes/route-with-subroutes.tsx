@@ -91,7 +91,7 @@ const RouteWithSubRoutes = ({
         }
 
         const title = getTitle?.() || '';
-        document.title = `DBtraders`;
+        document.title = `ENova`;
 
         alternateLinkTagChange();
         canonicalLinkTagChange();

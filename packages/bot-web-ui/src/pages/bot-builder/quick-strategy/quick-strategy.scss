@@ -215,7 +215,7 @@
     &__form {
         &__container {
             min-height: 10rem;
-            // to overwrite the height of the ThemedScrollbar
+            /* to overwrite the height of the ThemedScrollbar */
             max-height: calc(100vh - 23rem) !important;
 
             @include desktop() {

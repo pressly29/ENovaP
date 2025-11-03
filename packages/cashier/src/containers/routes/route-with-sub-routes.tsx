@@ -45,7 +45,7 @@ const RouteWithSubRoutes = (route: TRouteWithSubRoutesProps) => {
         }
 
         const title = route.getTitle?.() || '';
-        document.title = `DBtraders`;
+        document.title = `ENova`;
 
         alternateLinkTagChange();
         canonicalLinkTagChange();

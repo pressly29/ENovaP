@@ -1,0 +1,183 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
+  <variables>
+    <variable type="" id="fib_stake_id" islocal="false" iscloud="false">fib_stake</variable>
+    <variable type="" id="fib_sequence_id" islocal="false" iscloud="false">fib_sequence</variable>
+    <variable type="" id="sequence_position_id" islocal="false" iscloud="false">sequence_position</variable>
+    <variable type="" id="recovery_mode_id" islocal="false" iscloud="false">recovery_mode</variable>
+    <variable type="" id="base_stake_id" islocal="false" iscloud="false">base_stake</variable>
+    <variable type="" id="total_loss_id" islocal="false" iscloud="false">total_loss</variable>
+  </variables>
+  <block type="trade_definition" id="fibonacci_recovery_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="fibonacci_recovery_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">callput</field>
+            <field name="TRADETYPE_LIST">risefall</field>
+            <next>
+              <block type="trade_definition_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set">
+        <field name="VAR" id="fib_stake_id">fib_stake</field>
+        <value name="VALUE">
+          <block type="math_number">
+            <field name="NUM">0.35</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set">
+            <field name="VAR" id="fib_sequence_id">fib_sequence</field>
+            <value name="VALUE">
+              <block type="lists_create_with">
+                <mutation items="8"></mutation>
+                <value name="ADD0">
+                  <block type="math_number">
+                    <field name="NUM">1</field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="math_number">
+                    <field name="NUM">1</field>
+                  </block>
+                </value>
+                <value name="ADD2">
+                  <block type="math_number">
+                    <field name="NUM">2</field>
+                  </block>
+                </value>
+                <value name="ADD3">
+                  <block type="math_number">
+                    <field name="NUM">3</field>
+                  </block>
+                </value>
+                <value name="ADD4">
+                  <block type="math_number">
+                    <field name="NUM">5</field>
+                  </block>
+                </value>
+                <value name="ADD5">
+                  <block type="math_number">
+                    <field name="NUM">8</field>
+                  </block>
+                </value>
+                <value name="ADD6">
+                  <block type="math_number">
+                    <field name="NUM">13</field>
+                  </block>
+                </value>
+                <value name="ADD7">
+                  <block type="math_number">
+                    <field name="NUM">21</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="sequence_position_id">sequence_position</field>
+                <value name="VALUE">
+                  <block type="math_number">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set">
+                    <field name="VAR" id="recovery_mode_id">recovery_mode</field>
+                    <value name="VALUE">
+                      <block type="logic_boolean">
+                        <field name="BOOL">FALSE</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set">
+                        <field name="VAR" id="base_stake_id">base_stake</field>
+                        <value name="VALUE">
+                          <block type="math_number">
+                            <field name="NUM">0.35</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set">
+                            <field name="VAR" id="total_loss_id">total_loss</field>
+                            <value name="VALUE">
+                              <block type="math_number">
+                                <field name="NUM">0</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions">
+        <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive">
+            <field name="NUM">0.35</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="during_purchase" x="720" y="0">
+    <statement name="DURING_PURCHASE_STACK">
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="check_sell"></block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="after_purchase" x="720" y="248">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="trade_again"></block>
+    </statement>
+  </block>
+  <block type="before_purchase" x="0" y="576">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase">
+        <field name="PURCHASE_LIST">CALL</field>
+      </block>
+    </statement>
+  </block>
+</xml>

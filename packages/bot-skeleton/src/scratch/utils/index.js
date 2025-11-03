@@ -76,7 +76,7 @@ const subPageValue = () => {
 };
 
 export const updateWorkspaceName = (active_tab) => {
-    document.title = 'DBtraders';
+    document.title = 'ENova';
     if (!DBotStore?.instance) return;
     const { load_modal } = DBotStore.instance;
     const file_name = load_modal?.dashboard_strategies?.[0]?.name ?? config.default_file_name;

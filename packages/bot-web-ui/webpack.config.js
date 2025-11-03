@@ -31,6 +31,24 @@ module.exports = function (env) {
         devServer: {
             publicPath: '/dist/',
             disableHostCheck: true,
+            hot: true,
+            liveReload: true,
+            // Watch the local @deriv/trader UMD build so edits in packages/trader trigger a full reload
+            watchFiles: [
+                path.resolve(__dirname, '../trader/dist/**/*.js'),
+                path.resolve(__dirname, '../trader/dist/**/*.css'),
+            ],
+            static: [
+                {
+                    directory: path.resolve(__dirname, 'node_modules/@deriv/components/lib/icon/sprites'),
+                    publicPath: '/public/sprites',
+                },
+                // Expose the local trader dist so the browser/devServer can serve any assets it references in dev
+                {
+                    directory: path.resolve(__dirname, '../trader/dist'),
+                    publicPath: '/trader',
+                },
+            ],
         },
         mode: IS_RELEASE ? 'production' : 'development',
         devtool: IS_RELEASE ? 'source-map' : 'eval-cheap-module-source-map',
@@ -99,7 +117,7 @@ module.exports = function (env) {
                 {
                     // @deriv/bot-skeleton also requires `.xml` import statements to be parsed by raw-loader
                     test: /\.xml$/,
-                    exclude: /node_modules/,
+                    exclude: /node_modules\/(?!@deriv)/,
                     use: 'raw-loader',
                 },
             ],
@@ -111,6 +129,13 @@ module.exports = function (env) {
                 Stores: path.resolve(__dirname, './src/stores'),
                 Utils: path.resolve(__dirname, './src/utils'),
                 Types: path.resolve(__dirname, 'src/types'),
+                // Always resolve @deriv/trader to the local UMD build in this monorepo for fast iteration
+                '@deriv/trader': path.resolve(__dirname, '../trader/dist/trader/js/trader.js'),
+                // Force singletons for core react libraries and router to avoid context duplication across packages
+                react: path.resolve(__dirname, '../../node_modules/react'),
+                'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
+                'react-router': path.resolve(__dirname, '../../node_modules/react-router'),
+                'react-router-dom': path.resolve(__dirname, '../../node_modules/react-router-dom'),
             },
             extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
@@ -139,7 +164,14 @@ module.exports = function (env) {
             }),
             new StyleLintPlugin({ fix: true }),
             new CopyWebpackPlugin({
-                patterns: [{ from: 'node_modules/@deriv/bot-skeleton/dist/media', to: 'bot/media' }],
+                patterns: [
+                    { from: 'node_modules/@deriv/bot-skeleton/dist/media', to: 'bot/media', noErrorOnMissing: true },
+                    { 
+                        from: 'node_modules/@deriv/components/lib/icon/sprites', 
+                        to: 'public/sprites',
+                        noErrorOnMissing: true 
+                    },
+                ],
             }),
             new SpriteLoaderPlugin(),
         ],
@@ -155,6 +187,8 @@ module.exports = function (env) {
                 mobx: 'mobx',
                 'mobx-react': 'mobx-react',
                 'react-dom': 'react-dom',
+                'react-router': 'react-router',
+                'react-router-dom': 'react-router-dom',
                 '@deriv/deriv-charts': '@deriv/deriv-charts',
                 '@deriv-com/analytics': `@deriv-com/analytics`,
             },
