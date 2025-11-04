@@ -25,9 +25,8 @@ jobs:
 
       - name: Bootstrap monorepo (lerna + nx)
         run: |
-          # Link local packages and bootstrap without hoisting/strict mode to avoid EHOISTSTRICT failures
-          npx lerna link || true
-          npx lerna bootstrap --ci
+          # Link local packages and bootstrap (not using --ci to allow lock file updates)
+          npx lerna bootstrap
 
       - name: Build dependent packages
         run: |
