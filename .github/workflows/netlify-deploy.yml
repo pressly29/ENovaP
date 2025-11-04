@@ -25,8 +25,9 @@ jobs:
 
       - name: Bootstrap monorepo (lerna + nx)
         run: |
-          # Link local packages and bootstrap (not using --ci to allow lock file updates)
-          npx lerna bootstrap
+          # Link local packages and bootstrap (force npm install instead of npm ci)
+          # Temporarily unset CI variable so lerna uses npm install which handles missing deps
+          CI=false npx lerna bootstrap
 
       - name: Build dependent packages
         run: |
