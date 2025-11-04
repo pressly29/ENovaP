@@ -70,6 +70,20 @@ const copyConfig = base => {
             toType: 'file',
         },
         { from: path.resolve(__dirname, '../src/root_files/custom404.html'), to: 'custom404.html', toType: 'file' },
+        // Netlify SPA routing: rewrite all routes to index.html
+        {
+            from: path.resolve(__dirname, '../src/root_files/_redirects'),
+            to: '_redirects',
+            toType: 'file',
+            noErrorOnMissing: true,
+        },
+        // Ensure Netlify uses our custom 404 page
+        {
+            from: path.resolve(__dirname, '../src/root_files/custom404.html'),
+            to: '404.html',
+            toType: 'file',
+            noErrorOnMissing: true,
+        },
         {
             from: path.resolve(__dirname, '../src/root_files/localstorage-sync.html'),
             to: 'localstorage-sync.html',
