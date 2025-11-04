@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import useSubscription from '../../../../../useSubscription';
 import { TSocketResponseData } from '../../../../../../types';
-import { useLocalStorage } from 'usehooks-ts';
+import { useLocalStorage } from '../../../../_internal/useLocalStorage';
 
 type TP2PSettings =
     | (TSocketResponseData<'p2p_settings'>['p2p_settings'] & {
