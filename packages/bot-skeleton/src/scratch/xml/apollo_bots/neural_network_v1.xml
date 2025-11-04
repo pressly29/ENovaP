@@ -140,8 +140,8 @@
   </block>
   <block type="before_purchase" x="0" y="576">
     <statement name="BEFOREPURCHASE_STACK">
-      <block type="purchase">
-        <field name="PURCHASE_LIST">DIGITSMATCH</field>
+      <block type="apollo_purchase">
+        <field name="PURCHASE_LIST">DIGITMATCH</field>
       </block>
     </statement>
   </block>

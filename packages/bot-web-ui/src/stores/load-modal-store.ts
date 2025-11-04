@@ -386,7 +386,7 @@ export default class LoadModalStore implements ILoadModalStore {
         } = this.root_store;
         //removed the dispose here so on switch of tab it does not
         //throw xml error
-        if (active_tab === 1 || active_tab === 2 && !this.is_load_modal_open) {
+        if (active_tab === 1 || (active_tab === 2 && !this.is_load_modal_open)) {
             this.recent_workspace = null;
             this.setLoadedLocalFile(null);
         }
@@ -408,7 +408,7 @@ export default class LoadModalStore implements ILoadModalStore {
         }
         if (!this.recent_workspace?.rendered) {
             this.recent_workspace = Blockly.inject(ref, {
-                media: `${__webpack_public_path__}media/`,
+                media: 'https://blockly-demo.appspot.com/static/media/',
                 zoom: {
                     wheel: true,
                     startScale: config.workspaces.previewWorkspaceStartScale,
@@ -506,7 +506,7 @@ export default class LoadModalStore implements ILoadModalStore {
             const ref = document.getElementById('load-strategy__blockly-container');
             if (is_preview && ref) {
                 this.local_workspace = Blockly.inject(ref, {
-                    media: `${__webpack_public_path__}media/`, // eslint-disable-line
+                    media: 'https://blockly-demo.appspot.com/static/media/', // eslint-disable-line
                     zoom: {
                         wheel: false,
                         startScale: config.workspaces.previewWorkspaceStartScale,

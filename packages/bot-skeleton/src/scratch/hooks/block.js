@@ -108,7 +108,7 @@ Blockly.Block.getDimensions = function (block_node) {
         return Blockly.Block.Dimensions[existing_dimensions_key];
     }
 
-    const options = new Blockly.Options({ media: `${__webpack_public_path__}media/` });
+    const options = new Blockly.Options({ media: 'https://blockly-demo.appspot.com/static/media/' });
     const el_injection_div = document.createElement('div');
 
     // Create a headless workspace to calculate xmlList block dimensions

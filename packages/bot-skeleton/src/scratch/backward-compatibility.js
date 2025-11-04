@@ -13,6 +13,11 @@ export default class BlockConversion {
     }
 
     getConversions() {
+        const isLegacyAddInputs = block_node =>
+            Array.from(block_node.children).some(
+                child => child.tagName.toLowerCase() === 'value' && /^ADD\d+$/i.test(child.getAttribute('name') || '')
+            );
+
         const generateGrowingListBlock = (block_node, block_type, variable_name, child_value_input_name) => {
             const block = this.workspace.newBlock(block_type);
             const block_child_nodes = Array.from(block_node.children);
@@ -211,8 +216,11 @@ export default class BlockConversion {
             bba: block_node => generateIndicatorBlock(block_node, 'bba_statement', 'bba'),
             ema: block_node => generateIndicatorBlock(block_node, 'ema_statement', 'ema'),
             emaa: block_node => generateIndicatorBlock(block_node, 'emaa_statement', 'emaa'),
+            // Only convert legacy list blocks that use ADD* value inputs; otherwise, let modern DBot blocks load as-is.
             lists_create_with: block_node =>
-                generateGrowingListBlock(block_node, 'lists_create_with', localize('list'), 'VALUE'),
+                isLegacyAddInputs(block_node)
+                    ? generateGrowingListBlock(block_node, 'lists_create_with', localize('list'), 'VALUE')
+                    : false,
             macda: block_node => generateIndicatorBlock(block_node, 'macda_statement', 'macda'),
             market: block_node => {
                 this.has_market_block = true;
@@ -222,7 +230,11 @@ export default class BlockConversion {
             rsia: block_node => generateIndicatorBlock(block_node, 'rsia_statement', 'rsia'),
             sma: block_node => generateIndicatorBlock(block_node, 'sma_statement', 'sma'),
             smaa: block_node => generateIndicatorBlock(block_node, 'smaa_statement', 'smaa'),
-            text_join: block_node => generateGrowingListBlock(block_node, 'text_join', localize('text'), 'TEXT'),
+            // Only convert legacy text_join that used ADD* inputs; modern DBot text_join uses a STACK of text_statement
+            text_join: block_node =>
+                isLegacyAddInputs(block_node)
+                    ? generateGrowingListBlock(block_node, 'text_join', localize('text'), 'TEXT')
+                    : false,
             trade: block_node => {
                 const block = this.workspace.newBlock('trade_definition');
                 const block_fields = {
@@ -284,7 +296,7 @@ export default class BlockConversion {
 
     // eslint-disable-next-line class-methods-use-this
     createWorkspace() {
-        const options = new Blockly.Options({ media: `${__webpack_public_path__}media/` });
+        const options = new Blockly.Options({ media: 'https://blockly-demo.appspot.com/static/media/' });
         const el_injection_div = new DocumentFragment();
         const workspace = Blockly.createVirtualWorkspace_(el_injection_div, options, false, false);
 
@@ -339,11 +351,11 @@ export default class BlockConversion {
             const el_field = xml.querySelector(`field[name="${field_name}"]`);
 
             if (el_field) {
-                const value = el_field.innerText;
+                const value = el_field.textContent || '';
 
                 Object.keys(renamed_fields[field_name]).forEach(old_name => {
                     if (value === old_name) {
-                        el_field.innerText = renamed_fields[field_name][old_name];
+                        el_field.textContent = renamed_fields[field_name][old_name];
                     }
                 });
             }
@@ -395,11 +407,8 @@ export default class BlockConversion {
         // We only want to update renamed fields for modern strategies.
         const xml = this.updateRenamedFields(strategy_node);
 
-        // Don't convert already compatible strategies.
-        if (strategy_node.hasAttribute('is_dbot') && strategy_node.getAttribute('is_dbot') === 'true') {
-            Blockly.Events.enable();
-            return xml;
-        }
+        // For DBot strategies, still run a light compatibility pass (e.g., legacy list/text shapes),
+        // but skip the hard rejection for illegal legacy blocks if not applicable.
 
         const has_illegal_block = this.getIllegalBlocks().some(illegal_block_type => {
             if (!this.exception_blocks.includes(illegal_block_type)) {
@@ -528,7 +537,10 @@ export default class BlockConversion {
     convertBlockNode(el_block, parent_block = null) {
         const conversions = this.getConversions();
         const block_type = el_block.getAttribute('type');
-        const is_old_block = Object.keys(conversions).includes(block_type);
+        // Treat as legacy only when a conversion exists AND it applies (converter returns a truthy object)
+        const has_converter = Object.prototype.hasOwnProperty.call(conversions, block_type);
+        const tentative_conversion = has_converter ? conversions[block_type](el_block) : false;
+        const is_old_block = !!tentative_conversion;
         let block = null;
 
         const is_collapsed = el_block.getAttribute('collapsed') && el_block.getAttribute('collapsed') === 'true';
@@ -544,7 +556,7 @@ export default class BlockConversion {
         };
 
         if (is_old_block) {
-            const conversion_obj = conversions[block_type](el_block);
+            const conversion_obj = tentative_conversion;
 
             // block is a value block that needs to be reattached. TODO?
             if (conversion_obj.block_to_attach) {
@@ -615,7 +627,7 @@ export default class BlockConversion {
                     if (field) {
                         if (field instanceof Blockly.FieldVariable) {
                             const variable_id = el_block_child.getAttribute('id');
-                            const variable_name = el_block_child.innerText.trim();
+                            const variable_name = (el_block_child.textContent || '').trim();
                             const variable = Blockly.Variables.getOrCreateVariablePackage(
                                 this.workspace,
                                 variable_id,
@@ -625,7 +637,7 @@ export default class BlockConversion {
                             this.workspace_variables[variable.id_] = variable_name;
                             field.setValue(variable.id_);
                         } else {
-                            field.setValue(el_block_child.innerText);
+                            field.setValue(el_block_child.textContent || '');
                         }
                     }
                     break;
@@ -655,7 +667,7 @@ export default class BlockConversion {
                 }
                 case 'comment': {
                     const is_minimised = el_block_child.getAttribute('pinned') !== 'true';
-                    const comment_text = el_block_child.innerText;
+                    const comment_text = el_block_child.textContent || '';
 
                     block.comment = new Blockly.ScratchBlockComment(block, comment_text, null, 0, 0, is_minimised);
                     block.comment.iconXY_ = { x: 0, y: 0 };

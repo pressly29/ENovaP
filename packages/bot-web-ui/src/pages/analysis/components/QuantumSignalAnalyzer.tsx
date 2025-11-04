@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { observer, useStore } from '@deriv/stores';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api_base4 } from '@deriv/bot-skeleton';
+import { observer, useStore } from '@deriv/stores';
 import './QuantumSignalAnalyzer.css';
 
 interface SymbolData {
@@ -50,28 +50,30 @@ const QuantumSignalAnalyzer = observer(() => {
     const [active_symbol, setActiveSymbol] = useState('R_100');
     const [prev_symbol, setPrevSymbol] = useState('R_100');
     const [pip_size, setPipSize] = useState(2);
-    
+
     // Market Data
     const [currentTick, setCurrentTick] = useState<number | string>('--');
     const [lastDigit, setLastDigit] = useState(0);
     const [tickHistory, setTickHistory] = useState<number[]>([]);
-    
+
     // UI State
-    const [selectedStrategy, setSelectedStrategy] = useState<'all' | 'even-odd' | 'rise-fall' | 'over-under' | 'matches-differs'>('all');
+    const [selectedStrategy, setSelectedStrategy] = useState<
+        'all' | 'even-odd' | 'rise-fall' | 'over-under' | 'matches-differs'
+    >('all');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisComplete, setAnalysisComplete] = useState(false);
     const [signals, setSignals] = useState<SignalData[]>([]);
     const [consoleMessages, setConsoleMessages] = useState<string[]>([]);
-    
+
     // Bot Settings
     const [autoTradeEnabled, setAutoTradeEnabled] = useState(false);
     const [analysisDepth, setAnalysisDepth] = useState(100); // Number of ticks to analyze
-    
+
     // Intelligent confidence threshold - automatically adjusted based on market conditions
     const calculateDynamicConfidence = (dataSize: number, volatility: number): number => {
         // SOLUTION: Start with lower threshold that guarantees signals
         let baseConfidence = 55; // Start at 55% to ensure we get signals
-        
+
         // Adjust based on data size (more data = can be more selective)
         if (dataSize >= 300) {
             baseConfidence = 60; // With lots of data, can afford to be selective
@@ -82,7 +84,7 @@ const QuantumSignalAnalyzer = observer(() => {
         } else if (dataSize < 100) {
             baseConfidence = 50; // Limited data = lower threshold to get any signals
         }
-        
+
         // Adjust based on volatility (higher volatility needs higher confidence)
         if (volatility > 0.8) {
             baseConfidence += 8; // Very volatile = need strong signals (58-68%)
@@ -92,7 +94,7 @@ const QuantumSignalAnalyzer = observer(() => {
             baseConfidence += 2; // Normal volatility (57-62%)
         }
         // Low volatility (< 0.4) keeps base threshold
-        
+
         // SAFETY: Never exceed 68% to ensure signals are always possible
         return Math.min(baseConfidence, 68);
     };
@@ -102,7 +104,7 @@ const QuantumSignalAnalyzer = observer(() => {
         { value: 'even-odd', label: 'Even/Odd Analysis' },
         { value: 'rise-fall', label: 'Rise/Fall Patterns' },
         { value: 'over-under', label: 'Over/Under Prediction' },
-        { value: 'matches-differs', label: 'Matches & Differs' }
+        { value: 'matches-differs', label: 'Matches & Differs' },
     ];
 
     // Utility Functions
@@ -119,6 +121,42 @@ const QuantumSignalAnalyzer = observer(() => {
     const addConsoleMessage = (message: string) => {
         setConsoleMessages(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
     };
+
+    // Auto-scroll console to bottom on new messages
+    const consoleRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (consoleRef.current) {
+            consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+        }
+    }, [consoleMessages, isAnalyzing]);
+
+    // Mini sparkline (ticks) and digit bars (last 50 digits) data
+    const sparkline = useMemo(() => {
+        const data = tickHistory.slice(-50);
+        if (data.length < 2) return { points: '', min: 0, max: 0 };
+        const w = 220;
+        const h = 48;
+        const pad = 4;
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const range = max - min || 1;
+        const points = data
+            .map((v, i) => {
+                const x = pad + (i * (w - pad * 2)) / (data.length - 1);
+                const y = h - pad - ((v - min) / range) * (h - pad * 2);
+                return `${x},${y}`;
+            })
+            .join(' ');
+        return { points, min, max };
+    }, [tickHistory]);
+
+    const miniDigitBars = useMemo(() => {
+        const lastDigits = tickHistory.slice(-50).map(t => getLastDigits(t, pip_size));
+        const counts = Array(10).fill(0);
+        lastDigits.forEach(d => counts[d]++);
+        const max = Math.max(1, ...counts);
+        return { counts, max };
+    }, [tickHistory, pip_size]);
 
     // Initialize API
     useEffect(() => {
@@ -154,7 +192,7 @@ const QuantumSignalAnalyzer = observer(() => {
     const startApi = async () => {
         await sleep(3000);
         addConsoleMessage('Initializing Quantum Signal Analyzer...');
-        
+
         if (!isSubscribed) {
             api_base4.api.send({
                 active_symbols: 'brief',
@@ -184,14 +222,14 @@ const QuantumSignalAnalyzer = observer(() => {
                     setPipSize(pip_size);
                     const { prices } = history;
                     const { ticks_history } = data.echo_req;
-                    
+
                     setTickHistory(prices.slice(-analysisDepth));
                     setActiveSymbol(ticks_history);
                     setIsConnected(true);
-                    
+
                     addConsoleMessage(`Connected to ${ticks_history}`);
                     addConsoleMessage(`Loaded ${prices.length} historical ticks`);
-                    
+
                     api_base4.api.send({
                         ticks: ticks_history,
                         subscribe: 1,
@@ -202,7 +240,7 @@ const QuantumSignalAnalyzer = observer(() => {
                     const { active_symbols }: ActiveSymbolTypes = data;
                     const filteredSymbols = active_symbols.filter(symbol => symbol.subgroup === 'synthetics');
                     filteredSymbols.sort((a, b) => a.display_order - b.display_order);
-                    
+
                     api_base4.api.send({
                         ticks_history: filteredSymbols[0].symbol,
                         adjust_start_time: 1,
@@ -211,7 +249,7 @@ const QuantumSignalAnalyzer = observer(() => {
                         start: 1,
                         style: 'ticks',
                     });
-                    
+
                     setOptions(filteredSymbols);
                     addConsoleMessage('Market symbols loaded');
                 }
@@ -226,21 +264,21 @@ const QuantumSignalAnalyzer = observer(() => {
         const lastDigits = ticks.map(tick => getLastDigits(tick, pip_size));
         const evenCount = lastDigits.filter(d => d % 2 === 0).length;
         const oddCount = lastDigits.length - evenCount;
-        
+
         const evenPercentage = (evenCount / lastDigits.length) * 100;
         const oddPercentage = (oddCount / lastDigits.length) * 100;
-        
+
         // Analyze recent trend (last 20 ticks for better accuracy)
         const recentDigits = lastDigits.slice(-20);
         const recentEven = recentDigits.filter(d => d % 2 === 0).length;
         const recentTrend = recentEven / 20;
-        
+
         // Pattern detection: check for streaks
         let longestEvenStreak = 0;
         let longestOddStreak = 0;
         let currentStreak = 1;
         let lastType = lastDigits[0] % 2 === 0 ? 'EVEN' : 'ODD';
-        
+
         for (let i = 1; i < lastDigits.length; i++) {
             const currentType = lastDigits[i] % 2 === 0 ? 'EVEN' : 'ODD';
             if (currentType === lastType) {
@@ -252,15 +290,15 @@ const QuantumSignalAnalyzer = observer(() => {
                 lastType = currentType;
             }
         }
-        
+
         // Counter-trend strategy with streak consideration
         let prediction: 'EVEN' | 'ODD';
         // IMPROVED: Start with higher base confidence (2.5x multiplier)
         let baseConfidence = Math.abs(evenPercentage - 50) * 2.5;
-        
+
         // GUARANTEE: Always start with minimum 55% confidence
         if (baseConfidence < 55) baseConfidence = 55;
-        
+
         // If there's a strong recent trend, bet against it
         if (recentTrend > 0.65) {
             prediction = 'ODD';
@@ -273,24 +311,26 @@ const QuantumSignalAnalyzer = observer(() => {
             prediction = evenPercentage > oddPercentage ? 'ODD' : 'EVEN';
             baseConfidence += 15; // Boost even neutral signals
         }
-        
+
         // Boost confidence if opposite streak is longer (regression to mean)
         if (prediction === 'EVEN' && longestOddStreak > longestEvenStreak) {
             baseConfidence += 12; // Increased from 10
         } else if (prediction === 'ODD' && longestEvenStreak > longestOddStreak) {
             baseConfidence += 12; // Increased from 10
         }
-        
+
         // Additional boost if there's ANY imbalance
         const imbalance = Math.abs(evenCount - oddCount);
         if (imbalance > 5) {
             baseConfidence += Math.min(imbalance, 15); // Up to +15%
         }
-        
+
         return {
             type: prediction,
             confidence: Math.min(baseConfidence, 95), // Increased cap from 92
-            pattern: `E:${evenCount} O:${oddCount} | Recent: ${recentEven}/20 E | Trend: ${(recentTrend * 100).toFixed(0)}%`
+            pattern: `E:${evenCount} O:${oddCount} | Recent: ${recentEven}/20 E | Trend: ${(recentTrend * 100).toFixed(
+                0
+            )}%`,
         };
     };
 
@@ -299,23 +339,23 @@ const QuantumSignalAnalyzer = observer(() => {
         for (let i = 1; i < ticks.length; i++) {
             changes.push(ticks[i] > ticks[i - 1] ? 'R' : 'F');
         }
-        
+
         const riseCount = changes.filter(c => c === 'R').length;
         const fallCount = changes.length - riseCount;
         const risePercentage = (riseCount / changes.length) * 100;
-        
+
         // Enhanced recent trend analysis (last 15 movements)
         const recentChanges = changes.slice(-15);
         const recentRise = recentChanges.filter(c => c === 'R').length;
         const recentTrend = recentRise / 15;
-        
+
         // Momentum detection: check last 5 vs previous 10
         const last5 = changes.slice(-5);
         const prev10 = changes.slice(-15, -5);
         const last5Rise = last5.filter(c => c === 'R').length / 5;
         const prev10Rise = prev10.filter(c => c === 'R').length / 10;
         const momentum = last5Rise - prev10Rise;
-        
+
         // Streak analysis
         let currentStreak = 1;
         let maxStreak = 1;
@@ -323,15 +363,15 @@ const QuantumSignalAnalyzer = observer(() => {
             currentStreak++;
         }
         maxStreak = currentStreak;
-        
+
         // Smart prediction with momentum consideration
         let prediction: 'RISE' | 'FALL';
         // IMPROVED: Higher base confidence multiplier (2.5x)
         let baseConfidence = Math.abs(risePercentage - 50) * 2.5;
-        
+
         // GUARANTEE: Always start with minimum 55% confidence
         if (baseConfidence < 55) baseConfidence = 55;
-        
+
         // Strong recent trend - bet against it (mean reversion)
         if (recentTrend > 0.65) {
             prediction = 'FALL';
@@ -343,114 +383,116 @@ const QuantumSignalAnalyzer = observer(() => {
             prediction = risePercentage > 50 ? 'FALL' : 'RISE';
             baseConfidence += 12; // Boost neutral signals
         }
-        
+
         // Boost confidence if momentum is slowing (reversal signal)
         if (prediction === 'FALL' && momentum < -0.2) baseConfidence += 15; // Increased from 12
         if (prediction === 'RISE' && momentum > 0.2) baseConfidence += 15; // Increased from 12
-        
+
         // Streak exhaustion - long streaks tend to reverse
         if (maxStreak >= 4) {
             const streakType = changes[changes.length - 1];
-            if ((prediction === 'FALL' && streakType === 'R') || 
-                (prediction === 'RISE' && streakType === 'F')) {
+            if ((prediction === 'FALL' && streakType === 'R') || (prediction === 'RISE' && streakType === 'F')) {
                 baseConfidence += 12; // Increased from 8
             }
         }
-        
+
         // Additional boost for any significant imbalance
         const imbalance = Math.abs(riseCount - fallCount);
         if (imbalance > 5) {
             baseConfidence += Math.min(imbalance * 0.5, 12); // Up to +12%
         }
-        
+
         return {
             type: prediction,
             confidence: Math.min(baseConfidence, 94), // Increased cap from 90
-            pattern: `R:${riseCount} F:${fallCount} | Recent: ${recentRise}/15 R | Momentum: ${(momentum * 100).toFixed(0)}%`
+            pattern: `R:${riseCount} F:${fallCount} | Recent: ${recentRise}/15 R | Momentum: ${(momentum * 100).toFixed(
+                0
+            )}%`,
         };
     };
 
     const analyzeOverUnder = (ticks: number[]): { type: 'OVER' | 'UNDER'; confidence: number; pattern: string } => {
         const lastDigits = ticks.map(tick => getLastDigits(tick, pip_size));
         const threshold = 5;
-        
+
         const overCount = lastDigits.filter(d => d > threshold).length;
         const underCount = lastDigits.filter(d => d < threshold).length;
         const equalCount = lastDigits.filter(d => d === threshold).length;
-        
+
         const overPercentage = (overCount / lastDigits.length) * 100;
         const underPercentage = (underCount / lastDigits.length) * 100;
-        
+
         // Counter-trend prediction
         const prediction = overPercentage > underPercentage ? 'UNDER' : 'OVER';
-        
+
         // IMPROVED: Higher confidence multiplier
         let confidence = Math.abs(overPercentage - underPercentage) * 2.5;
-        
+
         // GUARANTEE: Minimum 55% confidence
         if (confidence < 55) confidence = 55;
-        
+
         // Boost for strong imbalance
         const imbalance = Math.abs(overCount - underCount);
         if (imbalance > 10) {
             confidence += Math.min(imbalance * 0.6, 15);
         }
-        
+
         // Recent trend analysis
         const recent = lastDigits.slice(-15);
         const recentOver = recent.filter(d => d > threshold).length;
-        if ((prediction === 'UNDER' && recentOver > 10) || 
-            (prediction === 'OVER' && recentOver < 5)) {
+        if ((prediction === 'UNDER' && recentOver > 10) || (prediction === 'OVER' && recentOver < 5)) {
             confidence += 10; // Strong counter-trend signal
         }
-        
+
         return {
             type: prediction,
             confidence: Math.min(confidence, 93),
-            pattern: `Over(5):${overCount} Under(5):${underCount} Equal:${equalCount}`
+            pattern: `Over(5):${overCount} Under(5):${underCount} Equal:${equalCount}`,
         };
     };
 
-    const analyzeMatchesDiffers = (ticks: number[]): { type: 'MATCHES' | 'DIFFERS'; digit: number; confidence: number; pattern: string } => {
+    const analyzeMatchesDiffers = (
+        ticks: number[]
+    ): { type: 'MATCHES' | 'DIFFERS'; digit: number; confidence: number; pattern: string } => {
         const lastDigits = ticks.map(tick => getLastDigits(tick, pip_size));
         const digitCounts = Array(10).fill(0);
-        
+
         lastDigits.forEach(digit => {
             digitCounts[digit]++;
         });
-        
+
         const mostFrequent = digitCounts.indexOf(Math.max(...digitCounts));
         const leastFrequent = digitCounts.indexOf(Math.min(...digitCounts));
         const maxCount = Math.max(...digitCounts);
         const minCount = Math.min(...digitCounts);
-        
+
         const currentDigit = lastDigits[lastDigits.length - 1];
         const prediction = currentDigit === mostFrequent ? 'DIFFERS' : 'MATCHES';
         const targetDigit = prediction === 'MATCHES' ? mostFrequent : leastFrequent;
-        
+
         // IMPROVED: Higher multiplier and guaranteed minimum
         let confidence = (maxCount / lastDigits.length) * 100 * 2.0;
-        
+
         // GUARANTEE: Minimum 55% confidence
         if (confidence < 55) confidence = 55;
-        
+
         // Boost based on distribution spread
         const spread = maxCount - minCount;
         if (spread > 5) {
             confidence += Math.min(spread * 0.8, 15);
         }
-        
+
         // Boost if target digit has clear dominance
         const dominance = (digitCounts[targetDigit] / lastDigits.length) * 100;
         if (dominance > 15) {
             confidence += 10;
         }
-        
+
         return {
             type: prediction,
             digit: targetDigit,
             confidence: Math.min(confidence, 92),
-            pattern: `Target: ${targetDigit} | Freq: ${digitCounts[targetDigit]} (${dominance.toFixed(1)}%)`
+            pattern: `Target: ${targetDigit} | Freq: ${digitCounts[targetDigit]} (${dominance.toFixed(1)}%)`,
         };
     };
 
@@ -463,7 +505,7 @@ const QuantumSignalAnalyzer = observer(() => {
         setIsAnalyzing(true);
         setAnalysisComplete(false);
         setSignals([]);
-        
+
         addConsoleMessage('🔍 Starting quantum analysis...');
         addConsoleMessage(`Analyzing ${tickHistory.length} ticks for ${active_symbol}`);
 
@@ -476,15 +518,15 @@ const QuantumSignalAnalyzer = observer(() => {
                 const maxChange = Math.max(...changes);
                 volatility = maxChange > 0 ? avgChange / maxChange : 0;
             }
-            
+
             // Calculate intelligent confidence threshold
             const dynamicConfidence = calculateDynamicConfidence(tickHistory.length, volatility);
             addConsoleMessage(`📊 Dynamic confidence threshold: ${dynamicConfidence.toFixed(1)}%`);
             addConsoleMessage(`📈 Market volatility: ${(volatility * 100).toFixed(1)}%`);
-            
+
             const newSignals: SignalData[] = [];
             const currentSymbol = optionsList.find(s => s.symbol === active_symbol);
-            
+
             if (selectedStrategy === 'all' || selectedStrategy === 'even-odd') {
                 const eoAnalysis = analyzeEvenOdd(tickHistory);
                 if (eoAnalysis.confidence >= dynamicConfidence) {
@@ -494,16 +536,17 @@ const QuantumSignalAnalyzer = observer(() => {
                         symbol: active_symbol,
                         lastTick: currentTick.toString(),
                         lastDigit,
-                        signal: eoAnalysis.confidence > 80 ? 'STRONG' : eoAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
+                        signal:
+                            eoAnalysis.confidence > 80 ? 'STRONG' : eoAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
                         confidence: eoAnalysis.confidence,
                         recommendation: `BUY ${eoAnalysis.type}`,
                         prediction: eoAnalysis.type,
                         pattern: eoAnalysis.pattern,
-                        timestamp: new Date().toLocaleTimeString()
+                        timestamp: new Date().toLocaleTimeString(),
                     });
                 }
             }
-            
+
             if (selectedStrategy === 'all' || selectedStrategy === 'rise-fall') {
                 const rfAnalysis = analyzeRiseFall(tickHistory);
                 if (rfAnalysis.confidence >= dynamicConfidence) {
@@ -513,16 +556,17 @@ const QuantumSignalAnalyzer = observer(() => {
                         symbol: active_symbol,
                         lastTick: currentTick.toString(),
                         lastDigit,
-                        signal: rfAnalysis.confidence > 80 ? 'STRONG' : rfAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
+                        signal:
+                            rfAnalysis.confidence > 80 ? 'STRONG' : rfAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
                         confidence: rfAnalysis.confidence,
                         recommendation: `BUY ${rfAnalysis.type}`,
                         prediction: rfAnalysis.type,
                         pattern: rfAnalysis.pattern,
-                        timestamp: new Date().toLocaleTimeString()
+                        timestamp: new Date().toLocaleTimeString(),
                     });
                 }
             }
-            
+
             if (selectedStrategy === 'all' || selectedStrategy === 'over-under') {
                 const ouAnalysis = analyzeOverUnder(tickHistory);
                 if (ouAnalysis.confidence >= dynamicConfidence) {
@@ -532,16 +576,17 @@ const QuantumSignalAnalyzer = observer(() => {
                         symbol: active_symbol,
                         lastTick: currentTick.toString(),
                         lastDigit,
-                        signal: ouAnalysis.confidence > 80 ? 'STRONG' : ouAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
+                        signal:
+                            ouAnalysis.confidence > 80 ? 'STRONG' : ouAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
                         confidence: ouAnalysis.confidence,
                         recommendation: `BUY ${ouAnalysis.type} 5`,
                         prediction: ouAnalysis.type,
                         pattern: ouAnalysis.pattern,
-                        timestamp: new Date().toLocaleTimeString()
+                        timestamp: new Date().toLocaleTimeString(),
                     });
                 }
             }
-            
+
             if (selectedStrategy === 'all' || selectedStrategy === 'matches-differs') {
                 const mdAnalysis = analyzeMatchesDiffers(tickHistory);
                 if (mdAnalysis.confidence >= dynamicConfidence) {
@@ -551,20 +596,21 @@ const QuantumSignalAnalyzer = observer(() => {
                         symbol: active_symbol,
                         lastTick: currentTick.toString(),
                         lastDigit,
-                        signal: mdAnalysis.confidence > 80 ? 'STRONG' : mdAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
+                        signal:
+                            mdAnalysis.confidence > 80 ? 'STRONG' : mdAnalysis.confidence > 60 ? 'MODERATE' : 'WEAK',
                         confidence: mdAnalysis.confidence,
                         recommendation: `BUY ${mdAnalysis.type} ${mdAnalysis.digit}`,
                         prediction: `${mdAnalysis.type} ${mdAnalysis.digit}`,
                         pattern: mdAnalysis.pattern,
-                        timestamp: new Date().toLocaleTimeString()
+                        timestamp: new Date().toLocaleTimeString(),
                     });
                 }
             }
-            
+
             setSignals(newSignals);
             setIsAnalyzing(false);
             setAnalysisComplete(true);
-            
+
             if (newSignals.length === 0) {
                 addConsoleMessage('⚠️ No high-quality signals detected at this time');
                 addConsoleMessage('💡 Try analyzing again in a few moments for better opportunities');
@@ -578,53 +624,57 @@ const QuantumSignalAnalyzer = observer(() => {
     };
 
     return (
-        <div className="quantum-signal-analyzer">
+        <div className='quantum-signal-analyzer'>
             {/* Header with Connection Status */}
-            <div className="qsa-header">
-                <div className="qsa-title-section">
-                    <h2 className="qsa-title">⚛️ Quantum Signal Analyzer</h2>
-                    <span className="qsa-subtitle">AI-Powered Market Prediction Engine</span>
+            <div className='qsa-header'>
+                <div className='qsa-title-section'>
+                    <h2 className='qsa-title'>⚛️ Quantum Signal Analyzer</h2>
+                    <span className='qsa-subtitle'>AI-Powered Market Prediction Engine</span>
                 </div>
-                <div className="qsa-status-badges">
+                <div className='qsa-status-badges'>
                     <span className={`qsa-status-badge ${isConnected ? 'connected' : 'disconnected'}`}>
                         {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
                     </span>
-                    {isAnalyzing && <span className="qsa-status-badge analyzing">🔄 Analyzing</span>}
-                    {analysisComplete && <span className="qsa-status-badge complete">✅ Complete</span>}
+                    {isAnalyzing && <span className='qsa-status-badge analyzing'>🔄 Analyzing</span>}
+                    {analysisComplete && <span className='qsa-status-badge complete'>✅ Complete</span>}
                 </div>
             </div>
 
             {/* Market Info Card */}
-            <div className="qsa-market-info">
-                <div className="qsa-info-item">
-                    <span className="qsa-info-label">Current Market</span>
-                    <span className="qsa-info-value">{optionsList.find(s => s.symbol === active_symbol)?.display_name || active_symbol}</span>
+            <div className='qsa-market-info'>
+                <div className='qsa-info-item'>
+                    <span className='qsa-info-label'>Current Market</span>
+                    <span className='qsa-info-value'>
+                        {optionsList.find(s => s.symbol === active_symbol)?.display_name || active_symbol}
+                    </span>
                 </div>
-                <div className="qsa-info-item">
-                    <span className="qsa-info-label">Last Tick</span>
-                    <span className="qsa-info-value">{typeof currentTick === 'number' ? currentTick.toFixed(pip_size) : currentTick}</span>
+                <div className='qsa-info-item'>
+                    <span className='qsa-info-label'>Last Tick</span>
+                    <span className='qsa-info-value'>
+                        {typeof currentTick === 'number' ? currentTick.toFixed(pip_size) : currentTick}
+                    </span>
                 </div>
-                <div className="qsa-info-item">
-                    <span className="qsa-info-label">Last Digit</span>
-                    <span className="qsa-info-value qsa-digit-highlight">{lastDigit}</span>
+                <div className='qsa-info-item'>
+                    <span className='qsa-info-label'>Last Digit</span>
+                    <span className='qsa-info-value qsa-digit-highlight'>{lastDigit}</span>
                 </div>
-                <div className="qsa-info-item">
-                    <span className="qsa-info-label">Ticks Loaded</span>
-                    <span className="qsa-info-value">{tickHistory.length}</span>
+                <div className='qsa-info-item'>
+                    <span className='qsa-info-label'>Ticks Loaded</span>
+                    <span className='qsa-info-value'>{tickHistory.length}</span>
                 </div>
             </div>
 
             {/* Configuration Panel */}
-            <div className="qsa-config-panel">
-                <h3 className="qsa-section-title">Analysis Configuration</h3>
-                
-                <div className="qsa-config-grid">
-                    <div className="qsa-form-group">
+            <div className='qsa-config-panel'>
+                <h3 className='qsa-section-title'>Analysis Configuration</h3>
+
+                <div className='qsa-config-grid'>
+                    <div className='qsa-form-group'>
                         <label>Market Symbol</label>
-                        <select 
+                        <select
                             value={active_symbol}
-                            onChange={(e) => setActiveSymbol(e.target.value)}
-                            className="qsa-select"
+                            onChange={e => setActiveSymbol(e.target.value)}
+                            className='qsa-select'
                             disabled={isAnalyzing}
                         >
                             {optionsList.map(symbol => (
@@ -635,12 +685,12 @@ const QuantumSignalAnalyzer = observer(() => {
                         </select>
                     </div>
 
-                    <div className="qsa-form-group">
+                    <div className='qsa-form-group'>
                         <label>Analysis Strategy</label>
-                        <select 
+                        <select
                             value={selectedStrategy}
-                            onChange={(e) => setSelectedStrategy(e.target.value as any)}
-                            className="qsa-select"
+                            onChange={e => setSelectedStrategy(e.target.value as any)}
+                            className='qsa-select'
                             disabled={isAnalyzing}
                         >
                             {strategies.map(strategy => (
@@ -651,47 +701,47 @@ const QuantumSignalAnalyzer = observer(() => {
                         </select>
                     </div>
 
-                    <div className="qsa-form-group">
+                    <div className='qsa-form-group'>
                         <label>Analysis Depth (Ticks)</label>
                         <input
-                            type="number"
+                            type='number'
                             value={analysisDepth}
-                            onChange={(e) => setAnalysisDepth(Number(e.target.value))}
-                            className="qsa-input"
-                            min="50"
-                            max="500"
-                            step="10"
+                            onChange={e => setAnalysisDepth(Number(e.target.value))}
+                            className='qsa-input'
+                            min='50'
+                            max='500'
+                            step='10'
                             disabled={isAnalyzing}
                         />
                     </div>
 
-                    <div className="qsa-form-group">
+                    <div className='qsa-form-group'>
                         <label>Intelligence Mode</label>
-                        <div className="qsa-intelligence-badge">
-                            <span className="qsa-badge-icon">🧠</span>
-                            <span className="qsa-badge-text">Auto-Optimized</span>
+                        <div className='qsa-intelligence-badge'>
+                            <span className='qsa-badge-icon'>🧠</span>
+                            <span className='qsa-badge-text'>Auto-Optimized</span>
                         </div>
-                        <p className="qsa-intelligence-desc">
+                        <p className='qsa-intelligence-desc'>
                             Confidence threshold automatically adjusted based on market conditions
                         </p>
                     </div>
                 </div>
 
-                <div className="qsa-action-row">
-                    <button 
-                        className="qsa-analyze-btn"
+                <div className='qsa-action-row'>
+                    <button
+                        className='qsa-analyze-btn'
                         onClick={handleAnalyze}
                         disabled={isAnalyzing || !isConnected || tickHistory.length < 50}
                     >
                         {isAnalyzing ? '🔄 Analyzing...' : '🚀 Generate Signals'}
                     </button>
-                    
-                    <div className="qsa-auto-trade-toggle">
-                        <label className="qsa-toggle-label">
+
+                    <div className='qsa-auto-trade-toggle'>
+                        <label className='qsa-toggle-label'>
                             <input
-                                type="checkbox"
+                                type='checkbox'
                                 checked={autoTradeEnabled}
-                                onChange={(e) => setAutoTradeEnabled(e.target.checked)}
+                                onChange={e => setAutoTradeEnabled(e.target.checked)}
                                 disabled={true} // Coming soon
                             />
                             <span>Auto-Trade Mode (Coming Soon)</span>
@@ -702,80 +752,100 @@ const QuantumSignalAnalyzer = observer(() => {
 
             {/* Console Messages */}
             {consoleMessages.length > 0 && (
-                <div className="qsa-console">
-                    <div className="qsa-console-header">
+                <div className='qsa-console'>
+                    <div className='qsa-console-header'>
                         <span>System Console</span>
-                        <button 
-                            className="qsa-console-clear"
-                            onClick={() => setConsoleMessages([])}
-                        >
+                        <button className='qsa-console-clear' onClick={() => setConsoleMessages([])}>
                             Clear
                         </button>
                     </div>
-                    <div className="qsa-console-messages">
+                    <div className='qsa-console-messages' ref={consoleRef}>
                         {consoleMessages.map((msg, idx) => (
-                            <div key={idx} className="qsa-console-line">{msg}</div>
+                            <div key={idx} className='qsa-console-line'>
+                                {msg}
+                            </div>
                         ))}
-                        {isAnalyzing && <div className="qsa-console-line qsa-console-blink">▮</div>}
+                        {isAnalyzing && <div className='qsa-console-line qsa-console-blink'>▮</div>}
                     </div>
                 </div>
             )}
 
             {/* Analysis Results */}
             {analysisComplete && signals.length > 0 && (
-                <div className="qsa-results">
-                    <h3 className="qsa-section-title">
-                        🎯 Trading Signals ({signals.length})
-                    </h3>
-                    <div className="qsa-results-grid">
+                <div className='qsa-results'>
+                    <h3 className='qsa-section-title'>🎯 Trading Signals ({signals.length})</h3>
+                    <div className='qsa-results-actions'>
+                        <button
+                            className='qsa-copy-btn'
+                            onClick={async () => {
+                                const text = signals
+                                    .map(
+                                        s =>
+                                            `${s.strategy} | ${s.recommendation} | ${s.confidence.toFixed(1)}% | ${
+                                                s.pattern
+                                            }`
+                                    )
+                                    .join('\n');
+                                try {
+                                    await navigator.clipboard.writeText(text);
+                                    addConsoleMessage('📋 Signals copied to clipboard');
+                                } catch {
+                                    addConsoleMessage('⚠️ Could not access clipboard');
+                                }
+                            }}
+                        >
+                            📋 Copy Signals
+                        </button>
+                    </div>
+                    <div className='qsa-results-grid'>
                         {signals.map((signal, index) => (
-                            <div key={index} className="qsa-result-card">
-                                <div className="qsa-card-header">
-                                    <span className="qsa-strategy-tag">{signal.strategy}</span>
+                            <div key={index} className='qsa-result-card'>
+                                <div className='qsa-card-header'>
+                                    <span className='qsa-strategy-tag'>{signal.strategy}</span>
                                     <span className={`qsa-signal-badge qsa-signal-${signal.signal.toLowerCase()}`}>
                                         {signal.signal}
                                     </span>
                                 </div>
-                                
-                                <div className="qsa-card-body">
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Market:</span>
-                                        <span className="qsa-result-value">{signal.market}</span>
+
+                                <div className='qsa-card-body'>
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Market:</span>
+                                        <span className='qsa-result-value'>{signal.market}</span>
                                     </div>
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Current Tick:</span>
-                                        <span className="qsa-result-value">{signal.lastTick}</span>
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Current Tick:</span>
+                                        <span className='qsa-result-value'>{signal.lastTick}</span>
                                     </div>
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Last Digit:</span>
-                                        <span className="qsa-result-value qsa-digit-highlight">{signal.lastDigit}</span>
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Last Digit:</span>
+                                        <span className='qsa-result-value qsa-digit-highlight'>{signal.lastDigit}</span>
                                     </div>
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Confidence:</span>
-                                        <span className="qsa-confidence-bar">
-                                            <div 
-                                                className="qsa-confidence-fill"
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Confidence:</span>
+                                        <span className='qsa-confidence-bar'>
+                                            <div
+                                                className='qsa-confidence-fill'
                                                 style={{ width: `${signal.confidence}%` }}
                                             />
-                                            <span className="qsa-confidence-text">{signal.confidence.toFixed(1)}%</span>
+                                            <span className='qsa-confidence-text'>{signal.confidence.toFixed(1)}%</span>
                                         </span>
                                     </div>
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Pattern:</span>
-                                        <span className="qsa-result-value qsa-pattern-text">{signal.pattern}</span>
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Pattern:</span>
+                                        <span className='qsa-result-value qsa-pattern-text'>{signal.pattern}</span>
                                     </div>
-                                    <div className="qsa-result-row qsa-recommendation-row">
-                                        <span className="qsa-result-label">📊 Signal:</span>
-                                        <span className="qsa-result-recommendation">{signal.recommendation}</span>
+                                    <div className='qsa-result-row qsa-recommendation-row'>
+                                        <span className='qsa-result-label'>📊 Signal:</span>
+                                        <span className='qsa-result-recommendation'>{signal.recommendation}</span>
                                     </div>
-                                    <div className="qsa-result-row">
-                                        <span className="qsa-result-label">Time:</span>
-                                        <span className="qsa-result-value">{signal.timestamp}</span>
+                                    <div className='qsa-result-row'>
+                                        <span className='qsa-result-label'>Time:</span>
+                                        <span className='qsa-result-value'>{signal.timestamp}</span>
                                     </div>
                                 </div>
-                                
-                                <div className="qsa-card-footer">
-                                    <button className="qsa-trade-btn" disabled>
+
+                                <div className='qsa-card-footer'>
+                                    <button className='qsa-trade-btn' disabled>
                                         🎯 Execute Trade (Coming Soon)
                                     </button>
                                 </div>
@@ -786,21 +856,55 @@ const QuantumSignalAnalyzer = observer(() => {
             )}
 
             {analysisComplete && signals.length === 0 && (
-                <div className="qsa-no-signals">
-                    <div className="qsa-no-signals-icon">📉</div>
+                <div className='qsa-no-signals'>
+                    <div className='qsa-no-signals-icon'>📉</div>
                     <h3>No High-Quality Signals Detected</h3>
                     <p>The AI didn&apos;t find any trading opportunities with sufficient confidence at this moment.</p>
-                    <p>💡 <strong>Tip:</strong> Market conditions are constantly changing. Try analyzing again in a few moments, or switch to a different market symbol for potentially better opportunities.</p>
+                    <p>
+                        💡 <strong>Tip:</strong> Market conditions are constantly changing. Try analyzing again in a few
+                        moments, or switch to a different market symbol for potentially better opportunities.
+                    </p>
                 </div>
             )}
 
             {/* Info Banner */}
-            <div className="qsa-info-banner">
-                <span className="qsa-info-icon">💡</span>
-                <span className="qsa-info-text">
-                    The Quantum Analyzer uses advanced pattern recognition to predict market movements. 
-                    Signals with <strong>STRONG</strong> confidence (80%+) have the highest success probability.
+            <div className='qsa-info-banner'>
+                <span className='qsa-info-icon'>💡</span>
+                <span className='qsa-info-text'>
+                    The Quantum Analyzer uses advanced pattern recognition to predict market movements. Signals with{' '}
+                    <strong>STRONG</strong> confidence (80%+) have the highest success probability.
                 </span>
+            </div>
+
+            {/* Live Mini Charts */}
+            <div className='qsa-mini-charts'>
+                <div className='qsa-mini-card'>
+                    <div className='qsa-mini-title'>Last 50 Ticks</div>
+                    <svg className='qsa-sparkline' viewBox='0 0 220 48' preserveAspectRatio='none'>
+                        <polyline points={sparkline.points} fill='none' stroke='#3b82f6' strokeWidth='2' />
+                        <polyline
+                            points={sparkline.points}
+                            fill='none'
+                            stroke='rgba(59,130,246,0.2)'
+                            strokeWidth='8'
+                            strokeLinejoin='round'
+                        />
+                    </svg>
+                </div>
+                <div className='qsa-mini-card'>
+                    <div className='qsa-mini-title'>Digit Distribution (50)</div>
+                    <div className='qsa-mini-bars'>
+                        {miniDigitBars.counts.map((c, d) => (
+                            <div key={d} className='qsa-mini-bar'>
+                                <div
+                                    className='qsa-mini-bar-fill'
+                                    style={{ height: `${(c / miniDigitBars.max) * 100 || 0}%` }}
+                                />
+                                <div className='qsa-mini-bar-label'>{d}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );

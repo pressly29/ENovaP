@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { observer, useStore } from '@deriv/stores';
+import React, { useEffect, useState } from 'react';
 import { api_base4 } from '@deriv/bot-skeleton';
-import { DerivSignalGenerator } from './components';
+import { observer, useStore } from '@deriv/stores';
+import { DerivSignalGenerator, TechnicalIndicators } from './components';
 import './signals-hub.css';
 
 // Types
@@ -41,13 +41,19 @@ const SignalsHub = observer(() => {
     // Market Data
     const [allTicksList, setAllTicksList] = useState<number[]>([]);
     const [currentPrice, setCurrentPrice] = useState<string>('--');
+    const [currentTick, setCurrentTick] = useState<number | string>('--');
+    const [lastDigit, setLastDigit] = useState<number>(0);
 
     // Pattern Analysis State
     const [evenCount, setEvenCount] = useState(0);
     const [oddCount, setOddCount] = useState(0);
+    const [riseCount, setRiseCount] = useState(0);
+    const [fallCount, setFallCount] = useState(0);
 
     // UI State
-    const [selectedView, setSelectedView] = useState<'overview' | 'patterns' | 'deriv-signals' | 'history'>('deriv-signals');
+    const [selectedView, setSelectedView] = useState<
+        'overview' | 'patterns' | 'deriv-signals' | 'indicators' | 'history'
+    >('deriv-signals');
     const [consoleMessages, setConsoleMessages] = useState<string[]>([]);
 
     // Utility Functions
@@ -89,7 +95,7 @@ const SignalsHub = observer(() => {
     useEffect(() => {
         if (prev_symbol !== active_symbol && isConnected) {
             addConsoleMessage(`Switching to ${active_symbol}...`);
-            
+
             // Clear all market data when switching symbols
             setAllTicksList([]);
             setCurrentTick('--');
@@ -99,7 +105,7 @@ const SignalsHub = observer(() => {
             setOddCount(0);
             setRiseCount(0);
             setFallCount(0);
-            
+
             api_base4.api.send({
                 forget_all: 'ticks',
             });
@@ -167,7 +173,7 @@ const SignalsHub = observer(() => {
                     filteredSymbols.sort((a, b) => a.display_order - b.display_order);
                     setOptions(filteredSymbols);
                     addConsoleMessage(`Loaded ${filteredSymbols.length} synthetic markets`);
-                    
+
                     if (filteredSymbols.length > 0) {
                         api_base4.api.send({
                             ticks_history: filteredSymbols[0].symbol,
@@ -189,29 +195,29 @@ const SignalsHub = observer(() => {
     const oddPercentage = totalPatterns > 0 ? ((oddCount / totalPatterns) * 100).toFixed(1) : '0.0';
 
     return (
-        <div className="signals-hub-container">
+        <div className='signals-hub-container'>
             {/* Header Section */}
-            <div className="signals-hub-header">
-                <div className="hub-title">
+            <div className='signals-hub-header'>
+                <div className='hub-title'>
                     <h1>🎯 Signals Hub</h1>
-                    <p className="hub-subtitle">Real-time market signals powered by advanced analytics</p>
+                    <p className='hub-subtitle'>Real-time market signals powered by advanced analytics</p>
                 </div>
                 <div className={`connection-status ${isConnected ? 'connected' : 'connecting'}`}>
-                    <span className="status-dot"></span>
+                    <span className='status-dot' />
                     {isConnected ? '🟢 Live' : '🟡 Connecting...'}
                 </div>
             </div>
 
             {/* Symbol Selector */}
-            <div className="symbol-selector-section">
-                <label htmlFor="symbol-select">Select Market:</label>
+            <div className='symbol-selector-section'>
+                <label htmlFor='symbol-select'>Select Market:</label>
                 <select
-                    id="symbol-select"
+                    id='symbol-select'
                     value={active_symbol}
-                    onChange={(e) => setActiveSymbol(e.target.value)}
-                    className="symbol-dropdown"
+                    onChange={e => setActiveSymbol(e.target.value)}
+                    className='symbol-dropdown'
                 >
-                    {optionsList.map((symbol) => (
+                    {optionsList.map(symbol => (
                         <option key={symbol.symbol} value={symbol.symbol}>
                             {symbol.display_name}
                         </option>
@@ -220,27 +226,27 @@ const SignalsHub = observer(() => {
             </div>
 
             {/* Market Data Overview */}
-            <div className="market-data-overview">
-                <div className="data-card">
-                    <span className="data-label">Symbol</span>
-                    <span className="data-value">{active_symbol}</span>
+            <div className='market-data-overview'>
+                <div className='data-card'>
+                    <span className='data-label'>Symbol</span>
+                    <span className='data-value'>{active_symbol}</span>
                 </div>
-                <div className="data-card">
-                    <span className="data-label">Current Price</span>
-                    <span className="data-value price">{currentPrice}</span>
+                <div className='data-card'>
+                    <span className='data-label'>Current Price</span>
+                    <span className='data-value price'>{currentPrice}</span>
                 </div>
-                <div className="data-card">
-                    <span className="data-label">Last Digit</span>
-                    <span className="data-value digit">{lastDigit}</span>
+                <div className='data-card'>
+                    <span className='data-label'>Last Digit</span>
+                    <span className='data-value digit'>{lastDigit}</span>
                 </div>
-                <div className="data-card">
-                    <span className="data-label">Ticks Loaded</span>
-                    <span className="data-value">{allTicksList.length}</span>
+                <div className='data-card'>
+                    <span className='data-label'>Ticks Loaded</span>
+                    <span className='data-value'>{allTicksList.length}</span>
                 </div>
             </div>
 
             {/* View Toggle */}
-            <div className="signals-view-toggle">
+            <div className='signals-view-toggle'>
                 <button
                     className={`view-btn ${selectedView === 'overview' ? 'active' : ''}`}
                     onClick={() => setSelectedView('overview')}
@@ -254,6 +260,12 @@ const SignalsHub = observer(() => {
                     🎲 Deriv Signals
                 </button>
                 <button
+                    className={`view-btn ${selectedView === 'indicators' ? 'active' : ''}`}
+                    onClick={() => setSelectedView('indicators')}
+                >
+                    📈 Indicators
+                </button>
+                <button
                     className={`view-btn ${selectedView === 'patterns' ? 'active' : ''}`}
                     onClick={() => setSelectedView('patterns')}
                 >
@@ -263,47 +275,58 @@ const SignalsHub = observer(() => {
                     className={`view-btn ${selectedView === 'history' ? 'active' : ''}`}
                     onClick={() => setSelectedView('history')}
                     disabled
-                    title="Coming in Phase 2"
+                    title='Coming in Phase 2'
                 >
                     📜 History
                 </button>
             </div>
 
             {/* Content Area */}
-            <div className="signals-content">
+            <div className='signals-content'>
                 {selectedView === 'overview' && (
-                    <div className="overview-section">
-                        <div className="welcome-card">
+                    <div className='overview-section'>
+                        <div className='welcome-card'>
                             <h2>🎲 Deriv Signal Trading Hub</h2>
-                            <p>Advanced pattern-based signal generation for Deriv synthetic indices. Get real-time Over/Under, Even/Odd, and Rise/Fall predictions with confidence scoring.</p>
-                            
-                            <div className="roadmap-section">
+                            <p>
+                                Advanced pattern-based signal generation for Deriv synthetic indices. Get real-time
+                                Over/Under, Even/Odd, and Rise/Fall predictions with confidence scoring.
+                            </p>
+
+                            <div className='roadmap-section'>
                                 <h3>🎯 Features & Roadmap</h3>
-                                <div className="roadmap-items">
-                                    <div className="roadmap-item completed">
-                                        <span className="roadmap-icon">✅</span>
-                                        <div className="roadmap-details">
+                                <div className='roadmap-items'>
+                                    <div className='roadmap-item completed'>
+                                        <span className='roadmap-icon'>✅</span>
+                                        <div className='roadmap-details'>
                                             <h4>Phase 1: Deriv Signal Generator (Complete)</h4>
-                                            <p>Pattern-based predictions, countdown timer, entry points, confidence scoring</p>
+                                            <p>
+                                                Pattern-based predictions, countdown timer, entry points, confidence
+                                                scoring
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="roadmap-item pending">
-                                        <span className="roadmap-icon">🔧</span>
-                                        <div className="roadmap-details">
+                                    <div className='roadmap-item pending'>
+                                        <span className='roadmap-icon'>🔧</span>
+                                        <div className='roadmap-details'>
                                             <h4>Phase 2: Enhanced Analytics (In Progress)</h4>
-                                            <p>Multi-signal comparison, signal strength visualization, pattern heatmaps</p>
+                                            <p>
+                                                Multi-signal comparison, signal strength visualization, pattern heatmaps
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="roadmap-item pending">
-                                        <span className="roadmap-icon">⏳</span>
-                                        <div className="roadmap-details">
+                                    <div className='roadmap-item pending'>
+                                        <span className='roadmap-icon'>⏳</span>
+                                        <div className='roadmap-details'>
                                             <h4>Phase 3: Smart Notifications (Coming)</h4>
-                                            <p>Browser alerts, high-confidence signals, countdown reminders, sound effects</p>
+                                            <p>
+                                                Browser alerts, high-confidence signals, countdown reminders, sound
+                                                effects
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="roadmap-item pending">
-                                        <span className="roadmap-icon">⏳</span>
-                                        <div className="roadmap-details">
+                                    <div className='roadmap-item pending'>
+                                        <span className='roadmap-icon'>⏳</span>
+                                        <div className='roadmap-details'>
                                             <h4>Phase 4: Performance Tracking (Coming)</h4>
                                             <p>Signal history, win/loss tracking, export to CSV, accuracy metrics</p>
                                         </div>
@@ -311,20 +334,20 @@ const SignalsHub = observer(() => {
                                 </div>
                             </div>
 
-                            <div className="quick-stats">
+                            <div className='quick-stats'>
                                 <h3>📊 Current Status</h3>
-                                <div className="stats-grid">
-                                    <div className="stat-item">
-                                        <span className="stat-value">{allTicksList.length}</span>
-                                        <span className="stat-label">Ticks Processed</span>
+                                <div className='stats-grid'>
+                                    <div className='stat-item'>
+                                        <span className='stat-value'>{allTicksList.length}</span>
+                                        <span className='stat-label'>Ticks Processed</span>
                                     </div>
-                                    <div className="stat-item">
-                                        <span className="stat-value">{optionsList.length}</span>
-                                        <span className="stat-label">Markets Available</span>
+                                    <div className='stat-item'>
+                                        <span className='stat-value'>{optionsList.length}</span>
+                                        <span className='stat-label'>Markets Available</span>
                                     </div>
-                                    <div className="stat-item">
-                                        <span className="stat-value">{isConnected ? '100%' : '0%'}</span>
-                                        <span className="stat-label">Connection</span>
+                                    <div className='stat-item'>
+                                        <span className='stat-value'>{isConnected ? '100%' : '0%'}</span>
+                                        <span className='stat-label'>Connection</span>
                                     </div>
                                 </div>
                             </div>
@@ -333,42 +356,37 @@ const SignalsHub = observer(() => {
                 )}
 
                 {selectedView === 'patterns' && (
-                    <div className="patterns-section">
+                    <div className='patterns-section'>
                         <h2>🎯 Pattern Analysis</h2>
-                        <div className="pattern-cards">
-                            <div className="pattern-card">
+                        <div className='pattern-cards'>
+                            <div className='pattern-card'>
                                 <h3>Even/Odd Analysis</h3>
-                                <div className="pattern-bars">
-                                    <div className="bar-group">
-                                        <div className="bar-label">Even: {evenPercentage}%</div>
-                                        <div className="bar-container">
-                                            <div 
-                                                className="bar even-bar" 
-                                                style={{ width: `${evenPercentage}%` }}
-                                            ></div>
+                                <div className='pattern-bars'>
+                                    <div className='bar-group'>
+                                        <div className='bar-label'>Even: {evenPercentage}%</div>
+                                        <div className='bar-container'>
+                                            <div className='bar even-bar' style={{ width: `${evenPercentage}%` }} />
                                         </div>
                                     </div>
-                                    <div className="bar-group">
-                                        <div className="bar-label">Odd: {oddPercentage}%</div>
-                                        <div className="bar-container">
-                                            <div 
-                                                className="bar odd-bar" 
-                                                style={{ width: `${oddPercentage}%` }}
-                                            ></div>
+                                    <div className='bar-group'>
+                                        <div className='bar-label'>Odd: {oddPercentage}%</div>
+                                        <div className='bar-container'>
+                                            <div className='bar odd-bar' style={{ width: `${oddPercentage}%` }} />
                                         </div>
                                     </div>
                                 </div>
-                                <div className="pattern-stats">
+                                <div className='pattern-stats'>
                                     <p>Even count: {evenCount}</p>
                                     <p>Odd count: {oddCount}</p>
                                     <p>Total: {totalPatterns}</p>
                                 </div>
                             </div>
 
-                            <div className="pattern-card">
+                            <div className='pattern-card'>
                                 <h3>🔮 More Patterns Coming Soon</h3>
-                                <p className="coming-soon-text">
-                                    Rise/Fall, Over/Under, and Digit Frequency patterns will be added in the next update.
+                                <p className='coming-soon-text'>
+                                    Rise/Fall, Over/Under, and Digit Frequency patterns will be added in the next
+                                    update.
                                 </p>
                             </div>
                         </div>
@@ -376,33 +394,32 @@ const SignalsHub = observer(() => {
                 )}
 
                 {selectedView === 'deriv-signals' && (
-                    <div className="deriv-signals-section">
-                        <DerivSignalGenerator 
-                            prices={allTicksList}
-                            pipSize={pip_size}
-                            symbol={active_symbol}
-                        />
+                    <div className='deriv-signals-section'>
+                        <DerivSignalGenerator prices={allTicksList} pipSize={pip_size} symbol={active_symbol} />
+                    </div>
+                )}
+
+                {selectedView === 'indicators' && (
+                    <div className='indicators-section'>
+                        <TechnicalIndicators prices={allTicksList} pipSize={pip_size} symbol={active_symbol} />
                     </div>
                 )}
             </div>
 
             {/* Console Log */}
-            <div className="console-section">
-                <div className="console-header">
+            <div className='console-section'>
+                <div className='console-header'>
                     <h3>📟 Console Log</h3>
-                    <button 
-                        className="clear-console-btn"
-                        onClick={() => setConsoleMessages([])}
-                    >
+                    <button className='clear-console-btn' onClick={() => setConsoleMessages([])}>
                         Clear
                     </button>
                 </div>
-                <div className="console-messages">
+                <div className='console-messages'>
                     {consoleMessages.length === 0 ? (
-                        <p className="no-messages">No messages yet...</p>
+                        <p className='no-messages'>No messages yet...</p>
                     ) : (
                         consoleMessages.map((msg, idx) => (
-                            <div key={idx} className="console-message">
+                            <div key={idx} className='console-message'>
                                 {msg}
                             </div>
                         ))

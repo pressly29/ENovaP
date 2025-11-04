@@ -1,0 +1,45 @@
+name: Build and Deploy to Netlify
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: '--max-old-space-size=4096'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install root dependencies
+        run: |
+          npm ci
+
+      - name: Bootstrap monorepo (lerna + nx)
+        run: |
+          npx lerna link || true
+          npx lerna bootstrap --ci --hoist --strict
+
+      - name: Build @deriv/core
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Build core package using its npm script
+          npm --prefix packages/core run build --
+
+      - name: Show dist folder size
+        run: du -sh packages/core/dist || true
+
+      - name: Deploy to Netlify
+        uses: netlify/actions/cli@master
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        with:
+          args: deploy --site-id ${{ secrets.NETLIFY_SITE_ID }} --dir=packages/core/dist --prod --message "Deploy from GH Actions (${GITHUB_SHA})"

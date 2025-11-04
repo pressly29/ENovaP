@@ -37,6 +37,7 @@
         "@types/react-router-dom": "^5.1.6",
         "@types/react-virtualized": "^9.21.21",
         "babel-polyfill": "^6.26.0",
+        "copy-anything": "^4.0.5",
         "dotenv-webpack": "^8.0.1",
         "husky": "^7.0.0",
         "jest": "^26.4.2",
@@ -56,6 +57,7 @@
         "ts-jest": "^26.4.2"
     },
     "scripts": {
+        "import:bots": "node ./scripts/import-external-bots.js",
         "build:all": "nx build @deriv/components --skip-nx-cache && nx build @deriv/account  --skip-nx-cache && nx build @deriv/bot-web-ui --skip-nx-cache && nx run-many --target=build",
         "build:netlify": "npm run bootstrap && npm build:all",
         "build:one": "f () { nx build @deriv/$1 $2 ;}; f",

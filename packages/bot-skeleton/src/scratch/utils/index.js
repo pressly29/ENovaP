@@ -8,6 +8,7 @@ import { saveWorkspaceToRecent, updateApolloXML } from '../../utils/local-storag
 import DBotStore from '../dbot-store';
 import { log_types } from '../../constants/messages';
 import { error_message_map } from '../../utils/error-config';
+/* global loadBlocks */
 
 export const getSelectedTradeType = (workspace = Blockly.derivWorkspace) => {
     const trade_type_block = workspace.getAllBlocks(true).find(block => block.type === 'trade_definition_tradetype');
@@ -69,23 +70,23 @@ export const validateErrorOnBlockDelete = () => {
 };
 
 const subPageValue = () => {
-    let currentURL = window.location.href;
-    let parts = currentURL.split('#');
-    let analysisPage = parts[1];
+    const currentURL = window.location.href;
+    const parts = currentURL.split('#');
+    const analysisPage = parts[1];
     return analysisPage;
 };
 
-export const updateWorkspaceName = (active_tab) => {
+export const updateWorkspaceName = active_tab => {
     document.title = 'ENova';
     if (!DBotStore?.instance) return;
     const { load_modal } = DBotStore.instance;
     const file_name = load_modal?.dashboard_strategies?.[0]?.name ?? config.default_file_name;
 
-    if(subPageValue() === 'analysis_page'){
+    if (subPageValue() === 'analysis_page') {
         document.title += ` - ${subPageValue()}`;
         return;
     }
-    if(active_tab == 3){
+    if (active_tab == 3) {
         document.title += ` - ATrader`;
         return;
     }
@@ -143,55 +144,35 @@ export const load = async ({
     if (!DBotStore?.instance || !workspace) return;
     const { setLoading } = DBotStore.instance;
     setLoading(true);
-    // Delay execution to allow fully previewing previous strategy if users quickly switch between strategies.
     await delayExecution(100);
+
     const showInvalidStrategyError = () => {
         setLoading(false);
         const error_message = localize('XML file contains unsupported elements. Please check or modify file.');
         globalObserver.emit('ui.log.error', error_message);
     };
 
-    // Check if XML can be parsed correctly.
     try {
+        // Step 1: parse as XML string
         const xmlDoc = new DOMParser().parseFromString(block_string, 'application/xml');
-
         if (xmlDoc.getElementsByTagName('parsererror').length) {
             return showInvalidStrategyError();
         }
-    } catch (e) {
-        return showInvalidStrategyError();
-    }
 
-    let xml;
-    // Check if XML can be parsed into a strategy.
-    try {
-        xml = Blockly.Xml.textToDom(block_string);
-    } catch (e) {
-        return showInvalidStrategyError();
-    }
+        // Step 2: convert / normalize
+        let xml = Blockly.Xml.textToDom(block_string);
+        xml = updateApolloXML(xml);
+        const blockConversion = new BlockConversion();
+        xml = blockConversion.convertStrategy(xml, showIncompatibleStrategyDialog);
 
-    xml = updateApolloXML(xml);
+        const blockly_xml = xml.querySelectorAll('block');
+        if (!blockly_xml.length) return showInvalidStrategyError();
 
-    const blockConversion = new BlockConversion();
-    xml = blockConversion.convertStrategy(xml, showIncompatibleStrategyDialog);
-    const blockly_xml = xml.querySelectorAll('block');
+        const invalid_block_types = Array.from(blockly_xml)
+            .map(b => b.getAttribute('type'))
+            .filter(type => !Object.keys(Blockly.Blocks).includes(type));
+        if (invalid_block_types.length) return showInvalidStrategyError();
 
-    // Check if there are any blocks in this strategy.
-    if (!blockly_xml.length) {
-        return showInvalidStrategyError();
-    }
-
-    // Check if all block types in XML are allowed.
-    const has_invalid_blocks = Array.from(blockly_xml).some(block => {
-        const block_type = block.getAttribute('type');
-        return !Object.keys(Blockly.Blocks).includes(block_type);
-    });
-
-    if (has_invalid_blocks) {
-        return showInvalidStrategyError();
-    }
-
-    try {
         const is_collection = xml.hasAttribute('collection') && xml.getAttribute('collection') === 'true';
         const event_group = is_collection ? `load_collection${Date.now()}` : `dbot-load${Date.now()}`;
 
@@ -209,7 +190,6 @@ export const load = async ({
             const is_main_workspace = workspace === Blockly.derivWorkspace;
             if (is_main_workspace) {
                 const { save_modal } = DBotStore.instance;
-
                 save_modal.updateBotName(file_name);
                 workspace.clearUndo();
                 workspace.current_strategy_id = strategy_id || Blockly.utils.genUid();
@@ -217,8 +197,7 @@ export const load = async ({
             }
         }
 
-        // Set user disabled state on all disabled blocks. This ensures we don't change the disabled
-        // state through code, which was implemented for user experience.
+        // Preserve user-disabled state after load
         workspace.getAllBlocks().forEach(block => {
             if (block.disabled) {
                 block.is_user_disabled_state = true;
@@ -229,23 +208,11 @@ export const load = async ({
             globalObserver.emit('ui.log.success', { log_type: log_types.LOAD_BLOCK });
         }
     } catch (e) {
-        console.error(e); // eslint-disable-line
+        // Keep workspace empty and show a generic error
+        console.error('Error while loading strategy:', e); // eslint-disable-line no-console
         return showInvalidStrategyError();
     } finally {
         setLoading(false);
-    }
-};
-
-export const loadBlocks = (xml, drop_event, event_group, workspace) => {
-    Blockly.Events.setGroup(event_group);
-
-    const block_ids = Blockly.Xml.domToWorkspace(xml, workspace);
-    const added_blocks = block_ids.map(block_id => workspace.getBlockById(block_id));
-
-    if (drop_event && Object.keys(drop_event).length !== 0) {
-        cleanUpOnLoad(added_blocks, drop_event, workspace);
-    } else {
-        workspace.cleanUp();
     }
 };
 

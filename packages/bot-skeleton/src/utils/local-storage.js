@@ -2,7 +2,8 @@ import LZString from 'lz-string';
 import localForage from 'localforage';
 import DBotStore from '../scratch/dbot-store';
 import { save_types } from '../constants/save-type';
-import XMLParser from 'react-xml-parser';
+// XMLParser not used here; removing unused import to satisfy lint
+// import XMLParser from 'react-xml-parser';
 /**
  * Save workspace to localStorage
  * @param {String} save_type // constants/save_types.js (unsaved, local, googledrive)
@@ -12,7 +13,8 @@ export const saveWorkspaceToRecent = async (xml, save_type = save_types.UNSAVED)
     // Ensure strategies don't go through expensive conversion.
     xml.setAttribute('is_dbot', true);
     const newBlocks = updateApolloXML(xml);
-    xml = newBlocks
+    // eslint-disable-next-line no-param-reassign
+    xml = newBlocks;
     const {
         load_modal: { updateListStrategies },
         save_modal,
@@ -87,6 +89,29 @@ export const updateApolloXML = xml => {
         // Check if the 'type' attribute's value is 'purchase' and update it if so
         if (typeAttr && typeAttr.value === 'purchase') {
             typeAttr.value = 'apollo_purchase';
+        }
+    });
+
+    // Ensure variables have an explicit (untyped) type attribute to satisfy Blockly's typed variables
+    const variableNodes = xml.getElementsByTagName('variable');
+    const variableArray = Array.isArray(variableNodes) ? variableNodes : Object.values(variableNodes);
+    variableArray.forEach(v => {
+        if (v && v.getAttribute) {
+            // Some XMLs omit the type attribute; set it to empty string which represents the default type in Blockly
+            if (!v.hasAttribute('type')) {
+                v.setAttribute('type', '');
+            }
+        }
+    });
+
+    // Normalize shadow block types that aren't defined in our block set
+    // Map 'math_number_positive' (legacy) to 'math_number' to avoid unsupported element errors
+    const shadowNodes = xml.getElementsByTagName('shadow');
+    const shadowArray = Array.isArray(shadowNodes) ? shadowNodes : Object.values(shadowNodes);
+    shadowArray.forEach(s => {
+        const typeAttr = s && s.attributes && s.attributes.getNamedItem && s.attributes.getNamedItem('type');
+        if (typeAttr && typeAttr.value === 'math_number_positive') {
+            typeAttr.value = 'math_number';
         }
     });
 

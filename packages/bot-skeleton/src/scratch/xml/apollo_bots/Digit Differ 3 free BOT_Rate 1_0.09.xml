@@ -142,7 +142,7 @@
               </block>
             </value>
             <statement name="DO0">
-              <block type="purchase" id="Q;`vp48|v7pG%t@W6`uQ">
+              <block type="apollo_purchase" id="Q;`vp48|v7pG%t@W6`uQ">
                 <field name="PURCHASE_LIST">DIGITDIFF</field>
               </block>
             </statement>

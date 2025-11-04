@@ -175,7 +175,7 @@
   </block>
   <block type="before_purchase" x="0" y="576">
     <statement name="BEFOREPURCHASE_STACK">
-      <block type="purchase">
+      <block type="apollo_purchase">
         <field name="PURCHASE_LIST">CALL</field>
       </block>
     </statement>

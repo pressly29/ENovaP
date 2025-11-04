@@ -1,6 +1,6 @@
-import { save_types } from '../constants';
-import { config,resetVhVariables } from '../constants';
-import { api_base, api_base2,api_base3,api_base4 } from '../services/api/api-base';
+import { save_types, config, resetVhVariables } from '../constants';
+
+import { api_base, api_base2, api_base3, api_base4 } from '../services/api/api-base';
 import ApiHelpers from '../services/api/api-helpers';
 import Interpreter from '../services/tradeEngine/utils/interpreter';
 import { compareXml, observer as globalObserver } from '../utils';
@@ -27,6 +27,11 @@ import ap10 from './xml/apollo_bots/lightning_scalper_v1.xml';
 import ap11 from './xml/apollo_bots/fibonacci_recovery_v1.xml';
 import ap12 from './xml/apollo_bots/neural_network_v1.xml';
 import ap13 from './xml/apollo_bots/grid_master_v1.xml';
+// Newly imported Advanced bots
+import ap14 from './xml/apollo_bots/AlgoSniper.xml';
+import ap15 from './xml/apollo_bots/SignalSniperAutoBot.xml';
+import ap16 from './xml/apollo_bots/BRAMEVENODDPRINTER.xml';
+import ap17 from './xml/apollo_bots/DollarPrintAi.xml';
 
 export const apollo_bot_list = [
     { id: 0, name: 'Hybrid V🔥', xml: ap5 },
@@ -42,6 +47,11 @@ export const apollo_bot_list = [
     { id: 9, name: 'Fibonacci Recovery', xml: ap11 },
     { id: 10, name: 'Neural Network Predictor', xml: ap12 },
     { id: 11, name: 'Grid Master', xml: ap13 },
+    // Advanced Strategy Bots (Phase 2)
+    { id: 12, name: 'Algo Sniper', xml: ap14 },
+    { id: 13, name: 'Signal Sniper Auto Bot', xml: ap15 },
+    { id: 14, name: 'BRAM EVEN ODD PRINTER', xml: ap16 },
+    { id: 15, name: 'Dollar Print AI', xml: ap17 },
 ];
 
 class DBot {
@@ -148,7 +158,8 @@ class DBot {
                     return;
                 }
                 this.workspace = Blockly.inject(el_scratch_div, {
-                    media: `${__webpack_public_path__}media/`,
+                    // Use Blockly CDN media to avoid missing local assets (dropdown arrows, sprites, etc.)
+                    media: 'https://blockly-demo.appspot.com/static/media/',
                     trashcan: !is_mobile,
                     zoom: { wheel: true, startScale: workspaceScale },
                     scrollbars: true,
@@ -374,7 +385,7 @@ class DBot {
      */
     async stopBot() {
         if (api_base.is_stopping) return;
-        resetVhVariables()
+        resetVhVariables();
         api_base.setIsRunning(false);
 
         await this.interpreter.stop();
@@ -389,7 +400,7 @@ class DBot {
      */
     async terminateBot() {
         if (this.interpreter) {
-            resetVhVariables()
+            resetVhVariables();
             await this.interpreter.terminateSession();
             this.interpreter = null;
             this.interpreter = Interpreter();

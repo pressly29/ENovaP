@@ -7,7 +7,7 @@
     padding: 24px;
     padding-bottom: 60px; /* Extra padding at bottom for scrolling comfort */
     background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', "Roboto", sans-serif;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 /* Header */
@@ -513,7 +513,8 @@
 
 /* Loading Animation */
 @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -526,12 +527,12 @@
     .dma-prob-row {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .dma-signal-header,
     .dma-signal-row {
         grid-template-columns: 1fr 1fr;
     }
-    
+
     .dma-signal-col:first-child {
         grid-column: 1 / -1;
         border-bottom: 1px solid #e2e8f0;
@@ -540,29 +541,33 @@
 
 /* Pattern Item Variants */
 .dma-pattern-item.rise {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: #fff;
     border-radius: 50%;
-    font-weight: 700;
-    font-size: 16px;
 }
 
 .dma-pattern-item.fall {
-    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
-    color: #991b1b;
+    background: linear-gradient(135deg, #f82525 0%, #920303 100%);
+    color: #fff;
     border-radius: 50%;
-    font-weight: 700;
-    font-size: 16px;
+}
+
+/* Fix: a global `.fall` class (e.g. in copy_trader/style.css) applies
+   transform/opacity that hides and displaces these items. Ensure our
+   Rise/Fall badges stay visible and centered. */
+.deriv-market-analyzer .dma-pattern-item.fall {
+    transform: none !important;
+    opacity: 1 !important;
 }
 
 .dma-pattern-item.over {
-    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
     color: #fff;
     border-radius: 50%;
 }
 
 .dma-pattern-item.under {
-    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
     color: #fff;
     border-radius: 50%;
 }
@@ -586,16 +591,36 @@
     transform: scale(1.1);
 }
 
-.dma-digit-0 { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); }
-.dma-digit-1 { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); }
-.dma-digit-2 { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
-.dma-digit-3 { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
-.dma-digit-4 { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); }
-.dma-digit-5 { background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); }
-.dma-digit-6 { background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%); }
-.dma-digit-7 { background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); }
-.dma-digit-8 { background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%); }
-.dma-digit-9 { background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%); }
+.dma-digit-0 {
+    background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+}
+.dma-digit-1 {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+}
+.dma-digit-2 {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+.dma-digit-3 {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+.dma-digit-4 {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+}
+.dma-digit-5 {
+    background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+}
+.dma-digit-6 {
+    background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
+}
+.dma-digit-7 {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+}
+.dma-digit-8 {
+    background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+}
+.dma-digit-9 {
+    background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+}
 
 /* Probability Bar Variants */
 .dma-prob-bar.dma-prob-rise {
@@ -632,11 +657,11 @@
 }
 
 .dma-stat.dma-stat-over .dma-stat-label {
-    color: #3b82f6;
+    color: #60a5fa;
 }
 
 .dma-stat.dma-stat-over .dma-stat-value {
-    color: #3b82f6;
+    color: #60a5fa;
 }
 
 .dma-stat.dma-stat-under .dma-stat-label {
@@ -648,11 +673,11 @@
 }
 
 .dma-stat.dma-stat-highest .dma-stat-label {
-    color: #3b82f6;
+    color: #60a5fa;
 }
 
 .dma-stat.dma-stat-highest .dma-stat-value {
-    color: #3b82f6;
+    color: #60a5fa;
 }
 
 .dma-stat.dma-stat-lowest .dma-stat-label {
@@ -668,9 +693,9 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-evenly;
-    gap: 8px;
-    padding: 24px 16px 16px;
-    min-height: 420px;
+    gap: 12px;
+    padding: 24px 16px 8px;
+    min-height: 380px;
     background: transparent;
     border-radius: 0;
     margin-top: 0;
@@ -687,29 +712,28 @@
 
 .dma-digit-freq-bar-container {
     width: 100%;
-    height: 350px;
+    height: 300px;
     display: flex;
     align-items: flex-end;
     position: relative;
+    /* subtle horizontal grid every 25% */
+    background-image: linear-gradient(to top, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+    background-size: 100% 25%;
 }
 
 .dma-digit-freq-fill {
     width: 100%;
     border-radius: 8px 8px 0 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 8px;
-    transition: height 0.3s ease;
+    transition: height 0.35s ease;
     position: relative;
-    min-height: 4px;
+    min-height: 10px;
 }
 
-.dma-digit-freq-percentage {
-    font-size: 11px;
+.dma-digit-freq-value {
+    font-size: 12px;
     font-weight: 700;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    color: #334155;
+    margin-bottom: 8px;
 }
 
 .dma-digit-freq-label {
@@ -719,39 +743,59 @@
     margin-top: 4px;
 }
 
-.dma-digit-freq-fill.dma-digit-freq-0 { background: linear-gradient(180deg, #6366f1 0%, #818cf8 100%); }
-.dma-digit-freq-fill.dma-digit-freq-1 { background: linear-gradient(180deg, #ef4444 0%, #f87171 100%); }
-.dma-digit-freq-fill.dma-digit-freq-2 { background: linear-gradient(180deg, #10b981 0%, #34d399 100%); }
-.dma-digit-freq-fill.dma-digit-freq-3 { background: linear-gradient(180deg, #f59e0b 0%, #fbbf24 100%); }
-.dma-digit-freq-fill.dma-digit-freq-4 { background: linear-gradient(180deg, #8b5cf6 0%, #a78bfa 100%); }
-.dma-digit-freq-fill.dma-digit-freq-5 { background: linear-gradient(180deg, #ec4899 0%, #f472b6 100%); }
-.dma-digit-freq-fill.dma-digit-freq-6 { background: linear-gradient(180deg, #14b8a6 0%, #2dd4bf 100%); }
-.dma-digit-freq-fill.dma-digit-freq-7 { background: linear-gradient(180deg, #f97316 0%, #fb923c 100%); }
-.dma-digit-freq-fill.dma-digit-freq-8 { background: linear-gradient(180deg, #64748b 0%, #94a3b8 100%); }
-.dma-digit-freq-fill.dma-digit-freq-9 { background: linear-gradient(180deg, #22c55e 0%, #4ade80 100%); }
+.dma-digit-freq-fill.dma-digit-freq-0 {
+    background: linear-gradient(180deg, #6366f1 0%, #818cf8 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-1 {
+    background: linear-gradient(180deg, #ef4444 0%, #f87171 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-2 {
+    background: linear-gradient(180deg, #10b981 0%, #34d399 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-3 {
+    background: linear-gradient(180deg, #f59e0b 0%, #fbbf24 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-4 {
+    background: linear-gradient(180deg, #8b5cf6 0%, #a78bfa 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-5 {
+    background: linear-gradient(180deg, #ec4899 0%, #f472b6 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-6 {
+    background: linear-gradient(180deg, #14b8a6 0%, #2dd4bf 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-7 {
+    background: linear-gradient(180deg, #f97316 0%, #fb923c 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-8 {
+    background: linear-gradient(180deg, #64748b 0%, #94a3b8 100%);
+}
+.dma-digit-freq-fill.dma-digit-freq-9 {
+    background: linear-gradient(180deg, #22c55e 0%, #4ade80 100%);
+}
 
 @media (max-width: 480px) {
     .dma-card {
         padding: 16px;
     }
-    
+
     .dma-prob-cell {
         padding: 12px 8px;
     }
-    
+
     .dma-prob-digit {
         font-size: 18px;
     }
-    
+
     .dma-prob-value {
         font-size: 12px;
     }
-    
+
     .dma-chart-container {
         min-height: 300px;
         padding: 12px;
     }
-    
+
     .dma-over-under-controls {
         grid-template-columns: 1fr;
         padding: 12px;

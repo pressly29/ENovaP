@@ -31,6 +31,11 @@
             "module": "commonjs"
         }
     },
-    "files": ["./types/global.d.ts", "./types/utils.d.ts", "./types/svg.d.ts"],
+    "files": [
+        "./types/global.d.ts",
+        "./types/utils.d.ts",
+        "./types/svg.d.ts",
+        "./types/xml.d.ts"
+    ],
     "exclude": ["node_modules", "build", "**/*.js", "**/*.jsx"] // *** The files to not type check ***
 }

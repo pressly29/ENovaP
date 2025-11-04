@@ -31,7 +31,7 @@ export default class FlyoutHelpStore {
 
     options = {
         css: false,
-        media: `${__webpack_public_path__}media/`,
+        media: 'https://blockly-demo.appspot.com/static/media/',
         move: { scrollbars: false, drag: true, wheel: false },
         zoom: { startScale: config.workspaces.flyoutWorkspacesStartScale },
         sounds: false,

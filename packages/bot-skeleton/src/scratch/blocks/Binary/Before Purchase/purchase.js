@@ -83,3 +83,24 @@ Blockly.JavaScript.apollo_purchase = block => {
     const code = `Bot.apollo_purchase('${purchaseList}');\n`;
     return code;
 };
+
+// Compatibility alias: support XMLs that still use the legacy 'purchase' block type
+// by mapping it to 'apollo_purchase' at both block and generator levels.
+// This ensures external/community XMLs load without "unsupported elements" errors.
+// eslint-disable-next-line camelcase
+Blockly.Blocks.purchase = Blockly.Blocks.apollo_purchase;
+
+// Map generator for both legacy and new patterns used across the codebase
+// Older style
+// eslint-disable-next-line camelcase
+Blockly.JavaScript.purchase = Blockly.JavaScript.apollo_purchase;
+// Newer generator API style (if used elsewhere)
+if (Blockly?.JavaScript?.javascriptGenerator?.forBlock) {
+    Blockly.JavaScript.javascriptGenerator.forBlock.purchase = Blockly.JavaScript.javascriptGenerator.forBlock
+        .apollo_purchase
+        ? Blockly.JavaScript.javascriptGenerator.forBlock.apollo_purchase
+        : function (block) {
+              const purchaseList = block.getFieldValue('PURCHASE_LIST');
+              return `Bot.apollo_purchase('${purchaseList}');\n`;
+          };
+}
