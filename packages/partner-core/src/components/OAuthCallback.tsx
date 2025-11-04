@@ -4,110 +4,109 @@
  * URL: http://localhost:3001/oauth/callback
  */
 
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useLocation, useHistory } from 'react-router-dom';
 import { OAuthHandler, OAuthTokens } from '../services/auth/OAuthHandler';
 
 interface OAuthCallbackProps {
-  onSuccess?: (accounts: OAuthTokens[]) => void;
-  onError?: (error: string) => void;
+    onSuccess?: (accounts: OAuthTokens[]) => void;
+    onError?: (error: string) => void;
 }
 
 const OAuthCallback: React.FC<OAuthCallbackProps> = ({ onSuccess, onError }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [message, setMessage] = useState('Authenticating...');
+    const location = useLocation();
+    const history = useHistory();
+    const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
+    const [message, setMessage] = useState('Authenticating...');
 
-  useEffect(() => {
-    processOAuthCallback();
-  }, [location]);
+    const processOAuthCallback = useCallback(async () => {
+        try {
+            const fullUrl = window.location.href;
 
-  const processOAuthCallback = async () => {
-    try {
-      const fullUrl = window.location.href;
-      
-      // Parse tokens from URL
-      const accounts = OAuthHandler.parseCallbackParams(fullUrl);
+            // Parse tokens from URL
+            const accounts = OAuthHandler.parseCallbackParams(fullUrl);
 
-      if (accounts.length === 0) {
-        throw new Error('No accounts received from OAuth callback');
-      }
+            if (accounts.length === 0) {
+                throw new Error('No accounts received from OAuth callback');
+            }
 
-      // Filter tradeable accounts (exclude wallets)
-      const tradeableAccounts = OAuthHandler.filterTradeableAccounts(accounts);
+            // Filter tradeable accounts (exclude wallets)
+            const tradeableAccounts = OAuthHandler.filterTradeableAccounts(accounts);
 
-      if (tradeableAccounts.length === 0) {
-        throw new Error('No tradeable accounts found. Please create a CR (real trading) account.');
-      }
+            if (tradeableAccounts.length === 0) {
+                throw new Error('No tradeable accounts found. Please create a CR (real trading) account.');
+            }
 
-      // Save tokens
-      OAuthHandler.saveTokens(accounts);
+            // Save tokens
+            OAuthHandler.saveTokens(accounts);
 
-      // Track affiliate conversion
-      OAuthHandler.trackConversion(tradeableAccounts[0].accountId);
+            // Track affiliate conversion
+            OAuthHandler.trackConversion(tradeableAccounts[0].accountId);
 
-      setStatus('success');
-      setMessage(`Successfully authenticated! Found ${tradeableAccounts.length} trading account(s).`);
+            setStatus('success');
+            setMessage(`Successfully authenticated! Found ${tradeableAccounts.length} trading account(s).`);
 
-      // Call success callback
-      if (onSuccess) {
-        onSuccess(tradeableAccounts);
-      }
+            // Call success callback
+            if (onSuccess) {
+                onSuccess(tradeableAccounts);
+            }
 
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+            // Redirect to dashboard after 2 seconds
+            setTimeout(() => {
+                history.push('/dashboard');
+            }, 2000);
+        } catch (error) {
+            // Error handled by UI state update
+            setStatus('error');
+            setMessage(error instanceof Error ? error.message : 'Authentication failed');
 
-    } catch (error) {
-      console.error('OAuth callback error:', error);
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Authentication failed');
+            // Call error callback
+            if (onError) {
+                onError(error instanceof Error ? error.message : 'Unknown error');
+            }
 
-      // Call error callback
-      if (onError) {
-        onError(error instanceof Error ? error.message : 'Unknown error');
-      }
+            // Redirect to login after 3 seconds
+            setTimeout(() => {
+                history.push('/login');
+            }, 3000);
+        }
+    }, [history, onSuccess, onError]);
 
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-    }
-  };
+    useEffect(() => {
+        processOAuthCallback();
+    }, [location, processOAuthCallback]);
 
-  return (
-    <div className="oauth-callback-container">
-      <div className="oauth-callback-card">
-        {status === 'processing' && (
-          <>
-            <div className="spinner"></div>
-            <h2>Authenticating...</h2>
-            <p>Please wait while we complete your login.</p>
-          </>
-        )}
+    return (
+        <div className='oauth-callback-container'>
+            <div className='oauth-callback-card'>
+                {status === 'processing' && (
+                    <>
+                        <div className='spinner' />
+                        <h2>Authenticating...</h2>
+                        <p>Please wait while we complete your login.</p>
+                    </>
+                )}
 
-        {status === 'success' && (
-          <>
-            <div className="success-icon">✓</div>
-            <h2>Success!</h2>
-            <p>{message}</p>
-            <p className="redirect-message">Redirecting to dashboard...</p>
-          </>
-        )}
+                {status === 'success' && (
+                    <>
+                        <div className='success-icon'>✓</div>
+                        <h2>Success!</h2>
+                        <p>{message}</p>
+                        <p className='redirect-message'>Redirecting to dashboard...</p>
+                    </>
+                )}
 
-        {status === 'error' && (
-          <>
-            <div className="error-icon">✕</div>
-            <h2>Authentication Failed</h2>
-            <p>{message}</p>
-            <p className="redirect-message">Redirecting to login...</p>
-          </>
-        )}
-      </div>
+                {status === 'error' && (
+                    <>
+                        <div className='error-icon'>✕</div>
+                        <h2>Authentication Failed</h2>
+                        <p>{message}</p>
+                        <p className='redirect-message'>Redirecting to login...</p>
+                    </>
+                )}
+            </div>
 
-      <style jsx>{`
+            <style>{`
         .oauth-callback-container {
           display: flex;
           justify-content: center;
@@ -183,8 +182,8 @@ const OAuthCallback: React.FC<OAuthCallbackProps> = ({ onSuccess, onError }) => 
           margin-top: 20px;
         }
       `}</style>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default OAuthCallback;

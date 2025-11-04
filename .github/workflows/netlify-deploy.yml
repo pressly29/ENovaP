@@ -29,11 +29,6 @@ jobs:
           npx lerna link || true
           npx lerna bootstrap --ci
 
-      - name: Install missing dependencies
-        run: |
-          # Install usehooks-ts needed by @deriv/api
-          npm install usehooks-ts --prefix packages/api --save
-
       - name: Build dependent packages
         run: |
           # Build packages that @deriv/core depends on, in dependency order
