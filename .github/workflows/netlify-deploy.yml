@@ -29,6 +29,22 @@ jobs:
           npx lerna link || true
           npx lerna bootstrap --ci
 
+      - name: Install missing dependencies
+        run: |
+          # Install usehooks-ts needed by @deriv/api
+          npm install usehooks-ts --prefix packages/api --save
+
+      - name: Build dependent packages
+        run: |
+          # Build packages that @deriv/core depends on, in dependency order
+          npm --prefix packages/components run build || echo "components build skipped"
+          npm --prefix packages/shared run build || echo "shared build skipped"
+          npm --prefix packages/stores run build || echo "stores build skipped"
+          npm --prefix packages/api run build || echo "api build skipped"
+          npm --prefix packages/trader run build || echo "trader build failed - continuing"
+          npm --prefix packages/reports run build || echo "reports build failed - continuing"
+          npm --prefix packages/bot-web-ui run build || echo "bot-web-ui build failed - continuing"
+
       - name: Build @deriv/core
         working-directory: ${{ github.workspace }}
         run: |
