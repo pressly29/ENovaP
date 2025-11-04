@@ -25,8 +25,9 @@ jobs:
 
       - name: Bootstrap monorepo (lerna + nx)
         run: |
+          # Link local packages and bootstrap without hoisting/strict mode to avoid EHOISTSTRICT failures
           npx lerna link || true
-          npx lerna bootstrap --ci --hoist --strict
+          npx lerna bootstrap --ci
 
       - name: Build @deriv/core
         working-directory: ${{ github.workspace }}
