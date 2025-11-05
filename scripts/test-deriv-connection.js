@@ -1,9 +1,13 @@
 /* eslint-disable no-console */
 // Quick Deriv WebSocket connectivity test
-// Uses app_id from env or defaults to 106913
+// Uses app_id from env (no defaults embedded to avoid exposing IDs in code)
 const WebSocket = require('ws');
 
-const APP_ID = process.env.REACT_APP_DERIV_APP_ID || '106913';
+const APP_ID = process.env.REACT_APP_DERIV_APP_ID;
+if (!APP_ID) {
+    console.error('[DerivTest] Missing REACT_APP_DERIV_APP_ID');
+    process.exit(1);
+}
 const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 
 console.log('[DerivTest] Connecting to', WS_URL);

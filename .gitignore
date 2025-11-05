@@ -4,6 +4,7 @@
 .sass-cache/
 .vscode/
 dist/
+packages/**/dist/
 node_modules/
 packages/**/scripts/CNAME
 .DS_Store
@@ -28,6 +29,7 @@ packages/wallets/src/translations/messages.json
 .env.local
 .env.development.local
 .env.production.local
+packages/**/.env*
 nx-cloud.env
 test-results/
 playwright-report/

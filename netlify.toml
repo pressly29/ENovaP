@@ -5,6 +5,13 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Keep secrets scanning enabled; omit known public envs and non-source paths.
+  # Docs: https://ntl.fyi/configure-secrets-scanning
+  SECRETS_SCAN_OMIT_KEYS = "REACT_APP_DERIV_APP_NAME,REACT_APP_WEBSOCKET_URL,REACT_APP_DERIV_APP_ID,REACT_APP_AFFILIATE_MEDIUM,REACT_APP_AFFILIATE_SOURCE,REACT_APP_AFFILIATE_CAMPAIGN"
+  # Note: Omit token here ONLY if you intend it to be public in client bundles.
+  # Otherwise migrate to server-side redirect and keep scanning for it.
+  # SECRETS_SCAN_OMIT_KEYS = "${SECRETS_SCAN_OMIT_KEYS},REACT_APP_AFFILIATE_TOKEN"
+  SECRETS_SCAN_OMIT_PATHS = "packages/**/dist/**,packages/**/build/**,**/*.md,**/*.ps1"
 
 [[redirects]]
   from = "/*"

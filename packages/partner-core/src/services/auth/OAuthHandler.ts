@@ -26,11 +26,12 @@ export interface OAuthCallbackParams {
 }
 
 export class OAuthHandler {
-    private static APP_ID = process.env.REACT_APP_DERIV_APP_ID || '106913';
-    private static AFFILIATE_TOKEN = process.env.REACT_APP_AFFILIATE_TOKEN || '13C3B5B6-FC89-43E0-9AE2-5A8A2ED1680A';
-    private static UTM_CAMPAIGN = process.env.REACT_APP_AFFILIATE_CAMPAIGN || 'dynamicworks';
-    private static UTM_MEDIUM = process.env.REACT_APP_AFFILIATE_MEDIUM || 'affiliate';
-    private static UTM_SOURCE = process.env.REACT_APP_AFFILIATE_SOURCE || 'CU100155';
+    // Avoid hardcoding any sensitive defaults in the repository. Values are injected via env.
+    private static APP_ID = process.env.REACT_APP_DERIV_APP_ID ?? '';
+    private static AFFILIATE_TOKEN = process.env.REACT_APP_AFFILIATE_TOKEN ?? '';
+    private static UTM_CAMPAIGN = process.env.REACT_APP_AFFILIATE_CAMPAIGN ?? '';
+    private static UTM_MEDIUM = process.env.REACT_APP_AFFILIATE_MEDIUM ?? '';
+    private static UTM_SOURCE = process.env.REACT_APP_AFFILIATE_SOURCE ?? '';
 
     /**
      * Generate OAuth URL for user login
@@ -38,9 +39,14 @@ export class OAuthHandler {
      */
     static getOAuthURL(): string {
         const baseUrl = 'https://oauth.deriv.com/oauth2/authorize';
-        const params = new URLSearchParams({
-            app_id: this.APP_ID,
-        });
+        const params = new URLSearchParams();
+
+        if (!this.APP_ID) {
+            // eslint-disable-next-line no-console
+            console.warn('[OAuthHandler] Missing REACT_APP_DERIV_APP_ID; OAuth URL will not include app_id');
+        } else {
+            params.set('app_id', this.APP_ID);
+        }
 
         // Add affiliate tracking if available
         if (this.AFFILIATE_TOKEN) {

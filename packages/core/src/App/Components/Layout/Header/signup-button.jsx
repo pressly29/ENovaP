@@ -11,9 +11,9 @@ const SignupButton = ({ className }) => {
             const params = url.searchParams;
 
             const affiliate_token = process.env.REACT_APP_AFFILIATE_TOKEN;
-            const utm_campaign = process.env.REACT_APP_AFFILIATE_CAMPAIGN || 'dynamicworks';
-            const utm_medium = process.env.REACT_APP_AFFILIATE_MEDIUM || 'affiliate';
-            const utm_source = process.env.REACT_APP_AFFILIATE_SOURCE || 'CU100155';
+            const utm_campaign = process.env.REACT_APP_AFFILIATE_CAMPAIGN || '';
+            const utm_medium = process.env.REACT_APP_AFFILIATE_MEDIUM || '';
+            const utm_source = process.env.REACT_APP_AFFILIATE_SOURCE || '';
 
             if (affiliate_token) {
                 params.set('t', affiliate_token);
