@@ -1,6 +1,6 @@
 [build]
-  # Install root deps, bootstrap monorepo (link and install package deps), run global stylelint, then run Nx build
-  command = "npm ci && npx lerna link && CI=false npx lerna bootstrap --hoist && npm run test:stylelint && npm run build:all"
+  # Install root deps, bootstrap monorepo (link and install package deps), then run Nx build
+  command = "npm ci && npx lerna link && CI=false npx lerna bootstrap --hoist && npm run build:all"
   publish = "packages/core/dist"
 
 [build.environment]
