@@ -1,5 +1,1 @@
-/*    /index.html   200
-# Optional: cache static assets aggressively
-/js/*   200
-/css/*  200
-/public/*   200
+/* /index.html 200
