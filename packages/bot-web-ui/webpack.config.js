@@ -1,14 +1,16 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const DefinePlugin = require('webpack').DefinePlugin;
-const Dotenv = require('dotenv-webpack');
+const { DefinePlugin } = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
-const StyleLintPlugin = require('stylelint-webpack-plugin');
 const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
-const IS_RELEASE =
-    process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'test';
+// We'll determine release mode from webpack's argv.mode when available to avoid relying on process.env at config-eval time
+// Fallback to NODE_ENV or 'development'.
+const resolveIsRelease = argv => {
+    const mode = (argv && argv.mode) || process.env.NODE_ENV || 'development';
+    return ['production', 'staging', 'test'].includes(mode);
+};
 
 const output = {
     path: path.resolve(__dirname, 'dist'),
@@ -19,17 +21,16 @@ const output = {
     libraryTarget: 'umd',
 };
 
-module.exports = function (env) {
+module.exports = function (env, argv = {}) {
     const base = env && env.base && env.base !== true ? `/${env.base}/` : '/';
+    const IS_RELEASE = resolveIsRelease(argv);
 
     return {
         entry: [path.join(__dirname, 'src', 'app', 'index.ts')],
-        output: {
-            ...output,
-            publicPath: base,
-        },
+        output: { ...output, publicPath: base },
         devServer: {
-            publicPath: '/dist/',
+            // Webpack 5 dev middleware publicPath
+            devMiddleware: { publicPath: '/dist/' },
             disableHostCheck: true,
             hot: true,
             liveReload: true,
@@ -66,14 +67,11 @@ module.exports = function (env) {
                 {
                     test: /\.(s*)css$/,
                     use: [
-                        'css-hot-loader',
+                        // Always extract CSS to avoid requiring style-loader in any environment
                         MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
-                            options: {
-                                sourceMap: !IS_RELEASE,
-                                url: false,
-                            },
+                            options: { sourceMap: !IS_RELEASE, url: false },
                         },
                         {
                             loader: 'sass-loader',
@@ -81,9 +79,7 @@ module.exports = function (env) {
                         },
                         {
                             loader: 'sass-resources-loader',
-                            options: {
-                                resources: require('@deriv/shared/src/styles/index.js'),
-                            },
+                            options: { resources: require('@deriv/shared/src/styles/index.js') },
                         },
                     ],
                 },
@@ -91,13 +87,7 @@ module.exports = function (env) {
                     test: /\.svg$/,
                     exclude: /node_modules/,
                     use: [
-                        {
-                            loader: 'svg-sprite-loader',
-                            options: {
-                                extract: true,
-                                spriteFilename: 'bot-sprite.svg',
-                            },
-                        },
+                        { loader: 'svg-sprite-loader', options: { extract: true, spriteFilename: 'bot-sprite.svg' } },
                         {
                             loader: 'svgo-loader',
                             options: {
@@ -110,9 +100,7 @@ module.exports = function (env) {
                     test: /\.(js|jsx|ts|tsx)$/,
                     exclude: /node_modules/,
                     loader: 'babel-loader',
-                    options: {
-                        rootMode: 'upward',
-                    },
+                    options: { rootMode: 'upward' },
                 },
                 {
                     // @deriv/bot-skeleton also requires `.xml` import statements to be parsed by raw-loader
@@ -140,14 +128,12 @@ module.exports = function (env) {
             extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
         plugins: [
-            new Dotenv(),
             new DefinePlugin({
                 'process.env.GD_CLIENT_ID': JSON.stringify(process.env.GD_CLIENT_ID),
                 'process.env.GD_API_KEY': JSON.stringify(process.env.GD_API_KEY),
                 'process.env.GD_APP_ID': JSON.stringify(process.env.GD_APP_ID),
                 'process.env.DATADOG_APPLICATION_ID': JSON.stringify(process.env.DATADOG_APPLICATION_ID),
                 'process.env.DATADOG_CLIENT_TOKEN_LOGS': JSON.stringify(process.env.DATADOG_CLIENT_TOKEN_LOGS),
-                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
                 'process.env.DATADOG_SESSION_REPLAY_SAMPLE_RATE': JSON.stringify(
                     process.env.DATADOG_SESSION_REPLAY_SAMPLE_RATE
                 ),
@@ -162,14 +148,13 @@ module.exports = function (env) {
                 filename: 'bot/css/bot.main.[contenthash].css',
                 chunkFilename: 'bot/css/bot.[name].[contenthash].css',
             }),
-            new StyleLintPlugin({ fix: true }),
             new CopyWebpackPlugin({
                 patterns: [
                     { from: 'node_modules/@deriv/bot-skeleton/dist/media', to: 'bot/media', noErrorOnMissing: true },
-                    { 
-                        from: 'node_modules/@deriv/components/lib/icon/sprites', 
+                    {
+                        from: 'node_modules/@deriv/components/lib/icon/sprites',
                         to: 'public/sprites',
-                        noErrorOnMissing: true 
+                        noErrorOnMissing: true,
                     },
                 ],
             }),
