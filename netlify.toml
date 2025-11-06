@@ -13,6 +13,9 @@
   # SECRETS_SCAN_OMIT_KEYS = "${SECRETS_SCAN_OMIT_KEYS},REACT_APP_AFFILIATE_TOKEN"
   SECRETS_SCAN_OMIT_PATHS = "packages/**/dist/**,packages/**/build/**,**/*.md,**/*.ps1"
 
+[functions]
+  directory = "netlify/functions"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

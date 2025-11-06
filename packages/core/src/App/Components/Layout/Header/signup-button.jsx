@@ -6,24 +6,9 @@ import { localize } from '@deriv/translations';
 const SignupButton = ({ className }) => {
     const onSignup = () => {
         try {
-            const baseUrl = 'https://hub.deriv.com/tradershub/signup';
-            const url = new URL(baseUrl);
-            const params = url.searchParams;
-
-            const affiliate_token = process.env.REACT_APP_AFFILIATE_TOKEN;
-            const utm_campaign = process.env.REACT_APP_AFFILIATE_CAMPAIGN || '';
-            const utm_medium = process.env.REACT_APP_AFFILIATE_MEDIUM || '';
-            const utm_source = process.env.REACT_APP_AFFILIATE_SOURCE || '';
-
-            if (affiliate_token) {
-                params.set('t', affiliate_token);
-                params.set('utm_campaign', utm_campaign);
-                params.set('utm_medium', utm_medium);
-                params.set('utm_source', utm_source);
-            }
-
-            // Open Deriv signup with affiliate tracking params in a new tab
-            window.open(url.toString(), '_blank');
+            // Redirect via Netlify Function to keep secrets server-side
+            const fn = '/.netlify/functions/enova-auth?type=signup';
+            window.open(fn, '_blank');
         } catch (e) {
             // eslint-disable-next-line no-console
             console.error('[SignupButton] Failed to build signup URL', e);

@@ -137,19 +137,20 @@ export const getDebugServiceWorker = () => {
     return false;
 };
 
-// ENova Affiliate Configuration
+// ENova Affiliate Configuration (no secrets in client bundle)
+// Values are provided server-side via Netlify Function; keep client defaults empty.
 export const affiliate_config = {
-    token: '13C3B5B6-FC89-43E0-9AE2-5A8A2ED1680A', // Deriv Affiliate Token
-    campaign: 'dynamicworks',
-    medium: 'affiliate',
-    source: 'CU100155',
+    token: '',
+    campaign: '',
+    medium: '',
+    source: '',
 };
 
-// ENova App Configuration
+// ENova App Configuration (non-sensitive placeholders only)
 export const enova_config = {
-    app_id: '106913',
-    app_name: 'ENova',
-    markup_percentage: 2.5,
-    oauth_redirect_url: 'http://localhost:3001/oauth/callback',
-    verification_url: 'http://localhost:3001/verify-email',
+    app_id: '',
+    app_name: '',
+    markup_percentage: 0,
+    oauth_redirect_url: '',
+    verification_url: '',
 };
