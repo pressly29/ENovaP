@@ -1,7 +1,7 @@
 import { website_name } from '../config/app-config';
-import { domain_app_ids, getAppId } from '../config/config';
+import { getAppId } from '../config/config';
 import { CookieStorage, isStorageSupported, LocalStore } from '../storage/storage';
-import { getStaticUrl, urlForCurrentDomain } from '../url';
+import { getStaticUrl } from '../url';
 import { deriv_urls } from '../url/constants';
 
 export const redirectToLogin = (is_logged_in: boolean, language: string, has_params = true, redirect_delay = 0) => {
@@ -29,27 +29,28 @@ type TLoginUrl = {
     language: string;
 };
 
+type CookieStorageCtor = new (cookie_name: string, cookie_domain?: string) => { get: (key: string) => string | null };
+
 export const loginUrl = ({ language }: TLoginUrl) => {
     const server_url = LocalStore.get('config.server_url');
-    const signup_device_cookie = new (CookieStorage as any)('signup_device');
+    const CookieStorageClass = CookieStorage as unknown as CookieStorageCtor;
+    const signup_device_cookie = new CookieStorageClass('signup_device');
     const signup_device = signup_device_cookie.get('signup_device');
-    const date_first_contact_cookie = new (CookieStorage as any)('date_first_contact');
+    const date_first_contact_cookie = new CookieStorageClass('date_first_contact');
     const date_first_contact = date_first_contact_cookie.get('date_first_contact');
-    const marketing_queries = `${signup_device ? `&signup_device=${signup_device}` : ''}${
-        date_first_contact ? `&date_first_contact=${date_first_contact}` : ''
+    const marketing_queries = `${signup_device ? `&signup_device=${encodeURIComponent(signup_device)}` : ''}${
+        date_first_contact ? `&date_first_contact=${encodeURIComponent(date_first_contact)}` : ''
     }`;
-    const getOAuthUrl = () => {
-        return `https://oauth.${
-            deriv_urls.DERIV_HOST_NAME
-        }/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
-    };
-
     if (server_url && /qa/.test(server_url)) {
         return `https://${server_url}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
     }
 
-    if (getAppId() === domain_app_ids[window.location.hostname as keyof typeof domain_app_ids]) {
-        return getOAuthUrl();
-    }
-    return urlForCurrentDomain(getOAuthUrl());
+    // Route through Netlify Function to append affiliate params server-side (no client secrets)
+    const fn_params = new URLSearchParams();
+    fn_params.set('type', 'login');
+    fn_params.set('lang', language);
+    fn_params.set('brand', website_name.toLowerCase());
+    if (signup_device) fn_params.set('signup_device', signup_device);
+    if (date_first_contact) fn_params.set('date_first_contact', date_first_contact);
+    return `/.netlify/functions/enova-auth?${fn_params.toString()}`;
 };

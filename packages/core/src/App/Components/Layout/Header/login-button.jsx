@@ -2,13 +2,19 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Button } from '@deriv/components';
 import { localize, getLanguage } from '@deriv/translations';
+import { trackEvent } from '@deriv/shared/src/utils/analytics/track';
 
 const LoginButton = ({ className }) => {
     const onLogin = () => {
         try {
             // Redirect via Netlify Function to keep secrets server-side
             const lang = getLanguage();
-            const fn = `/.netlify/functions/enova-auth?type=login&lang=${encodeURIComponent(lang || 'EN')}`;
+            const brand = 'deriv';
+            const fn = `/.netlify/functions/enova-auth?type=login&lang=${encodeURIComponent(
+                lang || 'EN'
+            )}&brand=${brand}`;
+            // best-effort tracking before redirect
+            trackEvent('auth_redirect', { type: 'login', lang, brand });
             window.location.href = fn;
         } catch (e) {
             // Fallback: stay on page if something goes wrong
