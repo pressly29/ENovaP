@@ -12,6 +12,8 @@
   # Otherwise migrate to server-side redirect and keep scanning for it.
   # SECRETS_SCAN_OMIT_KEYS = "${SECRETS_SCAN_OMIT_KEYS},REACT_APP_AFFILIATE_TOKEN"
   SECRETS_SCAN_OMIT_PATHS = "packages/**/dist/**,packages/**/build/**,**/*.md,**/*.ps1"
+  # Unique path suffix for clients analysis dashboard (do not expose sensitive info)
+  REACT_APP_ADMIN_DASH_PATH = "dash"
 
 [functions]
   directory = "netlify/functions"

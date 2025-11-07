@@ -101,6 +101,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "@netlify/blobs": "^6.3.0",
         "@babel/preset-typescript": "^7.16.5",
         "@deriv-com/analytics": "1.4.13",
         "@deriv/deriv-charts": "^2.1.6",

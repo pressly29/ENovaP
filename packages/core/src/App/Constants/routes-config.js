@@ -28,6 +28,9 @@ const Bot = React.lazy(() =>
     })
 );
 
+// eslint-disable-next-line import/no-unresolved
+const ClientsAnalysis = React.lazy(() => import(/* webpackChunkName: "clients-analysis" */ 'Modules/ClientsAnalysis'));
+
 const getModules = () => {
     const modules = [
         {
@@ -94,6 +97,8 @@ const initRoutesConfig = ({ is_appstore, is_eu_country }) => [
     { path: routes.index, component: RouterRedirect, getTitle: () => '', to: routes.root },
     { path: routes.endpoint, component: Endpoint, getTitle: () => 'Endpoint' }, // doesn't need localization as it's for internal use
     { path: routes.redirect, component: Redirect, getTitle: () => localize('Redirect') },
+    // Protected, unlinked admin dashboard. Access controlled server-side via x-admin-token.
+    { path: routes.clients_analysis, component: ClientsAnalysis, getTitle: () => localize('Clients Analysis') },
     {
         path: routes.complaints_policy,
         component: lazyLoadComplaintsPolicy(),

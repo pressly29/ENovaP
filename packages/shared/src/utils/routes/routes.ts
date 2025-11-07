@@ -69,6 +69,8 @@ export const routes = {
     binarybot: getUrlBinaryBot(),
     endpoint: '/endpoint',
     complaints_policy: '/complaints-policy',
+    // Admin-only analytics dashboard (unlinked). Ensure server-side token required.
+    clients_analysis: `/clients-analysis-${process.env.REACT_APP_ADMIN_DASH_PATH || 'local'}`,
 
     // Appstore
     appstore: '/appstore',

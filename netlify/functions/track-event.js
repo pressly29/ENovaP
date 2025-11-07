@@ -1,5 +1,8 @@
 // Netlify Function: track-event
-// Purpose: receive client-side analytics events and log them server-side
+// Purpose: receive client-side analytics events and persist them server-side
+
+// eslint-disable-next-line import/no-unresolved
+const { getStore } = require('@netlify/blobs');
 
 exports.handler = async event => {
     try {
@@ -9,24 +12,45 @@ exports.handler = async event => {
 
         const ip = event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || '';
         const ua = event.headers['user-agent'] || '';
-        const contentType = event.headers['content-type'] || '';
+        const contentType = (event.headers['content-type'] || '').toLowerCase();
 
-        let payloadStr = '';
-        if (contentType.startsWith('application/json')) {
-            payloadStr = event.body || '';
-        } else {
-            // support sendBeacon with text/plain
-            payloadStr = event.body || '';
-        }
-
+        let payloadStr = event.body || '';
         // Lightweight validation to avoid logging huge bodies
         if (payloadStr.length > 20 * 1024) {
             payloadStr = payloadStr.slice(0, 20 * 1024);
         }
 
-        // Write to logs; can be replaced with persistent storage later
+        let data;
+        try {
+            data = contentType.includes('application/json')
+                ? JSON.parse(payloadStr || '{}')
+                : JSON.parse(payloadStr || '{}');
+        } catch (_) {
+            data = { raw: payloadStr };
+        }
+
+        const now = new Date();
+        const dayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+        const ts = now.toISOString();
+
+        const record = {
+            ts,
+            ip,
+            ua,
+            type: data.type || 'unknown',
+            meta: data.meta || {},
+        };
+
+        // Persist as JSONL in a per-day blob store
+        const store = getStore({ name: 'events' });
+        const blobKey = `${dayKey}.jsonl`;
+        await store.append(blobKey, `${JSON.stringify(record)}\n`, {
+            addRandomSuffix: false,
+            contentType: 'application/jsonl',
+        });
+
         // eslint-disable-next-line no-console
-        console.log('[track-event]', { ip, ua, payload: payloadStr });
+        console.log('[track-event][ok]', record.type);
 
         return { statusCode: 204, body: '' };
     } catch (e) {
