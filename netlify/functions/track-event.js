@@ -41,18 +41,23 @@ exports.handler = async event => {
             meta: data.meta || {},
         };
 
-        // Persist as JSONL in a per-day blob store
-        const store = getStore({ name: 'events' });
-        const blobKey = `${dayKey}.jsonl`;
-        await store.append(blobKey, `${JSON.stringify(record)}\n`, {
-            addRandomSuffix: false,
-            contentType: 'application/jsonl',
-        });
-
-        // eslint-disable-next-line no-console
-        console.log('[track-event][ok]', record.type);
-
-        return { statusCode: 204, body: '' };
+        // Persist as JSONL in a per-day blob store (be defensive if Blobs unavailable)
+        try {
+            const store = getStore({ name: 'events' });
+            const blobKey = `${dayKey}.jsonl`;
+            await store.append(blobKey, `${JSON.stringify(record)}\n`, {
+                addRandomSuffix: false,
+                contentType: 'application/jsonl',
+            });
+            // eslint-disable-next-line no-console
+            console.log('[track-event][ok]', record.type);
+            return { statusCode: 204, body: '' };
+        } catch (persistErr) {
+            // eslint-disable-next-line no-console
+            console.error('[track-event] blobs persist error', persistErr);
+            // Accept the event but drop storage to avoid breaking user flow
+            return { statusCode: 202, body: '' };
+        }
     } catch (e) {
         // eslint-disable-next-line no-console
         console.error('[track-event] error', e);
