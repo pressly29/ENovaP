@@ -39,6 +39,7 @@
         "babel-polyfill": "^6.26.0",
         "copy-anything": "^4.0.5",
         "dotenv-webpack": "^8.0.1",
+        "eslint-plugin-simple-import-sort": "^12.1.1",
         "husky": "^7.0.0",
         "jest": "^26.4.2",
         "jest-chain": "^1.1.5",
@@ -101,10 +102,10 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@netlify/blobs": "^6.3.0",
         "@babel/preset-typescript": "^7.16.5",
         "@deriv-com/analytics": "1.4.13",
         "@deriv/deriv-charts": "^2.1.6",
+        "@netlify/blobs": "^6.3.0",
         "@nivo/pie": "^0.85.1",
         "@sendbird/chat": "^4.9.7",
         "@types/react-transition-group": "^4.4.4",

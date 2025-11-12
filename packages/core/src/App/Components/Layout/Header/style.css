@@ -1,4 +1,4 @@
-.apollo_info{
+.apollo_info {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -16,14 +16,15 @@
 }
 
 .logo_image {
-    width: 32px;
+    width: 34px;
     height: 32px;
-    background-image: url('../../../../public/images/favicons/favicon-32.png');
+    background-image: url('../../../../public/images/favicons/novac.png');
+    zoom: 120%;
     margin-left: 12px;
     background-size: cover;
 }
 
-.social_acc{
+.social_acc {
     font-size: 28px;
     color: #60b5ff;
     cursor: pointer;
@@ -31,13 +32,13 @@
 
 /* Responsive (Mobile) */
 @media (max-width: 720px) {
-    .apollo_info{
+    .apollo_info {
         width: 100%;
         justify-content: center;
         gap: 2rem;
     }
 
-    .social_acc{
+    .social_acc {
         font-size: 38px;
     }
 }

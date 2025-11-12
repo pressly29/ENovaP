@@ -95,8 +95,8 @@
 
 /** @define landscape-blocker; weak */
 .landscape-blocker {
-    /* enable temporary landscape blocker UI in landscape */
-    display: flex;
+    /* Disabled landscape blocker to support all screen sizes */
+    display: none !important;
     position: fixed;
     top: 0;
     left: 0;

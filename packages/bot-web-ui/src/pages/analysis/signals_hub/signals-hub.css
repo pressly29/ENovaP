@@ -1,11 +1,11 @@
 /* Signals Hub Container */
 .signals-hub-container {
     width: 100%;
-    height: 90%;
+    min-height: 80%; /* Changed from height: 90% */
     padding: 20px;
     background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
     color: #fff;
-    overflow-y: auto;
+    /* Removed overflow-y: auto - parent handles scrolling */
 }
 
 /* Header Section */
@@ -23,8 +23,6 @@
     font-weight: 700;
     margin: 0 0 8px;
     background: linear-gradient(90deg, #00ff88, #00d4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
@@ -64,8 +62,13 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* Symbol Selector */
@@ -206,8 +209,14 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .welcome-card {
@@ -221,8 +230,6 @@
     font-size: 28px;
     margin: 0 0 12px;
     background: linear-gradient(90deg, #00ff88, #00d4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 

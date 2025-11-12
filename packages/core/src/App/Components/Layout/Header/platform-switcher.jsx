@@ -1,27 +1,22 @@
 import 'Sass/app/_common/components/platform-switcher.scss';
 
-import { Icon } from '@deriv/components';
-import { getPlatformInformation, getUrlBinaryBot, isMobile } from '@deriv/shared';
+import { getUrlBinaryBot, isMobile } from '@deriv/shared';
 
 import { CSSTransition } from 'react-transition-group';
 import { PlatformDropdown } from './platform-dropdown.jsx';
-import { PlatformSwitcherLoader } from './Components/Preloader/platform-switcher.jsx';
 import PropTypes from 'prop-types';
 import React from 'react';
-import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import { Text } from '@deriv/components';
 import { Localize } from '@deriv/translations';
-import { MdOutlineRefresh } from "react-icons/md";
+import { MdOutlineRefresh } from 'react-icons/md';
 import './style.css';
+
 const PlatformSwitcher = ({
     toggleDrawer,
     app_routing_history,
     platform_config = [],
     current_language,
-    is_landing_company_loaded,
-    is_logged_in,
-    is_logging_in,
     setTogglePlatformType,
 }) => {
     const [is_open, setIsOpen] = React.useState(false);
@@ -51,11 +46,8 @@ const PlatformSwitcher = ({
         is_close_drawer_fired_ref.current = true;
     };
 
-    const telegramUrl = 'https://t.me/deriv_apollo';
-
-    const openUrlInNewTab = (url) =>{
-        window.open(url, '_blank');
-      }
+    // const telegramUrl = 'https://t.me/deriv_apollo';
+    // const openUrlInNewTab = url => window.open(url, '_blank');
 
     return (
         <React.Fragment>
@@ -63,13 +55,13 @@ const PlatformSwitcher = ({
                 <div
                     className='logo_holder'
                     onClick={() => {
-                        const newUrl = window.location.origin + '/';
+                        const newUrl = `${window.location.origin  }/`;
                         window.location.href = newUrl;
                     }}
                 >
-                    <span className='logo_image'></span>
+                    <span className='logo_image' />
                     <Text size='m' line_height='xs' className='header__menu-link-text'>
-                        <Localize i18n_default_text='ENova' />
+                        <Localize i18n_default_text='EvPNova' />
                     </Text>
                 </div>
                 <div className='social_acc' onClick={() => window.location.reload()}>

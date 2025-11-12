@@ -292,48 +292,6 @@ const SignalsHub = observer(() => {
                                 Over/Under, Even/Odd, and Rise/Fall predictions with confidence scoring.
                             </p>
 
-                            <div className='roadmap-section'>
-                                <h3>🎯 Features & Roadmap</h3>
-                                <div className='roadmap-items'>
-                                    <div className='roadmap-item completed'>
-                                        <span className='roadmap-icon'>✅</span>
-                                        <div className='roadmap-details'>
-                                            <h4>Phase 1: Deriv Signal Generator (Complete)</h4>
-                                            <p>
-                                                Pattern-based predictions, countdown timer, entry points, confidence
-                                                scoring
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className='roadmap-item pending'>
-                                        <span className='roadmap-icon'>🔧</span>
-                                        <div className='roadmap-details'>
-                                            <h4>Phase 2: Enhanced Analytics (In Progress)</h4>
-                                            <p>
-                                                Multi-signal comparison, signal strength visualization, pattern heatmaps
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className='roadmap-item pending'>
-                                        <span className='roadmap-icon'>⏳</span>
-                                        <div className='roadmap-details'>
-                                            <h4>Phase 3: Smart Notifications (Coming)</h4>
-                                            <p>
-                                                Browser alerts, high-confidence signals, countdown reminders, sound
-                                                effects
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className='roadmap-item pending'>
-                                        <span className='roadmap-icon'>⏳</span>
-                                        <div className='roadmap-details'>
-                                            <h4>Phase 4: Performance Tracking (Coming)</h4>
-                                            <p>Signal history, win/loss tracking, export to CSV, accuracy metrics</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div className='quick-stats'>
                                 <h3>📊 Current Status</h3>
                                 <div className='stats-grid'>

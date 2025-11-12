@@ -8,7 +8,9 @@ import SignalsHub from './signals_hub';
 import './style.css';
 
 const AnalysisPage = () => {
-    const [viewMode, setViewMode] = useState<'signals-hub' | 'market-analyzer' | 'quantum' | 'circles' | 'guide' | 'legacy'>('signals-hub');
+    const [viewMode, setViewMode] = useState<
+        'signals-hub' | 'market-analyzer' | 'quantum' | 'circles' | 'guide' | 'legacy'
+    >('signals-hub');
 
     return (
         <div className='main_analysis'>
@@ -19,12 +21,6 @@ const AnalysisPage = () => {
                     onClick={() => setViewMode('signals-hub')}
                 >
                     🎯 Signals Hub
-                </button>
-                <button
-                    className={`toggle-btn ${viewMode === 'guide' ? 'active' : ''}`}
-                    onClick={() => setViewMode('guide')}
-                >
-                    📚 Trading Guide
                 </button>
                 <button
                     className={`toggle-btn ${viewMode === 'market-analyzer' ? 'active' : ''}`}
@@ -45,6 +41,12 @@ const AnalysisPage = () => {
                     🎯 Circles
                 </button>
                 <button
+                    className={`toggle-btn ${viewMode === 'guide' ? 'active' : ''}`}
+                    onClick={() => setViewMode('guide')}
+                >
+                    📚 Trading Guide
+                </button>
+                <button
                     className={`toggle-btn ${viewMode === 'legacy' ? 'active' : ''}`}
                     onClick={() => setViewMode('legacy')}
                 >
@@ -52,15 +54,18 @@ const AnalysisPage = () => {
                 </button>
             </div>
 
-            {/* Conditional Rendering */}
-            {(() => {
-                if (viewMode === 'signals-hub') return <SignalsHub />;
-                if (viewMode === 'guide') return <TradingGuide />;
-                if (viewMode === 'market-analyzer') return <DerivMarketAnalyzer />;
-                if (viewMode === 'quantum') return <QuantumSignalAnalyzer />;
-                if (viewMode === 'circles') return <CirclesAnalyzer />;
-                return <ApolloAnalysisPage />;
-            })()}
+            {/* Content Wrapper with Scroll */}
+            <div className='analysis-content-wrapper'>
+                {/* Conditional Rendering */}
+                {(() => {
+                    if (viewMode === 'signals-hub') return <SignalsHub />;
+                    if (viewMode === 'guide') return <TradingGuide />;
+                    if (viewMode === 'market-analyzer') return <DerivMarketAnalyzer />;
+                    if (viewMode === 'quantum') return <QuantumSignalAnalyzer />;
+                    if (viewMode === 'circles') return <CirclesAnalyzer />;
+                    return <ApolloAnalysisPage />;
+                })()}
+            </div>
         </div>
     );
 };
