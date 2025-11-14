@@ -172,8 +172,29 @@
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://browser-update.org" />
 
-        <link rel="alternate" hreflang="en-EN" href="https://app.deriv.com" />
-        <link rel="canonical" href="https://app.deriv.com" />
+        <!-- SEO: canonical URLs should reference the production domain -->
+        <link rel="alternate" hreflang="en" href="https://evpnova.com/" />
+        <link rel="canonical" href="https://evpnova.com/" />
+
+        <!-- Safety net: mark branch/preview deploys as noindex at runtime -->
+        <script>
+            (function () {
+                try {
+                    var host = window.location.hostname || '';
+                    // Netlify branch deploys often look like: branch--site.netlify.app
+                    // Deploy previews look like: deploy-preview-123--site.netlify.app
+                    var is_preview = /--.*\.netlify\.app$/.test(host) || /netlify\.app$/.test(host);
+                    if (is_preview) {
+                        var m = document.createElement('meta');
+                        m.name = 'robots';
+                        m.content = 'noindex,nofollow';
+                        document.head.appendChild(m);
+                    }
+                } catch (e) {
+                    // noop
+                }
+            })();
+        </script>
 
         <title>ENova</title>
         <meta charset="UTF-8" />

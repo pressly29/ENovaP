@@ -22,3 +22,41 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Enforce canonical domain (redirect www to apex)
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "https://evpnova.com/:splat"
+  status = 301
+  force = true
+  conditions = { Host = ["www.evpnova.com"] }
+
+# Security and SEO headers for all routes
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+
+# Mark deploy previews and branch deploys as noindex via response header
+[context.deploy-preview]
+  command = "npm ci && npx lerna link && CI=false npx lerna bootstrap --hoist && npm run build:all"
+
+  [[context.deploy-preview.headers]]
+    for = "/*"
+    [context.deploy-preview.headers.values]
+      X-Robots-Tag = "noindex, nofollow"
+
+[context.branch-deploy]
+  command = "npm ci && npx lerna link && CI=false npx lerna bootstrap --hoist && npm run build:all"
+
+  [[context.branch-deploy.headers]]
+    for = "/*"
+    [context.branch-deploy.headers.values]
+      X-Robots-Tag = "noindex, nofollow"
