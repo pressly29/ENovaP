@@ -77,7 +77,7 @@ const subPageValue = () => {
 };
 
 export const updateWorkspaceName = active_tab => {
-    document.title = 'ENova';
+    document.title = 'EvPNova';
     if (!DBotStore?.instance) return;
     const { load_modal } = DBotStore.instance;
     const file_name = load_modal?.dashboard_strategies?.[0]?.name ?? config.default_file_name;
@@ -122,7 +122,7 @@ export const cleanUpOnLoad = (blocks_to_clean, drop_event, workspace) => {
     workspace.cleanUp(cursor_x, cursor_y, blocks_to_clean);
 };
 
-export const save = (filename = '@deriv/bot', collection = false, xmlDom) => {
+export const save = (filename = '@deriv/bot', collection = false, xmlDom = document.createElement('xml')) => {
     xmlDom.setAttribute('is_dbot', 'true');
     xmlDom.setAttribute('collection', collection ? 'true' : 'false');
 
@@ -130,7 +130,10 @@ export const save = (filename = '@deriv/bot', collection = false, xmlDom) => {
     saveAs({ data, type: 'text/xml;charset=utf-8', filename: `${filename}.xml` });
 };
 
-const delayExecution = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delayExecution = ms =>
+    new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
 
 export const load = async ({
     block_string,
@@ -230,7 +233,8 @@ const loadBlocksFromHeader = (xml_string, block) => {
         try {
             xml = Blockly.Xml.textToDom(xml_string);
         } catch (error) {
-            return reject(localize('Unrecognized file format'));
+            reject(localize('Unrecognized file format'));
+            return;
         }
 
         try {
@@ -238,6 +242,7 @@ const loadBlocksFromHeader = (xml_string, block) => {
 
             if (!is_collection) {
                 reject(localize('Remote blocks to load must be a collection.'));
+                return;
             }
 
             addLoaderBlocksFirst(xml)
@@ -267,7 +272,8 @@ export const loadBlocksFromRemote = block => {
         const has_possible_missing_index_xml = url.slice(-1)[0] === '/';
 
         if (!url.match(url_pattern) && !has_possible_missing_index_xml) {
-            return reject(localize('Target must be an XML file'));
+            reject(localize('Target must be an XML file'));
+            return;
         }
 
         if (has_possible_missing_index_xml) {
@@ -276,10 +282,13 @@ export const loadBlocksFromRemote = block => {
 
         if (block.isKnownUrl(url)) {
             block.setDisabled(true);
-            return reject(localize('This URL is already loaded'));
+            reject(localize('This URL is already loaded'));
+            return;
         }
 
-        const onFetchError = () => reject(localize('An error occured while trying to load the URL'));
+        const onFetchError = () => {
+            reject(localize('An error occured while trying to load the URL'));
+        };
 
         fetch(url)
             .then(response => {
