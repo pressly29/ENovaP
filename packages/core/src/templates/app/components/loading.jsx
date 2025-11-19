@@ -8,7 +8,7 @@ const Loading = ({ className, id, is_fullscreen = true, is_slow_loading, status,
 
     const iconStyle = {
         width: '100px',
-        animation: 'rotateIcon 2s linear infinite'
+        animation: 'rotateIcon 2s linear infinite',
     };
 
     const textStyle = {
@@ -16,7 +16,7 @@ const Loading = ({ className, id, is_fullscreen = true, is_slow_loading, status,
         color: 'white',
         textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
         marginTop: '10px',
-        animation: 'fadeIn 2s ease-in-out'
+        animation: 'fadeIn 2s ease-in-out',
     };
 
     const keyframesStyle = `
@@ -53,8 +53,8 @@ const Loading = ({ className, id, is_fullscreen = true, is_slow_loading, status,
                 ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
-                <img src="path_to_your_icon.png" alt="ENova Icon" style={iconStyle} />
-                <div style={textStyle}>ENova</div>
+                <img src='path_to_your_icon.png' alt='ENova Icon' style={iconStyle} />
+                <div style={textStyle}>EvPNova</div>
             </div>
             {is_slow_loading &&
                 status.map((text, inx) => (

@@ -15,7 +15,7 @@ export const mock_user_guide_content = [
         id: 1,
         type: 'Tour',
         subtype: 'OnBoard',
-        content: 'Get started on ENova Bot',
+        content: 'Get started on EvPNova Bot',
         src: 'dbot-onboard-tour.png',
         search_id: 'ugc-0',
     },

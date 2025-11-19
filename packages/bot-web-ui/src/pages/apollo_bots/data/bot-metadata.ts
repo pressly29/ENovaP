@@ -1086,7 +1086,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
 
         // Author
         author: {
-            name: 'ENova Trading Team',
+            name: 'EvPNova Trading Team',
             verified: true,
         },
 
@@ -1218,7 +1218,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
 
         // Author
         author: {
-            name: 'ENova Trading Team',
+            name: 'EvPNova Trading Team',
             verified: true,
         },
 
@@ -1356,7 +1356,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
 
         // Author
         author: {
-            name: 'ENova Trading Team',
+            name: 'EvPNova Trading Team',
             verified: true,
         },
 
@@ -1493,7 +1493,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
 
         // Author
         author: {
-            name: 'ENova Trading Team',
+            name: 'EvPNova Trading Team',
             verified: true,
         },
 
@@ -1610,7 +1610,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
         metrics: { downloads: 0, activeUsers: 0, rating: 4.6, reviews: 0, successRate: 72 },
 
         // Author & Dates
-        author: { name: 'ENova Trading Team', verified: true },
+        author: { name: 'EvPNova Trading Team', verified: true },
         createdAt: '2025-10-18T00:00:00Z',
         updatedAt: '2025-10-18T00:00:00Z',
 
@@ -1692,7 +1692,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
             sharpeRatio: 1.2,
         },
         metrics: { downloads: 0, activeUsers: 0, rating: 4.4, reviews: 0, successRate: 68 },
-        author: { name: 'ENova Trading Team', verified: true },
+        author: { name: 'EvPNova Trading Team', verified: true },
         createdAt: '2025-10-18T00:00:00Z',
         updatedAt: '2025-10-18T00:00:00Z',
         prerequisites: ['Basic bot usage'],
@@ -1771,7 +1771,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
             sharpeRatio: 1.0,
         },
         metrics: { downloads: 0, activeUsers: 0, rating: 4.3, reviews: 0, successRate: 66 },
-        author: { name: 'ENova Trading Team', verified: true },
+        author: { name: 'EvPNova Trading Team', verified: true },
         createdAt: '2025-10-18T00:00:00Z',
         updatedAt: '2025-10-18T00:00:00Z',
         prerequisites: ['Digits trading basics'],
@@ -1850,7 +1850,7 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
             sharpeRatio: 1.3,
         },
         metrics: { downloads: 0, activeUsers: 0, rating: 4.6, reviews: 0, successRate: 70 },
-        author: { name: 'ENova Trading Team', verified: true },
+        author: { name: 'EvPNova Trading Team', verified: true },
         createdAt: '2025-10-18T00:00:00Z',
         updatedAt: '2025-10-18T00:00:00Z',
         prerequisites: ['Basic bot usage'],

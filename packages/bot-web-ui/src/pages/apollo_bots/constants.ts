@@ -15,14 +15,22 @@ export const SIDEBAR_INTRO: TSidebarItem[] = [
                     'Deriv offers complex derivatives, such as options and contracts for difference (“CFDs”). These products may not be suitable for all clients, and trading them puts you at risk.'
                 ),
             },
-            { data: localize('Please make sure that you understand the following risks before trading Deriv products') },
+            {
+                data: localize(
+                    'Please make sure that you understand the following risks before trading Deriv products'
+                ),
+            },
             { data: localize('a) you may lose some or all of the money you invest in the trade') },
-            { data: localize('b) if your trade involves currency conversion, exchange rates will affect your profit and loss. You should never trade with borrowed money or with money that you cannot afford to lose.') },
+            {
+                data: localize(
+                    'b) if your trade involves currency conversion, exchange rates will affect your profit and loss. You should never trade with borrowed money or with money that you cannot afford to lose.'
+                ),
+            },
         ],
         link: false,
     },
     {
-        label: localize('Welcome to ENova Bot!'),
+        label: localize('Welcome to EvPNova Bot!'),
         content: [
             {
                 data: localize(
@@ -35,14 +43,14 @@ export const SIDEBAR_INTRO: TSidebarItem[] = [
     },
     {
         label: localize('Guide'),
-        content: [{ data: localize('ENova Bot - your automated trading partner') }],
+        content: [{ data: localize('EvPNova Bot - your automated trading partner') }],
         link: true,
     },
     {
         label: localize('FAQs'),
         content: [
             {
-                data: localize('What is ENova Bot?'),
+                data: localize('What is EvPNova Bot?'),
                 faq_id: 'faq-0',
             },
             {

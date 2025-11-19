@@ -1,7 +1,7 @@
 {
-    "name": "ENova",
-    "short_name": "ENova",
-    "description": "ENova gives everyone an easy way to participate in the financial markets.",
+    "name": "EvPNova",
+    "short_name": "EvPNova",
+    "description": "EvPNova gives everyone an easy way to participate in the financial markets.",
     "id": "/",
     "start_url": "{start_url_base}",
     "display": "standalone",

@@ -17,7 +17,7 @@ const userGuideContent = [
         id: 1,
         type: 'Tour',
         subtype: 'OnBoard',
-        content: 'Get started on ENova Bot',
+        content: 'Get started on EvPNova Bot',
         src: 'dbot-onboard-tour.png',
     },
 ];
