@@ -18,23 +18,36 @@
 [functions]
   directory = "netlify/functions"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# CRITICAL: Redirects are processed top-to-bottom. 
+# Host-conditional redirects MUST come before the SPA fallback.
 
-# Enforce canonical domain (redirect www to apex)
-[[redirects]]
-  from = "/.well-known/*"
-  to = "/.well-known/:splat"
-  status = 200
-
+# 1. Redirect www to apex domain (301 permanent redirect)
 [[redirects]]
   from = "/*"
   to = "https://evpnova.com/:splat"
   status = 301
   force = true
   conditions = { Host = ["www.evpnova.com"] }
+
+# 2. Redirect any Netlify subdomain to custom domain (prevent duplicate indexing)
+[[redirects]]
+  from = "/*"
+  to = "https://evpnova.com/:splat"
+  status = 301
+  force = true
+  conditions = { Host = ["*.netlify.app"] }
+
+# 3. Preserve .well-known paths (for SSL verification, security.txt, etc.)
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+
+# 4. SPA fallback - MUST be last (rewrites all unmatched routes to index.html)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 # Security and SEO headers for all routes
 [[headers]]

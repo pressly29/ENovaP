@@ -146,7 +146,7 @@
 
         <meta
             name="description"
-            content=" ENova offers a straightforward platform and ultimate trading tools for engaging in financial markets. "
+            content=" EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. "
         />
         <meta
             name="keywords"
@@ -158,7 +158,7 @@
         <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
         <meta
             property="og:description"
-            content="ENova offers a straightforward platform and ultimate trading tools for engaging in financial markets."
+            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets."
         />
         <meta property="og:type" content="website" />
         <meta
@@ -172,31 +172,47 @@
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://browser-update.org" />
 
-        <!-- SEO: canonical URLs should reference the production domain -->
-        <link rel="alternate" hreflang="en" href="https://evpnova.com/" />
-        <link rel="canonical" href="https://evpnova.com/" />
-
-        <!-- Safety net: mark branch/preview deploys as noindex at runtime -->
+        <!-- SEO: Dynamic canonical and alternate tags -->
         <script>
             (function () {
                 try {
                     var host = window.location.hostname || '';
-                    // Netlify branch deploys often look like: branch--site.netlify.app
-                    // Deploy previews look like: deploy-preview-123--site.netlify.app
-                    var is_preview = /--.*\.netlify\.app$/.test(host) || /netlify\.app$/.test(host);
+                    var path = window.location.pathname || '/';
+                    var canonicalUrl = 'https://evpnova.com' + path;
+
+                    // Netlify branch/preview detection
+                    var is_preview =
+                        /--.*\.netlify\.app$/.test(host) ||
+                        (/netlify\.app$/.test(host) && host !== 'evpnova.netlify.app');
+
+                    // Set dynamic canonical
+                    var canonical = document.createElement('link');
+                    canonical.rel = 'canonical';
+                    canonical.href = canonicalUrl;
+                    document.head.appendChild(canonical);
+
+                    // Set alternate hreflang
+                    var alternate = document.createElement('link');
+                    alternate.rel = 'alternate';
+                    alternate.hreflang = 'en';
+                    alternate.href = canonicalUrl;
+                    document.head.appendChild(alternate);
+
+                    // Block preview/branch deploys from indexing
                     if (is_preview) {
-                        var m = document.createElement('meta');
-                        m.name = 'robots';
-                        m.content = 'noindex,nofollow';
-                        document.head.appendChild(m);
+                        var robotsMeta = document.createElement('meta');
+                        robotsMeta.name = 'robots';
+                        robotsMeta.content = 'noindex,nofollow';
+                        document.head.appendChild(robotsMeta);
                     }
                 } catch (e) {
-                    // noop
+                    // Fallback to static canonical if script fails
+                    console.error('Canonical tag script error:', e);
                 }
             })();
         </script>
 
-        <title>ENova</title>
+        <title>EvPNova</title>
         <meta charset="UTF-8" />
         <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
     </head>

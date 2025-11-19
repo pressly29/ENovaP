@@ -1,1 +1,7 @@
-/* /index.html 200
+# EvPNova Production Redirects
+# Netlify processes these AFTER netlify.toml redirects
+# Keep this minimal - complex rules belong in netlify.toml
+
+# SPA fallback: rewrite all unmatched routes to index.html
+# This must be last and use status 200 (rewrite, not redirect)
+/*    /index.html    200
