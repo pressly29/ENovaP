@@ -146,27 +146,52 @@
 
         <meta
             name="description"
-            content=" EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. "
+            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. Trade forex, digital options, indices, and commodities with advanced charting and analysis."
         />
         <meta
             name="keywords"
-            content=" digital options, forex, forex trading, online trading, financial trading, binary trading, index trading, trading indices, forex trades, trading commodities, digital options strategy, binary broker, binary bet, digital options trading platform, binary strategy, finance, stocks, investment, trading"
+            content="digital options, forex, forex trading, online trading, financial trading, binary trading, index trading, trading indices, forex trades, trading commodities, digital options strategy, binary broker, digital options trading platform, binary strategy, finance, stocks, investment, trading, EvPNova, trading platform"
         />
         <!-- TODO: iOS zoom bug for input elements means we'll get a lower user accessibility score since we're not allowing app.deriv.com to be scalable on mobile -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
         <meta name="theme-color" content="#414652" />
         <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
+
+        <!-- Open Graph Meta Tags for Social Sharing -->
+        <meta property="og:title" content="EvPNova - Advanced Financial Trading Platform" />
         <meta
             property="og:description"
-            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets."
+            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. Trade forex, digital options, indices, and commodities."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://evpnova.com/" />
         <meta
             property="og:image"
             content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR3qsyDtQ_1mlX1AoeV963gFP0UZBTcJOcdK0G802Vfg&s"
         />
+        <meta property="og:site_name" content="EvPNova" />
+
+        <!-- Twitter Card Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="EvPNova - Advanced Financial Trading Platform" />
+        <meta
+            name="twitter:description"
+            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets."
+        />
+        <meta
+            name="twitter:image"
+            content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR3qsyDtQ_1mlX1AoeV963gFP0UZBTcJOcdK0G802Vfg&s"
+        />
+
         <meta name="google" content="notranslate" />
         <meta name="referrer" content="origin" />
+        <meta name="author" content="EvPNova" />
+
+        <!-- Additional SEO Meta Tags -->
+        <meta name="application-name" content="EvPNova Trading Platform" />
+        <meta name="apple-mobile-web-app-title" content="EvPNova" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
 
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
@@ -204,6 +229,12 @@
                         robotsMeta.name = 'robots';
                         robotsMeta.content = 'noindex,nofollow';
                         document.head.appendChild(robotsMeta);
+                    } else {
+                        // Production: Explicitly allow indexing
+                        var robotsMeta = document.createElement('meta');
+                        robotsMeta.name = 'robots';
+                        robotsMeta.content = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+                        document.head.appendChild(robotsMeta);
                     }
                 } catch (e) {
                     // Fallback to static canonical if script fails
@@ -212,7 +243,22 @@
             })();
         </script>
 
-        <title>EvPNova</title>
+        <!-- Structured Data (JSON-LD) for Rich Search Results -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "FinancialService",
+                "name": "EvPNova",
+                "description": "EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets.",
+                "url": "https://evpnova.com",
+                "logo": "https://evpnova.com/logo.png",
+                "sameAs": [],
+                "areaServed": "Worldwide",
+                "serviceType": "Financial Trading Platform"
+            }
+        </script>
+
+        <title>EvPNova - Advanced Financial Trading Platform | Forex, Options & More</title>
         <meta charset="UTF-8" />
         <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
     </head>

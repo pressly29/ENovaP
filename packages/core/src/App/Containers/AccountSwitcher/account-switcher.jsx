@@ -17,7 +17,7 @@ import {
     Loading,
 } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { routes, formatMoney, ContentFlag, getStaticUrl, getAppId, LocalStore } from '@deriv/shared';
+import { routes, formatMoney, ContentFlag, getAppId, LocalStore } from '@deriv/shared';
 import { getLanguage, localize, Localize } from '@deriv/translations';
 import { useHasSetCurrency } from '@deriv/hooks';
 import { Analytics } from '@deriv-com/analytics';
@@ -103,7 +103,7 @@ const AccountSwitcher = observer(({ history, is_mobile, is_visible }) => {
             togglePositionsDrawer(); // TODO: hide drawer inside logout, once it is a mobx action
         }
         await logoutClient();
-        window.location.href = 'https://app.ENova.com/';
+        window.location.href = 'https://evpnova.com';
     };
 
     const closeAccountsDialog = () => {
@@ -424,33 +424,43 @@ const AccountSwitcher = observer(({ history, is_mobile, is_visible }) => {
 
     const first_real_login_id = account_list?.find(account => /^(CR|MF)/.test(account.loginid))?.loginid;
 
-    const TradersHubRedirect = () => {
-        const TradersHubLink = () => {
-            const handleRedirect = async () => {
-                if (!is_virtual && isDemoAccountTab) {
-                    await switchAccount(virtual_account_loginid);
-                } else if (is_virtual && isRealAccountTab) {
-                    await switchAccount(first_real_login_id);
-                }
-                toggleAccountsDialog(false);
-                history.push(routes.traders_hub);
-                setTogglePlatformType('cfd');
-            };
-
-            return (
-                <React.Fragment>
-                    <div className='acc-switcher__traders-hub'>
-                        <BinaryLink onClick={handleRedirect} className='acc-switcher__traders-hub--link'>
-                            <Text size='xs' align='center' className='acc-switcher__traders-hub--text'>
-                                <Localize i18n_default_text="Looking for CFD accounts? Go to Trader's Hub" />
-                            </Text>
-                        </BinaryLink>
-                    </div>
-                    <div className='acc-switcher__separator' />
-                </React.Fragment>
-            );
+    const TradersHubLink = React.useCallback(() => {
+        const handleRedirect = async () => {
+            if (!is_virtual && isDemoAccountTab) {
+                await switchAccount(virtual_account_loginid);
+            } else if (is_virtual && isRealAccountTab) {
+                await switchAccount(first_real_login_id);
+            }
+            toggleAccountsDialog(false);
+            history.push(routes.traders_hub);
+            setTogglePlatformType('cfd');
         };
 
+        return (
+            <React.Fragment>
+                <div className='acc-switcher__traders-hub'>
+                    <BinaryLink onClick={handleRedirect} className='acc-switcher__traders-hub--link'>
+                        <Text size='xs' align='center' className='acc-switcher__traders-hub--text'>
+                            <Localize i18n_default_text="Looking for CFD accounts? Go to Trader's Hub" />
+                        </Text>
+                    </BinaryLink>
+                </div>
+                <div className='acc-switcher__separator' />
+            </React.Fragment>
+        );
+    }, [
+        is_virtual,
+        isDemoAccountTab,
+        isRealAccountTab,
+        first_real_login_id,
+        switchAccount,
+        virtual_account_loginid,
+        toggleAccountsDialog,
+        history,
+        setTogglePlatformType,
+    ]);
+
+    const TradersHubRedirect = () => {
         if ((isRealAccountTab && has_any_real_account) || isDemoAccountTab) {
             return <TradersHubLink />;
         }

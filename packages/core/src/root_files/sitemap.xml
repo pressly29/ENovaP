@@ -1,8 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+	<!-- Homepage -->
 	<url>
 		<loc>https://evpnova.com/</loc>
-		<changefreq>weekly</changefreq>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>daily</changefreq>
 		<priority>1.0</priority>
+	</url>
+	
+	<!-- Trading Platform -->
+	<url>
+		<loc>https://evpnova.com/trader</loc>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>weekly</changefreq>
+		<priority>0.9</priority>
+	</url>
+	
+	<!-- Wallets -->
+	<url>
+		<loc>https://evpnova.com/wallets</loc>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>weekly</changefreq>
+		<priority>0.8</priority>
+	</url>
+	
+	<!-- App Store -->
+	<url>
+		<loc>https://evpnova.com/appstore</loc>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>weekly</changefreq>
+		<priority>0.8</priority>
+	</url>
+	
+	<!-- Traders Hub -->
+	<url>
+		<loc>https://evpnova.com/tradershub</loc>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>weekly</changefreq>
+		<priority>0.8</priority>
+	</url>
+	
+	<!-- CFD Trading -->
+	<url>
+		<loc>https://evpnova.com/cfd</loc>
+		<lastmod>2025-12-04</lastmod>
+		<changefreq>weekly</changefreq>
+		<priority>0.7</priority>
 	</url>
 </urlset>

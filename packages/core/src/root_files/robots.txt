@@ -2,12 +2,12 @@ User-agent: *
 # Allow indexing of the production site
 Allow: /
 
-# Optionally block sensitive or duplicate sections of the SPA
-Disallow: */cashier/*
-Disallow: */mt5/*
-Disallow: */p2p/*
-Disallow: */reports/*
-Disallow: */account/*
+# Allow other important sections for SEO
+Allow: /trader
+Allow: /wallets
+Allow: /appstore
+Allow: /tradershub
+Allow: /cfd
 
 # Point crawlers to the sitemap for faster discovery
 Sitemap: https://evpnova.com/sitemap.xml

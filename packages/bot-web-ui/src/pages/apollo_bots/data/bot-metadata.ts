@@ -11,7 +11,7 @@ import ap1 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/$Dollarprinterb
 import ap14 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/AlgoSniper.xml';
 import ap5 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/apollo_hybrid_rf_v2.2.xml';
 import ap8 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/apollo_virtualhook 101.xml';
-import ap9 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/auto_analyzer_v2.xml';
+import ap9 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/Dollar_print.xml';
 import ap2 from "@deriv/bot-skeleton/src/scratch/xml/apollo_bots/Big  Boyz Rise N' fall.xml";
 import ap16 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/BRAMEVENODDPRINTER.xml';
 import ap3 from '@deriv/bot-skeleton/src/scratch/xml/apollo_bots/Candle-Mine Version 2 .xml';
@@ -160,8 +160,8 @@ export const ENHANCED_BOT_LIST: BotMetadata[] = [
     {
         id: 1,
         name: 'Auto AI🌟',
-        displayName: 'Quantum Pattern Analyzer',
-        tagline: 'AI-powered digit prediction engine',
+        displayName: 'Currency printer',
+        tagline: 'Currency printer digit engine',
         description:
             'Sophisticated pattern recognition bot that analyzes digit occurrence percentages and makes data-driven predictions. Uses advanced probability analysis to identify optimal entry points for digits trading. The AI engine continuously learns from market patterns and adapts its predictions for consistent performance.',
         xml: ap9,

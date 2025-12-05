@@ -2,6 +2,7 @@ import { save_types, config, resetVhVariables } from '../constants';
 
 import { api_base, api_base2, api_base3, api_base4 } from '../services/api/api-base';
 import ApiHelpers from '../services/api/api-helpers';
+// eslint-disable-next-line import/no-cycle
 import Interpreter from '../services/tradeEngine/utils/interpreter';
 import { compareXml, observer as globalObserver } from '../utils';
 import { getSavedWorkspaces, saveWorkspaceToRecent } from '../utils/local-storage';
@@ -20,7 +21,7 @@ import ap4 from './xml/apollo_bots/Digit Differ 3 free BOT_Rate 1_0.09.xml';
 import ap5 from './xml/apollo_bots/apollo_hybrid_rf_v2.2.xml';
 import ap6 from './xml/apollo_bots/LAS VEGAS 📃💵.xml';
 import ap8 from './xml/apollo_bots/apollo_virtualhook 101.xml';
-import ap9 from './xml/apollo_bots/auto_analyzer_v2.xml';
+import ap9 from './xml/apollo_bots/Dollar_print.xml';
 
 // Advanced Strategy Bots (Phase 1)
 import ap10 from './xml/apollo_bots/lightning_scalper_v1.xml';
@@ -178,8 +179,10 @@ class DBot {
                 Blockly.derivWorkspace = this.workspace;
 
                 const varDB = new Blockly.Names('window');
+                // eslint-disable-next-line no-underscore-dangle
                 varDB.variableMap_ = Blockly.derivWorkspace.getVariableMap();
 
+                // eslint-disable-next-line no-underscore-dangle
                 Blockly.JavaScript.variableDB_ = varDB;
 
                 this.addBeforeRunFunction(this.unselectBlocks.bind(this));
@@ -444,6 +447,7 @@ class DBot {
     disableBlocksRecursively(block) {
         block.setDisabled(true);
         if (block.nextConnection?.targetConnection) {
+            // eslint-disable-next-line no-underscore-dangle
             this.disableBlocksRecursively(block.nextConnection.targetConnection.sourceBlock_);
         }
     }
@@ -652,6 +656,7 @@ class DBot {
         const strategy_sounds = [];
 
         notify_blocks.forEach(block => {
+            // eslint-disable-next-line no-underscore-dangle
             const selected_sound = block.inputList[0].fieldRow[3].value_;
 
             if (selected_sound !== 'silent') {
