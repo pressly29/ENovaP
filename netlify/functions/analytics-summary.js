@@ -15,7 +15,13 @@ exports.handler = async event => {
         }
         const admin_token = process.env.ADMIN_ANALYTICS_TOKEN || '';
         const provided = (event.headers && (event.headers['x-admin-token'] || event.headers['X-Admin-Token'])) || '';
-        if (!admin_token || provided !== admin_token) {
+
+        if (!admin_token || !provided) {
+            return { statusCode: 401, body: 'Unauthorized' };
+        }
+
+        if (provided !== admin_token) {
+            console.warn('[analytics-summary] failed auth attempt from IP:', event.requestContext?.identity?.sourceIp);
             return { statusCode: 403, body: 'Forbidden' };
         }
         // Query params

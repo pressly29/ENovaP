@@ -381,13 +381,13 @@ const BinarySocketBase = (() => {
             ...values,
         });
 
-    const triggerMt5DryRun = ({ email }) =>
+    const triggerMt5DryRun = ({ email, password }) =>
         deriv_api.send({
             account_type: 'financial',
             dry_run: 1,
             email,
             leverage: 100,
-            mainPassword: 'Test1234',
+            mainPassword: password,
             mt5_account_type: 'financial_stp',
             mt5_new_account: 1,
             name: 'test real labuan financial stp',
