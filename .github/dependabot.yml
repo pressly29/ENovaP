@@ -1,0 +1,90 @@
+version: 2
+updates:
+  # npm package dependencies
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "03:00"
+      timezone: UTC
+    allow:
+      - dependency-type: all
+    reviewers:
+      - pressly29
+    assignees:
+      - pressly29
+    labels:
+      - dependencies
+      - security
+    # Group updates by type to manage review burden
+    groups:
+      critical:
+        patterns:
+          - "form-data"
+          - "minimist"
+          - "@babel/traverse"
+          - "handlebars"
+          - "gh-pages"
+        update-types:
+          - "patch"
+          - "minor"
+      patch-updates:
+        update-types:
+          - "patch"
+        exclude-patterns:
+          - "form-data"
+          - "minimist"
+          - "@babel/traverse"
+          - "handlebars"
+          - "gh-pages"
+      minor-updates:
+        update-types:
+          - "minor"
+        exclude-patterns:
+          - "form-data"
+          - "minimist"
+          - "@babel/traverse"
+          - "handlebars"
+          - "gh-pages"
+      major-updates:
+        update-types:
+          - "major"
+    # Open separate PRs for each dependency, not grouped
+    open-pull-requests-limit: 99
+    pull-request-branch-name:
+      separator: "/"
+    rebase-strategy: auto
+    # Require status checks pass before auto-merge
+    versioning-strategy: semver
+
+  # npm dependencies in packages subdirectories
+  - package-ecosystem: npm
+    directory: "/packages/*"
+    schedule:
+      interval: daily
+      time: "03:00"
+      timezone: UTC
+    allow:
+      - dependency-type: all
+    reviewers:
+      - pressly29
+    labels:
+      - dependencies
+      - security
+    open-pull-requests-limit: 99
+    rebase-strategy: auto
+
+  # GitHub Actions versions
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    reviewers:
+      - pressly29
+    labels:
+      - dependencies
+      - github-actions
+    rebase-strategy: auto

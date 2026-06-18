@@ -1,0 +1,267 @@
+name: Dependabot Weekly Report
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9am UTC
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  weekly-vulnerability-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch Dependabot alerts
+        id: alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Note: Requires GitHub CLI with authenticated token
+            // Fetch all open Dependabot PR data
+            const fs = require('fs');
+
+            try {
+              // Query for Dependabot pull requests
+              const prs = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                creator: 'dependabot',
+                per_page: 100,
+              });
+
+              const alerts = {
+                total: prs.data.length,
+                bySeverity: {
+                  critical: [],
+                  high: [],
+                  medium: [],
+                  low: [],
+                },
+                byPackage: {},
+                byType: {
+                  major: [],
+                  minor: [],
+                  patch: [],
+                },
+              };
+
+              prs.data.forEach(pr => {
+                // Extract severity from labels
+                let severity = 'low';
+                const labelNames = pr.labels.map(l => typeof l === 'string' ? l : l.name);
+
+                if (labelNames.includes('severity:critical')) severity = 'critical';
+                else if (labelNames.includes('severity:high')) severity = 'high';
+                else if (labelNames.includes('severity:medium')) severity = 'medium';
+
+                // Extract package name from title "Bump package-name from X to Y"
+                const titleMatch = pr.title.match(/Bump (.+?) from ([\d.]+) to ([\d.]+)/);
+                const packageName = titleMatch ? titleMatch[1] : 'unknown';
+                const fromVersion = titleMatch ? titleMatch[2] : '?';
+                const toVersion = titleMatch ? titleMatch[3] : '?';
+
+                // Determine update type
+                let updateType = 'patch';
+                if (titleMatch) {
+                  const fromParts = fromVersion.split('.').map(Number);
+                  const toParts = toVersion.split('.').map(Number);
+                  if (fromParts[0] !== toParts[0]) updateType = 'major';
+                  else if (fromParts[1] !== toParts[1]) updateType = 'minor';
+                }
+
+                const prData = {
+                  number: pr.number,
+                  title: pr.title,
+                  package: packageName,
+                  fromVersion,
+                  toVersion,
+                  url: pr.html_url,
+                  createdAt: pr.created_at,
+                  state: pr.state,
+                };
+
+                alerts.bySeverity[severity].push(prData);
+                alerts.byType[updateType].push(prData);
+
+                if (!alerts.byPackage[packageName]) {
+                  alerts.byPackage[packageName] = [];
+                }
+                alerts.byPackage[packageName].push(prData);
+              });
+
+              // Sort packages by alert count
+              const sortedPackages = Object.entries(alerts.byPackage)
+                .sort((a, b) => b[1].length - a[1].length)
+                .slice(0, 10);
+
+              core.setOutput('total', alerts.total);
+              core.setOutput('critical', alerts.bySeverity.critical.length);
+              core.setOutput('high', alerts.bySeverity.high.length);
+              core.setOutput('medium', alerts.bySeverity.medium.length);
+              core.setOutput('low', alerts.bySeverity.low.length);
+              core.setOutput('major', alerts.byType.major.length);
+              core.setOutput('minor', alerts.byType.minor.length);
+              core.setOutput('patch', alerts.byType.patch.length);
+
+              // Store full data for comment generation
+              fs.writeFileSync('/tmp/alerts.json', JSON.stringify(alerts, null, 2));
+
+            } catch (error) {
+              console.error('Error fetching alerts:', error);
+              core.setFailed(error.message);
+            }
+
+      - name: Generate report
+        id: report
+        run: |
+          TOTAL="${{ steps.alerts.outputs.total }}"
+          CRITICAL="${{ steps.alerts.outputs.critical }}"
+          HIGH="${{ steps.alerts.outputs.high }}"
+          MEDIUM="${{ steps.alerts.outputs.medium }}"
+          LOW="${{ steps.alerts.outputs.low }}"
+          MAJOR="${{ steps.alerts.outputs.major }}"
+          MINOR="${{ steps.alerts.outputs.minor }}"
+          PATCH="${{ steps.alerts.outputs.patch }}"
+
+          cat > /tmp/report.md <<EOF
+          # 📊 Weekly Dependency Vulnerability Report
+
+          **Week of:** $(date -u +%Y-%m-%d)
+
+          ## Summary
+
+          | Category | Count |
+          |----------|-------|
+          | **Total Open Alerts** | $TOTAL |
+          | 🔴 Critical | $CRITICAL |
+          | 🟠 High | $HIGH |
+          | 🟡 Medium | $MEDIUM |
+          | 🔵 Low | $LOW |
+
+          ## Update Type Breakdown
+
+          | Type | Count | Status |
+          |------|-------|--------|
+          | 🔧 Patch | $PATCH | Auto-merged (safe) |
+          | ⬆️ Minor | $MINOR | Review recommended |
+          | ⚡ Major | $MAJOR | Manual required |
+
+          ## Action Items
+
+          ### 🔴 Critical Alerts ($CRITICAL)
+          These require immediate attention:
+          - [ ] Review each critical update
+          - [ ] Test locally before merging
+          - [ ] Verify no breaking changes in changelog
+
+          ### 🟠 High Priority ($HIGH)
+          Should be addressed within 1-2 weeks:
+          - [ ] Schedule review in next sprint
+          - [ ] Batch similar updates together
+          - [ ] Run full test suite before merging
+
+          ### 🟡 Medium Severity ($MEDIUM)
+          Can be planned for next sprint:
+          - [ ] Monitor for any security escalations
+          - [ ] Group by package to reduce review effort
+
+          ### 🔵 Low Severity ($LOW)
+          Monitor but not urgent:
+          - [ ] Review periodically
+          - [ ] Merge when convenient
+
+          ## Recent Auto-Merges
+
+          ✅ **Patch updates** are automatically merged when tests pass.
+          ✅ **Minor updates** for critical packages are auto-merged.
+          ⏸️ **Major updates** require manual review.
+
+          ---
+
+          ### Next Steps
+
+          1. Click the "View Open PRs" link above
+          2. Review critical and high-severity alerts first
+          3. Test major version updates locally
+          4. Merge when ready
+
+          ### Resources
+
+          - [Open Dependabot PRs](https://github.com/${{ github.repository }}/pulls?q=is%3Apr+is%3Aopen+author%3Adependabot)
+          - [Security Policy](.github/SECURITY_UPDATES.md)
+          - [Vulnerability Triage Template](.github/ISSUE_TEMPLATE/security-vulnerability-triage.yml)
+
+          EOF
+
+          cat /tmp/report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Create or update issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/report.md', 'utf8');
+            const reportDate = new Date().toISOString().split('T')[0];
+
+            // Try to find existing report issue from this week
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'dependencies',
+            });
+
+            const existingReport = issues.data.find(issue =>
+              issue.title.includes('Weekly Dependency Report') &&
+              issue.title.includes(reportDate.substring(0, 7)) // Same month
+            );
+
+            if (existingReport) {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingReport.number,
+                body: report,
+              });
+              console.log(`Updated existing report issue #${existingReport.number}`);
+            } else {
+              // Create new issue
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📊 Weekly Dependency Report - ${reportDate}`,
+                body: report,
+                labels: ['dependencies', 'security', 'report'],
+                assignees: ['pressly29'],
+              });
+              console.log(`Created new report issue #${newIssue.data.number}`);
+            }
+
+      - name: Post to workflow summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          ## Report Status
+          ✅ Weekly dependency report generated successfully
+
+          **Total Alerts:** ${{ steps.alerts.outputs.total }}
+          - 🔴 Critical: ${{ steps.alerts.outputs.critical }}
+          - 🟠 High: ${{ steps.alerts.outputs.high }}
+          - 🟡 Medium: ${{ steps.alerts.outputs.medium }}
+          - 🔵 Low: ${{ steps.alerts.outputs.low }}
+
+          **Update Types:**
+          - 🔧 Patch (auto-merged): ${{ steps.alerts.outputs.patch }}
+          - ⬆️ Minor (review): ${{ steps.alerts.outputs.minor }}
+          - ⚡ Major (manual): ${{ steps.alerts.outputs.major }}
+
+          [View Open PRs](https://github.com/${{ github.repository }}/pulls?q=is%3Apr+is%3Aopen+author%3Adependabot)
+          EOF

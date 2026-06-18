@@ -1,0 +1,197 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: write
+  checks: read
+
+jobs:
+  auto-merge-safe-updates:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'dependabot' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            console.log('PR title:', pr.title);
+            console.log('PR labels:', pr.labels.map(l => l.name));
+
+            // Extract version update type from PR title
+            // Format: "Bump package-name from X.Y.Z to A.B.C"
+            const titleMatch = pr.title.match(/Bump .+ from ([\d.]+) to ([\d.]+)/);
+            if (!titleMatch) {
+              console.log('Could not parse versions from PR title');
+              return;
+            }
+
+            const [, fromVersion, toVersion] = titleMatch;
+            const fromParts = fromVersion.split('.').map(Number);
+            const toParts = toVersion.split('.').map(Number);
+
+            let updateType = 'patch';
+            if (fromParts[0] !== toParts[0]) {
+              updateType = 'major';
+            } else if (fromParts[1] !== toParts[1]) {
+              updateType = 'minor';
+            }
+
+            console.log(`Update type: ${updateType} (${fromVersion} -> ${toVersion})`);
+
+            core.setOutput('update-type', updateType);
+            core.setOutput('from-version', fromVersion);
+            core.setOutput('to-version', toVersion);
+
+      - name: Check if patch/minor security update
+        id: check-safe
+        run: |
+          UPDATE_TYPE="${{ steps.pr.outputs.update-type }}"
+
+          # Auto-merge only patch updates, or minor updates for critical packages
+          if [ "$UPDATE_TYPE" = "patch" ]; then
+            echo "safe-to-merge=true" >> $GITHUB_OUTPUT
+            echo "✅ Patch update detected - safe to auto-merge"
+          elif [ "$UPDATE_TYPE" = "minor" ]; then
+            # Check if this is a known critical package
+            CRITICAL_PACKAGES=(
+              "form-data"
+              "minimist"
+              "@babel/traverse"
+              "handlebars"
+              "gh-pages"
+            )
+
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            IS_CRITICAL=false
+            for pkg in "${CRITICAL_PACKAGES[@]}"; do
+              if [[ "$PR_TITLE" == *"$pkg"* ]]; then
+                IS_CRITICAL=true
+                break
+              fi
+            done
+
+            if [ "$IS_CRITICAL" = true ]; then
+              echo "safe-to-merge=true" >> $GITHUB_OUTPUT
+              echo "✅ Minor update for critical package - safe to auto-merge"
+            else
+              echo "safe-to-merge=false" >> $GITHUB_OUTPUT
+              echo "⏸️ Minor update for non-critical package - requires manual review"
+            fi
+          else
+            echo "safe-to-merge=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Major update detected - requires manual review and testing"
+          fi
+
+      - name: Wait for status checks
+        if: steps.check-safe.outputs.safe-to-merge == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const maxAttempts = 30;
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+              const checkRuns = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: context.payload.pull_request.head.sha,
+              });
+
+              const completedChecks = checkRuns.data.check_runs.filter(
+                check => check.status === 'completed'
+              );
+
+              const allPassed = completedChecks.length > 0 &&
+                                completedChecks.every(check => check.conclusion === 'success');
+
+              if (allPassed) {
+                console.log('✅ All status checks passed!');
+                return true;
+              }
+
+              if (completedChecks.some(check => check.conclusion === 'failure')) {
+                console.log('❌ Some checks failed, aborting auto-merge');
+                core.setFailed('Status checks failed');
+                return false;
+              }
+
+              console.log(`Waiting for checks... (attempt ${attempts + 1}/${maxAttempts})`);
+              await new Promise(resolve => setTimeout(resolve, 10000)); // 10s delay
+              attempts++;
+            }
+
+            core.setFailed('Timeout waiting for status checks');
+
+      - name: Enable auto-merge
+        if: steps.check-safe.outputs.safe-to-merge == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const response = await github.graphql(`
+                mutation EnableAutoMerge($pullRequestId: ID!) {
+                  enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: SQUASH}) {
+                    pullRequest {
+                      number
+                      autoMergeRequest {
+                        enabledAt
+                        enabledBy {
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              `, {
+                pullRequestId: context.payload.pull_request.node_id
+              });
+
+              console.log('✅ Auto-merge enabled');
+              console.log('PR will be merged with squash strategy once all checks pass');
+            } catch (error) {
+              console.log('⚠️ Could not enable auto-merge:', error.message);
+              console.log('This might be due to branch protection rules - manual merge required');
+            }
+
+      - name: Add comment to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const updateType = '${{ steps.pr.outputs.update-type }}';
+            const safeToMerge = '${{ steps.check-safe.outputs.safe-to-merge }}' === 'true';
+
+            let message = '';
+            if (safeToMerge) {
+              message = `🤖 **Auto-merge enabled**\n\n`;
+              message += `- Update type: **${updateType}**\n`;
+              message += `- Version: ${process.env.FROM_VERSION} → ${process.env.TO_VERSION}\n`;
+              message += `- Status: Waiting for checks to pass, then will auto-merge with squash\n`;
+            } else {
+              message = `🔍 **Manual review required**\n\n`;
+              message += `- Update type: **${updateType}**\n`;
+              message += `- Version: ${process.env.FROM_VERSION} → ${process.env.TO_VERSION}\n`;
+              message += `- Please review the changes and changelog before merging\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+        env:
+          FROM_VERSION: ${{ steps.pr.outputs.from-version }}
+          TO_VERSION: ${{ steps.pr.outputs.to-version }}
