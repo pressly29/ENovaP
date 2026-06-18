@@ -1,0 +1,148 @@
+name: Analyze Dependabot Breaking Changes
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["test"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  analyze-if-failed:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'dependabot' }}
+
+    steps:
+      - name: Check if this is a Dependabot PR
+        id: check-bot
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              console.log('No PR payload, skipping');
+              return;
+            }
+
+            console.log('PR author:', pr.user.login);
+            const isDependabot = pr.user.login === 'dependabot[bot]' || pr.user.login === 'dependabot';
+            core.setOutput('is-dependabot', isDependabot ? 'true' : 'false');
+
+      - name: Get latest check run status
+        if: steps.check-bot.outputs.is-dependabot == 'true'
+        id: check-status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checkRuns = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha,
+            });
+
+            const failedChecks = checkRuns.data.check_runs.filter(
+              check => check.status === 'completed' && check.conclusion === 'failure'
+            );
+
+            console.log(`Total checks: ${checkRuns.data.check_runs.length}`);
+            console.log(`Failed checks: ${failedChecks.length}`);
+
+            if (failedChecks.length > 0) {
+              console.log('Failed check details:');
+              failedChecks.forEach(check => {
+                console.log(`- ${check.name}: ${check.conclusion}`);
+              });
+              core.setOutput('has-failures', 'true');
+            } else {
+              core.setOutput('has-failures', 'false');
+            }
+
+      - name: Checkout code
+        if: steps.check-bot.outputs.is-dependabot == 'true' && steps.check-status.outputs.has-failures == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract PR details
+        if: steps.check-bot.outputs.is-dependabot == 'true' && steps.check-status.outputs.has-failures == 'true'
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title;
+            const body = pr.body || '';
+
+            // Extract package name and versions from "Bump package from X to Y"
+            const match = title.match(/Bump (.+?) from ([\d.]+) to ([\d.]+)/);
+            if (!match) {
+              console.log('Could not parse PR title:', title);
+              return;
+            }
+
+            const [, packageName, fromVersion, toVersion] = match;
+            core.setOutput('package', packageName);
+            core.setOutput('from-version', fromVersion);
+            core.setOutput('to-version', toVersion);
+            core.setOutput('pr-body', body.substring(0, 1000)); // First 1000 chars
+
+            console.log(`Package: ${packageName}`);
+            console.log(`Version: ${fromVersion} → ${toVersion}`);
+
+      - name: Post initial analysis request
+        if: steps.check-bot.outputs.is-dependabot == 'true' && steps.check-status.outputs.has-failures == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `
+## 🔧 Analyzing Breaking Changes
+
+I've detected test failures on this Dependabot PR. An AI agent is analyzing the breaking changes to suggest fixes...
+
+**Analysis Started**: ${new Date().toISOString()}
+**Package**: ${{ steps.pr-details.outputs.package }}
+**Version**: ${{ steps.pr-details.outputs.from-version }} → ${{ steps.pr-details.outputs.to-version }}
+
+Please wait for the analysis to complete. I'll post suggested fixes as a follow-up comment.
+
+---
+*Automated analysis powered by Claude Agent*
+            `.trim();
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment,
+            });
+
+      - name: Add labels for failed tests
+        if: steps.check-bot.outputs.is-dependabot == 'true' && steps.check-status.outputs.has-failures == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['breaking-change', 'needs-fix-suggestion'],
+            });
+
+  trigger-fix-agent:
+    runs-on: ubuntu-latest
+    needs: [analyze-if-failed]
+    if: always() && contains(needs.analyze-if-failed.result, 'success')
+
+    steps:
+      - name: Trigger Claude Agent via webhook
+        run: |
+          echo "🚀 Ready for agent analysis of breaking changes"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "Repository: ${{ github.repository }}"
+
+          # Note: In production, this would trigger an external agent via webhook
+          # For now, we post to PR and manually trigger agent via /loop
