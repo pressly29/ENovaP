@@ -99,18 +99,18 @@ jobs:
         with:
           script: |
             const comment = `
-## 🔧 Analyzing Breaking Changes
+            ## 🔧 Analyzing Breaking Changes
 
-I've detected test failures on this Dependabot PR. An AI agent is analyzing the breaking changes to suggest fixes...
+            I've detected test failures on this Dependabot PR. An AI agent is analyzing the breaking changes to suggest fixes...
 
-**Analysis Started**: ${new Date().toISOString()}
-**Package**: ${{ steps.pr-details.outputs.package }}
-**Version**: ${{ steps.pr-details.outputs.from-version }} → ${{ steps.pr-details.outputs.to-version }}
+            **Analysis Started**: ${new Date().toISOString()}
+            **Package**: ${{ steps.pr-details.outputs.package }}
+            **Version**: ${{ steps.pr-details.outputs.from-version }} → ${{ steps.pr-details.outputs.to-version }}
 
-Please wait for the analysis to complete. I'll post suggested fixes as a follow-up comment.
+            Please wait for the analysis to complete. I'll post suggested fixes as a follow-up comment.
 
----
-*Automated analysis powered by Claude Agent*
+            ---
+            *Automated analysis powered by Claude Agent*
             `.trim();
 
             github.rest.issues.createComment({
