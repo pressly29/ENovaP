@@ -97,6 +97,52 @@
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
+    &__badges {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    /* Premium / Owned chips */
+    &__premium-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #f59e0b, #b45309);
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(180, 83, 9, 0.35);
+
+        svg {
+            flex-shrink: 0;
+        }
+
+        &--owned {
+            background: linear-gradient(135deg, #10b981, #047857);
+            box-shadow: 0 2px 8px rgba(4, 120, 87, 0.35);
+        }
+    }
+
+    &--locked {
+        .marketplace-card__icon-wrapper {
+            filter: saturate(0.85);
+        }
+    }
+
+    &__btn-unlock {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25) !important;
+
+        &:hover {
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35) !important;
+        }
+    }
+
     &__badge {
         padding: 4px 10px;
         border-radius: 12px;
@@ -316,7 +362,7 @@
 
     &__btn-load {
         flex: 1;
-        height: 36px !important;
+        height: 44px !important; /* min touch target */
         font-size: 13px !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
@@ -332,11 +378,16 @@
         &:active {
             transform: translateY(0);
         }
+
+        &:focus-visible {
+            outline: 2px solid #6366f1 !important;
+            outline-offset: 2px;
+        }
     }
 
     &__btn-info {
-        width: 36px;
-        height: 36px;
+        width: 44px;
+        height: 44px;
         border-radius: 10px;
         border: 1.5px solid #e5e7eb;
         background: #ffffff;
@@ -372,8 +423,36 @@
     }
 }
 
-/* Dark theme support */
-@media (prefers-color-scheme: dark) {
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+    .marketplace-card {
+        transition: none;
+
+        &:hover {
+            transform: none;
+
+            .marketplace-card__icon-wrapper {
+                transform: none;
+            }
+        }
+
+        &__badge,
+        &__premium-chip {
+            animation: none;
+        }
+
+        &__icon-wrapper,
+        &__btn-load {
+            transition: none !important;
+        }
+    }
+}
+
+/* Dark theme support.
+   The app switches theme with a `.theme--dark` class on <body> (see
+   core/src/Stores/ui-store.js), so the styles are defined once and applied
+   both to that class and to the OS-level preference as a fallback. */
+@mixin marketplace-card-dark {
     .marketplace-card {
         background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
         border-color: rgba(255, 255, 255, 0.08);
@@ -406,6 +485,15 @@
             color: #f9fafb;
         }
 
+        &__rating-value {
+            color: #d1d5db;
+        }
+
+        &__feature-pill {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.25));
+            color: #a5b4fc;
+        }
+
         &__footer {
             border-top-color: rgba(255, 255, 255, 0.08);
         }
@@ -418,5 +506,15 @@
                 background: #374151;
             }
         }
+    }
+}
+
+.theme--dark {
+    @include marketplace-card-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.theme--light) {
+        @include marketplace-card-dark;
     }
 }

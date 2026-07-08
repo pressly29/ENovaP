@@ -11,12 +11,35 @@ import { BotMetadata } from '../data/types';
 import { getCategoryColor, getRiskLevelColor, getRiskLevelIcon } from '../data/bot-categories';
 import './marketplace-card.scss';
 
+const CardLockIcon = () => (
+    <svg width='12' height='12' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+        <rect x='4' y='10' width='16' height='11' rx='2.5' stroke='currentColor' strokeWidth='2.5' />
+        <path d='M8 10V7a4 4 0 1 1 8 0v3' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
+    </svg>
+);
+
+const CardUnlockedIcon = () => (
+    <svg width='12' height='12' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+        <path d='m20 6-11 11-5-5' stroke='currentColor' strokeWidth='3' strokeLinecap='round' strokeLinejoin='round' />
+    </svg>
+);
+
 interface MarketplaceCardProps {
     bot: BotMetadata;
     onLoadBot: (botId: number) => void;
+    /** True when the bot is paid and the trader has NOT purchased it yet */
+    is_locked?: boolean;
+    /** True when the bot is paid and already purchased (shows "Owned" chip) */
+    is_owned?: boolean;
+    /** Server-resolved price label, e.g. "KES 1,500" */
+    price_label?: string;
+    /** Opens the Paystack checkout modal for this bot */
+    onUnlock?: (bot: BotMetadata) => void;
+    /** Reserved for the details modal (passed by the grid) */
+    onViewDetails?: (bot: BotMetadata) => void;
 }
 
-const MarketplaceCard: React.FC<MarketplaceCardProps> = observer(({ bot, onLoadBot }) => {
+const MarketplaceCard: React.FC<MarketplaceCardProps> = observer(({ bot, onLoadBot, is_locked, is_owned, price_label, onUnlock }) => {
     const [isHovered, setIsHovered] = React.useState(false);
 
     const categoryColor = getCategoryColor(bot.category);
@@ -50,7 +73,9 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = observer(({ bot, onLoadB
 
     return (
         <div
-            className={`marketplace-card ${isHovered ? 'marketplace-card--hovered' : ''}`}
+            className={`marketplace-card ${isHovered ? 'marketplace-card--hovered' : ''} ${
+                is_locked ? 'marketplace-card--locked' : ''
+            }`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -62,11 +87,27 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = observer(({ bot, onLoadB
                 >
                     <span className='marketplace-card__icon'>{bot.thumbnail}</span>
                 </div>
-                {bot.badge && (
-                    <span className={`marketplace-card__badge marketplace-card__badge--${bot.badge.toLowerCase()}`}>
-                        {bot.badge}
-                    </span>
-                )}
+                <div className='marketplace-card__badges'>
+                    {is_locked && (
+                        <span className='marketplace-card__premium-chip'>
+                            <CardLockIcon />
+                            PREMIUM
+                        </span>
+                    )}
+                    {is_owned && (
+                        <span className='marketplace-card__premium-chip marketplace-card__premium-chip--owned'>
+                            <CardUnlockedIcon />
+                            OWNED
+                        </span>
+                    )}
+                    {bot.badge && (
+                        <span
+                            className={`marketplace-card__badge marketplace-card__badge--${bot.badge.toLowerCase()}`}
+                        >
+                            {bot.badge}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Name & Category */}
@@ -118,12 +159,21 @@ const MarketplaceCard: React.FC<MarketplaceCardProps> = observer(({ bot, onLoadB
 
             {/* Action Button */}
             <div className='marketplace-card__action'>
-                <Button
-                    text='Load Bot'
-                    onClick={() => onLoadBot(bot.id)}
-                    primary
-                    className='marketplace-card__btn-load'
-                />
+                {is_locked ? (
+                    <Button
+                        text={price_label ? `Unlock · ${price_label}` : 'Unlock Bot'}
+                        onClick={() => onUnlock?.(bot)}
+                        primary
+                        className='marketplace-card__btn-load marketplace-card__btn-unlock'
+                    />
+                ) : (
+                    <Button
+                        text='Load Bot'
+                        onClick={() => onLoadBot(bot.id)}
+                        primary
+                        className='marketplace-card__btn-load'
+                    />
+                )}
             </div>
         </div>
     );

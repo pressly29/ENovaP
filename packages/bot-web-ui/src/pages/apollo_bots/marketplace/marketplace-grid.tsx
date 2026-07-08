@@ -20,13 +20,22 @@ interface MarketplaceGridProps {
     onLoadBot: (botId: number) => void;
     onViewDetails: (bot: BotMetadata) => void;
     loading?: boolean;
+    /** Premium gating (all optional so the grid also works without payments) */
+    isBotLocked?: (botId: number) => boolean;
+    isBotOwned?: (botId: number) => boolean;
+    getPriceLabel?: (botId: number) => string;
+    onUnlockBot?: (bot: BotMetadata) => void;
 }
 
-const MarketplaceGrid: React.FC<MarketplaceGridProps> = observer(({ 
-    bots, 
-    onLoadBot, 
+const MarketplaceGrid: React.FC<MarketplaceGridProps> = observer(({
+    bots,
+    onLoadBot,
     onViewDetails,
-    loading = false 
+    loading = false,
+    isBotLocked,
+    isBotOwned,
+    getPriceLabel,
+    onUnlockBot,
 }) => {
     const { ui } = useStore();
     const { is_mobile } = ui;
@@ -106,6 +115,10 @@ const MarketplaceGrid: React.FC<MarketplaceGridProps> = observer(({
                             bot={bot}
                             onLoadBot={onLoadBot}
                             onViewDetails={onViewDetails}
+                            is_locked={isBotLocked?.(bot.id)}
+                            is_owned={isBotOwned?.(bot.id)}
+                            price_label={getPriceLabel?.(bot.id)}
+                            onUnlock={onUnlockBot}
                         />
                     ))}
                 </div>

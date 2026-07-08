@@ -54,13 +54,26 @@ export type CapitalRequirement =
     | 'medium'   // $50-$100
     | 'high';    // $100+
 
-export type BotBadge = 
-    | 'NEW' 
-    | 'PRO' 
-    | 'POPULAR' 
+export type BotBadge =
+    | 'NEW'
+    | 'PRO'
+    | 'POPULAR'
     | 'VERIFIED'
     | 'RECOMMENDED'
     | 'HOT';
+
+export type BotAccessTier = 'free' | 'premium';
+
+/**
+ * Access/pricing info for a bot. Which bots are premium is configured in
+ * premium-bots.ts; live prices are fetched from the bot-entitlements
+ * Netlify function so the UI always shows what Paystack will charge.
+ */
+export interface BotAccess {
+    tier: BotAccessTier;
+    /** Price label resolved from the server catalog, e.g. "KES 1,500" */
+    priceLabel?: string;
+}
 
 // ============================================================================
 // TAB & FILTER TYPES

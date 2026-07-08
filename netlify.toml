@@ -18,6 +18,28 @@
 [functions]
   directory = "netlify/functions"
 
+# ---------------------------------------------------------------------------
+# Payments (Paystack) — set these in Netlify UI → Site configuration →
+# Environment variables. NEVER commit values to this public repo.
+#
+#   PAYSTACK_SECRET_KEY    (required) sk_test_... while testing, sk_live_... in prod.
+#                          Server-side only; used by the paystack-* functions.
+#   PAYSTACK_CURRENCY      (optional) Charge currency, default KES. Must be
+#                          enabled on your Paystack account (KES/NGN/GHS/ZAR/USD).
+#   COMPANY_RECEIPT_EMAIL  (optional) Company address that receives a receipt
+#                          email for every confirmed sale.
+#   RESEND_API_KEY         (optional) Resend.com key used to send those receipts.
+#                          Without it, rely on Paystack dashboard email notifications.
+#   RECEIPT_FROM_EMAIL     (optional) Verified sender for receipt emails.
+#   ADMIN_ANALYTICS_TOKEN  (existing) Also protects /.netlify/functions/sales-report.
+#
+# Bot prices live in netlify/functions/lib/premium-catalog.js (server truth);
+# the UI lock list is packages/bot-web-ui/src/pages/apollo_bots/data/premium-bots.ts
+# — keep the two ID lists in sync.
+# Paystack webhook URL: https://evpnova.com/.netlify/functions/paystack-webhook
+# Full setup guide: docs/PAYMENTS_PAYSTACK.md
+# ---------------------------------------------------------------------------
+
 # CRITICAL: Redirects are processed top-to-bottom. 
 # Host-conditional redirects MUST come before the SPA fallback.
 

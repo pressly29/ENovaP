@@ -18,3 +18,6 @@ export * from './bot-filters';
 
 // Tabs & Category Filters
 export * from './bot-tabs';
+
+// Premium (paid) bot configuration
+export * from './premium-bots';

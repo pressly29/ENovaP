@@ -141,7 +141,7 @@
 }
 
 /* Dark theme support */
-@media (prefers-color-scheme: dark) {
+@mixin marketplace-grid-dark {
     .marketplace-grid {
         &::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
@@ -150,5 +150,16 @@
         &__empty-title {
             color: #f9fafb;
         }
+    }
+}
+
+/* App theme switch (.theme--dark on <body>) + OS preference fallback */
+.theme--dark {
+    @include marketplace-grid-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.theme--light) {
+        @include marketplace-grid-dark;
     }
 }

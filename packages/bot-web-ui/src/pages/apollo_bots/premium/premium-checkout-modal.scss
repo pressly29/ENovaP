@@ -1,0 +1,289 @@
+/**
+ * Premium Checkout Modal Styles
+ *
+ * Matches the marketplace card language (16px radius, indigo accent).
+ * Dark styles are applied both via prefers-color-scheme AND the app's
+ * .theme--dark body class so the in-app theme switch is respected.
+ */
+
+.premium-checkout {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+
+    &__overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55); /* 55% scrim for foreground legibility */
+        backdrop-filter: blur(2px);
+    }
+
+    &__panel {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        max-height: calc(100dvh - 32px);
+        overflow-y: auto;
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+        padding: 28px 24px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        animation: premium-checkout-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &__close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 44px; /* full touch target */
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        border-radius: 10px;
+        color: #6b7280;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(0, 0, 0, 0.06);
+            color: #111827;
+        }
+
+        &:focus-visible {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+        }
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+        padding-top: 4px;
+    }
+
+    &__lock {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: currentColor;
+        position: relative;
+        margin-bottom: 4px;
+
+        svg {
+            color: #ffffff;
+            position: relative;
+            z-index: 1;
+        }
+    }
+
+    &__tagline {
+        color: #6b7280;
+    }
+
+    &__price-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 16px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    &__price-caption {
+        color: #4f46e5;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-size: 10px !important;
+    }
+
+    &__price {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #312e81;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__benefits {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            position: relative;
+            padding-left: 24px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #374151;
+
+            &:before {
+                content: '';
+                position: absolute;
+                left: 2px;
+                top: 4px;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: #10b981;
+                mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6 9 17l-5-5' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+                    center / contain no-repeat;
+            }
+        }
+    }
+
+    &__error {
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    &__pay-btn {
+        width: 100%;
+        height: 44px !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+    }
+
+    &__secure-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        color: #6b7280;
+        padding-top: 2px;
+
+        svg {
+            flex-shrink: 0;
+            margin-top: 1px;
+            color: #10b981;
+        }
+    }
+
+    &__result {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 4px 4px;
+        text-align: center;
+
+        svg {
+            color: #10b981;
+        }
+
+        &--success svg {
+            animation: premium-checkout-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    }
+
+    &__result-subtext {
+        color: #6b7280;
+        max-width: 300px;
+    }
+}
+
+@keyframes premium-checkout-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes premium-checkout-pop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .premium-checkout__panel,
+    .premium-checkout__result--success svg {
+        animation: none;
+    }
+}
+
+/* Dark theme (app class toggle + OS preference) */
+@mixin premium-checkout-dark {
+    .premium-checkout {
+        &__panel {
+            background: #111827;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        &__close {
+            color: #9ca3af;
+
+            &:hover,
+            &:focus-visible {
+                background: rgba(255, 255, 255, 0.08);
+                color: #f9fafb;
+            }
+        }
+
+        &__tagline,
+        &__secure-note,
+        &__result-subtext {
+            color: #9ca3af;
+        }
+
+        &__price-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(79, 70, 229, 0.2));
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        &__price-caption {
+            color: #a5b4fc;
+        }
+
+        &__price {
+            color: #e0e7ff;
+        }
+
+        &__benefits li {
+            color: #d1d5db;
+        }
+    }
+}
+
+.theme--dark {
+    @include premium-checkout-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.theme--light) {
+        @include premium-checkout-dark;
+    }
+}
