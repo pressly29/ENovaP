@@ -1,6 +1,6 @@
 # API container: the existing Netlify Functions behind a tiny Node server.
 # Build context is the repo root (see docker-compose.yml).
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 ENV NODE_ENV=production \

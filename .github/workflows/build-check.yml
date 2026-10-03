@@ -1,0 +1,54 @@
+name: Build check
+
+# Builds every PR into dev the same way the droplet does, so a dependency bump
+# or code change that breaks the build is caught before it is merged and
+# deployed.
+
+on:
+    pull_request:
+        branches: [dev]
+    workflow_dispatch:
+
+concurrency:
+    group: build-check-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 90
+        env:
+            CI: false
+            HUSKY: 0
+            NODE_OPTIONS: --max-old-space-size=4096
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: npm
+
+            - name: Check server code
+              run: |
+                  for f in netlify/functions/*.js netlify/functions/lib/*.js deploy/droplet/server/*.js; do
+                      node --check "$f"
+                  done
+                  bash -n deploy/droplet/deploy.sh deploy/droplet/setup.sh
+
+            - name: Build API image
+              run: docker build -q -f deploy/droplet/server/Dockerfile -t enovap-api:ci .
+
+            - name: Install and bootstrap
+              run: npm ci && npx lerna link && npx lerna bootstrap --hoist
+
+            - name: Build frontend
+              run: npm run build:all
+
+            - name: Verify output
+              run: |
+                  test -f packages/core/dist/index.html
+                  du -sh packages/core/dist

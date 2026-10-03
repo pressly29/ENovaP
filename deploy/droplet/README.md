@@ -71,7 +71,52 @@ Updates later:
 
 - **Deriv OAuth:** app ID `106913` is hard-coded in `packages/shared/src/utils/config/config.ts`. If you keep `evpnova.com`, nothing changes. If you use a new domain, add it as the redirect URL in your Deriv app settings at api.deriv.com.
 - **Paystack webhook:** the path is unchanged (`https://<DOMAIN>/.netlify/functions/paystack-webhook`). Update it in Paystack only if the domain changes.
-- **GitHub Actions:** `.github/workflows/netlify-deploy.yml` still deploys to Netlify on every push to `dev`. Disable it after cutover.
+- **Netlify:** the GitHub Action that deployed to Netlify has been removed, but Netlify's own Git integration still builds on every push. Stop it under Netlify → Site configuration → Build & deploy → **Stop builds**, or delete the Netlify site.
+
+## Automatic deploys (GitHub Actions)
+
+`.github/workflows/deploy-droplet.yml` SSHes into the droplet and runs `deploy.sh` on every push to `dev`, including merged PRs. `.github/workflows/build-check.yml` builds every PR into `dev` first, so a broken PR shows a red check before you merge it.
+
+Set it up once with a deploy key that can **only** run `deploy.sh`:
+
+```bash
+# On your computer
+ssh-keygen -t ed25519 -f enovap_deploy -N "" -C github-deploy
+ssh-keyscan -t ed25519 67.207.89.250        # copy the output
+
+# On the droplet, append ONE line to /root/.ssh/authorized_keys
+# (paste the contents of enovap_deploy.pub after the options):
+command="/opt/enovap/deploy/droplet/deploy.sh",restrict ssh-ed25519 AAAA... github-deploy
+```
+
+The `command=...,restrict` prefix means a stolen key could only trigger a redeploy. It can't open a shell or forward ports.
+
+Then in GitHub → repo → Settings → Secrets and variables → Actions, add:
+
+| Secret | Value |
+| ---- | ---- |
+| `DROPLET_HOST` | `67.207.89.250` |
+| `DROPLET_SSH_KEY` | contents of `enovap_deploy` (the private key) |
+| `DROPLET_KNOWN_HOSTS` | the `ssh-keyscan` output |
+
+Delete the local `enovap_deploy` files once the secret is saved. To deploy by hand from GitHub, use Actions → **Deploy to droplet** → Run workflow.
+
+## Weekly security review
+
+`.github/workflows/weekly-vulnerability-fixes.yml` runs every Monday at 06:00 UTC, and you can also start it from the Actions tab. It reads npm audit and the Dependabot alerts, sorts each issue by whether it can affect the live site, fixes those that can, and opens **one PR against `dev`** that lists what it fixed, what it left alone and why, and what to do with each open Dependabot PR. Nothing merges automatically. Merging the PR deploys it.
+
+The PR is committed as `Elvis.p <presslyelviss@gmail.com>` and opened with your token, so it appears as yours. Required secrets:
+
+| Secret | Value |
+| ---- | ---- |
+| `ANTHROPIC_API_KEY` | from console.anthropic.com (usage is billed) |
+| `AUTOMATION_PAT` | GitHub → Settings → Developer settings → Fine-grained tokens → new token for **pressly29/ENovaP** only, with Contents: read/write, Pull requests: read/write, Issues: read/write, Dependabot alerts: read |
+
+GitHub doesn't let you approve your own PR. If branch protection on `dev` requires approvals, merge as admin or turn that requirement off.
+
+## IPv6 (optional)
+
+The droplet also has IPv6 `2604:a880:400:d1:0:5:1857:b001`. To serve IPv6 visitors directly, add `AAAA` records for `@` and `www` with that address. Docker and Caddy already listen on IPv6, and `ufw` applies the same rules to it. Afterwards, check from any IPv6-capable network with `curl -6 -I https://evpnova.com`. If that fails, delete the AAAA records; IPv4 keeps working regardless.
 
 ## 7. Move existing purchases off Netlify Blobs (before cutover)
 

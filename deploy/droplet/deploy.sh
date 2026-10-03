@@ -65,11 +65,21 @@ for pkg in core bot-web-ui; do
     env | grep '^REACT_APP_' > "$REPO_DIR/packages/$pkg/.env" || true
 done
 
+# Build-time values the webpack configs read from the environment (not from
+# .env files). Only these are passed in — server secrets stay out of the build.
+build_env=()
+for var in GD_CLIENT_ID GD_API_KEY GD_APP_ID RUDDERSTACK_KEY REMOTE_CONFIG_URL \
+    GROWTHBOOK_CLIENT_KEY GROWTHBOOK_DECRYPTION_KEY IS_GROWTHBOOK_ENABLED \
+    DATADOG_APPLICATION_ID DATADOG_CLIENT_TOKEN DATADOG_CLIENT_TOKEN_LOGS \
+    DATADOG_SESSION_REPLAY_SAMPLE_RATE DATADOG_SESSION_SAMPLE_RATE DATADOG_SESSION_SAMPLE_RATE_LOGS; do
+    if [ -n "${!var:-}" ]; then
+        build_env+=(-e "$var")
+    fi
+done
 # Leave NODE_ENV unset unless asked for: the webpack configs feed it to
 # DefinePlugin, and an empty string conflicts with webpack's own value.
-node_env_flag=()
 if [ -n "${BUILD_NODE_ENV:-}" ]; then
-    node_env_flag=(-e "NODE_ENV=$BUILD_NODE_ENV")
+    build_env+=(-e "NODE_ENV=$BUILD_NODE_ENV")
 fi
 
 echo "==> Building frontend (first run takes 20-40 min)"
@@ -78,7 +88,7 @@ docker run --rm \
     -e HOME=/tmp \
     -e HUSKY=0 \
     -e CI=false \
-    "${node_env_flag[@]}" \
+    "${build_env[@]}" \
     -e NODE_OPTIONS=--max-old-space-size=4096 \
     -v "$REPO_DIR":/app \
     -w /app \
@@ -102,7 +112,11 @@ done
 echo "==> Starting services"
 mkdir -p "$DEPLOY_DIR/data/blobs"
 chown -R 1000:1000 "$DEPLOY_DIR/data"   # "node" user inside the api container
-docker compose up -d --build --remove-orphans
+# Pull fresh base images each deploy so Caddy/Node security patches land.
+docker compose pull caddy
+docker compose build --pull
+docker compose up -d --remove-orphans
+docker image prune -f >/dev/null
 docker compose ps
 
 echo "==> Done: https://$DOMAIN"

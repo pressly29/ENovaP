@@ -1,0 +1,63 @@
+name: Deploy to droplet
+
+# Every push to dev (including merged PRs) redeploys evpnova.com on the
+# DigitalOcean droplet by running deploy/droplet/deploy.sh over SSH. The site
+# only switches to the new build after it succeeds, so a failed build leaves
+# the current site untouched.
+#
+# Required repo secrets (setup: deploy/droplet/README.md → "Automatic deploys"):
+#   DROPLET_HOST         — 67.207.89.250
+#   DROPLET_SSH_KEY      — private key whose public half is in the droplet's
+#                          authorized_keys, restricted to running deploy.sh
+#   DROPLET_KNOWN_HOSTS  — output of `ssh-keyscan -t ed25519 <droplet-ip>`
+
+on:
+    push:
+        branches: [dev]
+        paths-ignore:
+            - '**/*.md'
+            - 'docs/**'
+            - '.github/**'
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-droplet
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        timeout-minutes: 90
+        environment:
+            name: production
+            url: https://evpnova.com
+        steps:
+            - name: Configure SSH
+              env:
+                  SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+                  KNOWN_HOSTS: ${{ secrets.DROPLET_KNOWN_HOSTS }}
+              run: |
+                  install -d -m 700 ~/.ssh
+                  printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+            - name: Run deploy.sh on the droplet
+              env:
+                  DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+              run: |
+                  ssh -i ~/.ssh/deploy_key \
+                      -o StrictHostKeyChecking=yes \
+                      -o ServerAliveInterval=30 \
+                      -o ServerAliveCountMax=10 \
+                      "root@$DROPLET_HOST" /opt/enovap/deploy/droplet/deploy.sh
+
+            - name: Smoke test
+              run: |
+                  curl -fsS https://evpnova.com/ | grep -q '<title>'
+                  code=$(curl -s -o /dev/null -w '%{http_code}' 'https://evpnova.com/.netlify/functions/enova-auth?type=login')
+                  [ "$code" = "302" ] || { echo "functions returned $code"; exit 1; }
+                  echo "evpnova.com is up and functions respond"
