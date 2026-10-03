@@ -1,0 +1,5 @@
+# The build context is the whole monorepo; only send what the API image needs.
+**
+!netlify/functions/**
+!deploy/droplet/server/**
+deploy/droplet/server/Dockerfile*

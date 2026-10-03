@@ -61,7 +61,7 @@ exports.handler = async event => {
                     const key = `${day}.jsonl`;
                     const blob = await store.get(key);
                     if (!blob) return { day, login: 0, signup: 0, other: 0 };
-                    const text = await blob.text();
+                    const text = typeof blob === 'string' ? blob : await blob.text();
                     let login = 0;
                     let signup = 0;
                     let other = 0;

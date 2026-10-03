@@ -1,0 +1,42 @@
+# Caddy serves the built SPA and proxies functions to the API container.
+# HTTPS certificates are issued and renewed automatically by Let's Encrypt
+# once DNS for {$DOMAIN} and www.{$DOMAIN} points at this droplet.
+# Mirrors the redirects and headers in netlify.toml.
+
+{
+	email {$ACME_EMAIL}
+}
+
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	handle /.netlify/functions/* {
+		reverse_proxy api:8888
+	}
+
+	handle {
+		root * /srv/www/current
+
+		# Same cache policy as default.conf: HTML and mutable root files are
+		# always revalidated, everything else is cached for 2 hours.
+		@revalidate path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
+		@cached not path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
+		header @revalidate Cache-Control "public, max-age=0, must-revalidate"
+		header @cached Cache-Control "public, max-age=7200, s-maxage=600, must-revalidate"
+
+		try_files {path} /index.html
+		file_server
+	}
+}

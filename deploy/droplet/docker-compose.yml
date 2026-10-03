@@ -1,0 +1,36 @@
+# ENovaP on a DigitalOcean droplet. Run from deploy/droplet/ via ./deploy.sh.
+# Variables like ${DOMAIN} are read from deploy/droplet/.env.
+services:
+    api:
+        build:
+            context: ../..
+            dockerfile: deploy/droplet/server/Dockerfile
+        env_file: .env
+        environment:
+            # Used by paystack-initiate to build the payment callback URL.
+            URL: https://${DOMAIN}
+        volumes:
+            - ./data/blobs:/data/blobs
+        restart: unless-stopped
+
+    caddy:
+        image: caddy:2-alpine
+        depends_on:
+            - api
+        ports:
+            - '80:80'
+            - '443:443'
+            - '443:443/udp'
+        environment:
+            DOMAIN: ${DOMAIN}
+            ACME_EMAIL: ${ACME_EMAIL}
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - ./www:/srv/www:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        restart: unless-stopped
+
+volumes:
+    caddy_data:
+    caddy_config:
