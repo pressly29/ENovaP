@@ -29,14 +29,19 @@ www.{$DOMAIN} {
 	handle {
 		root * /srv/www/current
 
-		# Same cache policy as default.conf: HTML and mutable root files are
-		# always revalidated, everything else is cached for 2 hours.
-		@revalidate path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
-		@cached not path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
-		header @revalidate Cache-Control "public, max-age=0, must-revalidate"
-		header @cached Cache-Control "public, max-age=7200, s-maxage=600, must-revalidate"
+		# route keeps this order, so the cache rules see the rewritten path:
+		# app routes like /bot are served (and revalidated) as /index.html.
+		route {
+			try_files {path} /index.html
 
-		try_files {path} /index.html
-		file_server
+			# Same cache policy as default.conf: HTML and mutable root files
+			# are always revalidated, everything else is cached for 2 hours.
+			@revalidate path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
+			@cached not path / *.html /media/* /public/images/* /manifest.json /robots.txt /service-worker.js /sitemap.xml /favicon.ico
+			header @revalidate Cache-Control "public, max-age=0, must-revalidate"
+			header @cached Cache-Control "public, max-age=7200, s-maxage=600, must-revalidate"
+
+			file_server
+		}
 	}
 }

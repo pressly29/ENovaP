@@ -65,13 +65,20 @@ for pkg in core bot-web-ui; do
     env | grep '^REACT_APP_' > "$REPO_DIR/packages/$pkg/.env" || true
 done
 
+# Leave NODE_ENV unset unless asked for: the webpack configs feed it to
+# DefinePlugin, and an empty string conflicts with webpack's own value.
+node_env_flag=()
+if [ -n "${BUILD_NODE_ENV:-}" ]; then
+    node_env_flag=(-e "NODE_ENV=$BUILD_NODE_ENV")
+fi
+
 echo "==> Building frontend (first run takes 20-40 min)"
 docker run --rm \
     --user "$(id -u):$(id -g)" \
     -e HOME=/tmp \
     -e HUSKY=0 \
     -e CI=false \
-    -e NODE_ENV="${BUILD_NODE_ENV:-}" \
+    "${node_env_flag[@]}" \
     -e NODE_OPTIONS=--max-old-space-size=4096 \
     -v "$REPO_DIR":/app \
     -w /app \
