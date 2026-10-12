@@ -64,8 +64,20 @@ const buildAuthUrl = async (extra_params: Record<string, string> = {}): Promise<
     return `${getAuthBaseUrl()}/oauth2/auth?${params}`;
 };
 
+const notifyLoginUnavailable = (error: unknown) => {
+    // eslint-disable-next-line no-console
+    console.error('[auth] Login is not configured:', error);
+    // eslint-disable-next-line no-alert
+    window.alert('Log in is temporarily unavailable. Please try again later.');
+};
+
 export const redirectToLogin = async (_language?: string): Promise<void> => {
-    window.location.replace(await buildAuthUrl());
+    try {
+        window.location.replace(await buildAuthUrl());
+    } catch (error) {
+        // OAUTH_CLIENT_ID missing from the build (Deriv app not configured yet).
+        notifyLoginUnavailable(error);
+    }
 };
 
 /**

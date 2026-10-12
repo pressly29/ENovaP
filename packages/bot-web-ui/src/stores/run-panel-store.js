@@ -213,7 +213,7 @@ export default class RunPanelStore {
             return;
         }
 
-        ui.setAccountSwitcherDisabledMessage(
+        ui.setAccountSwitcherDisabledMessage?.(
             localize(
                 'Account switching is disabled while your bot is running. Please stop your bot before switching accounts.'
             )
@@ -265,7 +265,7 @@ export default class RunPanelStore {
         if (this.error_type) {
             // when user click stop button when there is a error but bot is retrying
             this.setContractStage(contract_stages.NOT_RUNNING);
-            ui.setAccountSwitcherDisabledMessage(false);
+            ui.setAccountSwitcherDisabledMessage?.(false);
             this.setIsRunning(false);
         } else if (this.has_open_contract) {
             // when user click stop button when bot is running
@@ -274,7 +274,7 @@ export default class RunPanelStore {
             // when user click stop button before bot start running
             this.setContractStage(contract_stages.NOT_RUNNING);
             this.unregisterBotListeners();
-            ui.setAccountSwitcherDisabledMessage(false);
+            ui.setAccountSwitcherDisabledMessage?.(false);
             this.setIsRunning(false);
         }
 
@@ -547,7 +547,7 @@ export default class RunPanelStore {
         const indicateBotStopped = () => {
             this.error_type = undefined;
             this.setContractStage(contract_stages.NOT_RUNNING);
-            ui.setAccountSwitcherDisabledMessage(false);
+            ui.setAccountSwitcherDisabledMessage?.(false);
             this.unregisterBotListeners();
             self_exclusion.resetSelfExclusion();
         };
@@ -575,7 +575,7 @@ export default class RunPanelStore {
             this.error_type = undefined;
             this.is_sell_requested = false;
             this.setContractStage(contract_stages.CONTRACT_CLOSED);
-            ui.setAccountSwitcherDisabledMessage(false);
+            ui.setAccountSwitcherDisabledMessage?.(false);
             this.unregisterBotListeners();
             self_exclusion.resetSelfExclusion();
         }
@@ -616,7 +616,7 @@ export default class RunPanelStore {
                 const { is_virtual } = this.core.client;
 
                 if (!is_virtual) {
-                    this.core.gtm.pushDataLayer({ event: 'dbot_purchase', buy_price: buy.buy_price });
+                    this.core.gtm?.pushDataLayer?.({ event: 'dbot_purchase', buy_price: buy.buy_price });
                 }
 
                 break;

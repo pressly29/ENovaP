@@ -52,7 +52,7 @@ export default class ToolboxStore {
                     this.adjustWorkspace();
                     // Emit event to GTM
                     const { gtm } = this.core;
-                    gtm.pushDataLayer({ event: 'dbot_toolbox_visible', value: true });
+                    gtm?.pushDataLayer?.({ event: 'dbot_toolbox_visible', value: true });
                 }
             }
         );

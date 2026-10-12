@@ -141,8 +141,10 @@ Blockly.JavaScript.trade_definition = block => {
         throw new Error('Please login');
     }
 
+    // The engine only checks this is set (auth already lives on the bot's OTP
+    // WebSocket), so the account ID is passed instead of an API token.
     const { loginid } = client;
-    const account = client.getToken(loginid);
+    const account = loginid;
     const market_block = block.getChildByType('trade_definition_market');
     const trade_type_block = block.getChildByType('trade_definition_tradetype');
     const contract_type_block = block.getChildByType('trade_definition_contracttype');

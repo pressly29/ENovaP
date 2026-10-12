@@ -176,7 +176,8 @@ const Flyout = observer(() => {
         selected_category,
         first_get_variable_block_index,
     } = flyout;
-    const { pushDataLayer } = gtm;
+    // The template core has no GTM store; tracking is a no-op without it.
+    const pushDataLayer = gtm?.pushDataLayer ?? (() => undefined);
 
     React.useEffect(() => {
         onMount();

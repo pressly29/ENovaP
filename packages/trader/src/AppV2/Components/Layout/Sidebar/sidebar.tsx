@@ -19,8 +19,7 @@ import {
 } from '@deriv/quill-icons';
 // [AI]
 import {
-    getBrandLogo,
-    getBrandLogoDark,
+    getPlatformLogo,
     getBrandName,
     getHomeUrl,
     getHelpCentreUrl,
@@ -241,7 +240,8 @@ const Sidebar = observer(() => {
                 <div className='sidebar__header'>
                     {/* [AI] */}
                     <img
-                        src={`/${is_dark_mode_on ? getBrandLogoDark() : getBrandLogo()}`}
+                        // EvPNova: the square mark fits the 32px slot (the wordmark is 200×48).
+                        src={`/${getPlatformLogo()}`}
                         alt={getBrandName()}
                         width={32}
                         height={32}

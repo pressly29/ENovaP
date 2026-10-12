@@ -36,9 +36,9 @@ const BottomNav = observer(({ className }: BottomNavProps) => {
             {
                 icon: <StandaloneHouseBlankRegularIcon iconSize='sm' fill='var(--color-text-primary)' />,
                 activeIcon: <StandaloneHouseBlankFillIcon iconSize='sm' />,
-                label: <Localize i18n_default_text='Home' />,
-                path: null,
-                action: 'home' as const,
+                // EvPNova: the bot builder is home.
+                label: <Localize i18n_default_text='Bots' />,
+                path: routes.bot,
             },
             {
                 icon: <StandaloneChartAreaRegularIcon iconSize='sm' fill='var(--color-text-primary)' />,

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
-import { useRemoteConfig } from '@deriv/api';
 import { observer, useStore } from '@deriv/stores';
 import { Analytics } from '@deriv-com/analytics';
 import { botNotification } from 'Components/bot-notification/bot-notification';
@@ -29,7 +28,9 @@ const BotBuilder = observer(() => {
     const { is_mobile } = ui;
     const { onMount, onUnmount } = app;
     const el_ref = React.useRef<HTMLInputElement | null>(null);
-    const { data: remote_config_data } = useRemoteConfig();
+    // Deriv's remote-config service is not part of the new template; Datadog
+    // logging stays off unless explicitly enabled.
+    const remote_config_data = React.useMemo(() => ({ tracking_datadog: false }), []);
 
     React.useEffect(() => {
         initDatadogLogs(remote_config_data.tracking_datadog);

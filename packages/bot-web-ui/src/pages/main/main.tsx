@@ -26,6 +26,7 @@ import { TCoreStores } from '@deriv/stores/types';
 import { TWebSocket } from 'Types';
 import ReactGA from 'react-ga4';
 import './style.css';
+import { Icon } from 'Components/legacy';
 
 type Apptypes = {
     root_store: TCoreStores;
@@ -210,7 +211,7 @@ const AppWrapper = observer(() => {
                     >
                         
                         <div
-                            icon='IcDashboardComponentTab'
+                            icon={<Icon icon='IcDashboardComponentTab' />}
                             label={localize('Dashboard')}
                             id='id-dbot-dashboard'
                         >
@@ -219,14 +220,14 @@ const AppWrapper = observer(() => {
 
                         
                         <div
-                            icon='IcBotBuilderTabIcon'
+                            icon={<Icon icon='IcBotBuilderTabIcon' />}
                             label={localize('Bot Builder')}
                             id='id-bot-builder'
                         />
 
                         
                         <div
-                            icon='IcGear'
+                            icon={<Icon icon='IcGear' />}
                             label={localize('Free Bots')}
                             id='id-dbot-apollo-bots'
                         >
@@ -235,7 +236,7 @@ const AppWrapper = observer(() => {
 
                         
                         <div
-                            icon='IcChartsTabDbot'
+                            icon={<Icon icon='IcChartsTabDbot' />}
                             label={localize('Manual')}
                             id={
                                 is_chart_modal_visible || is_trading_view_modal_visible
@@ -253,13 +254,13 @@ const AppWrapper = observer(() => {
                         </div>
 
                         
-                        <div icon='IcClient' label={localize('Replicator')} id={'id-copy-trader'}>
+                        <div icon={<Icon icon='IcClient' />} label={localize('Replicator')} id={'id-copy-trader'}>
                             <CopyTrader />
                         </div>
 
                         
                         <div
-                            icon='IcDbotViewDetail'
+                            icon={<Icon icon='IcDbotViewDetail' />}
                             label={localize('Analysistool')}
                             id={'id-analysis-page'}
                         >
@@ -268,7 +269,7 @@ const AppWrapper = observer(() => {
 
                         
                         <div
-                            icon='IcTutorialsTabs'
+                            icon={<Icon icon='IcTutorialsTabs' />}
                             label={localize('Tutorials')}
                             id='id-tutorials'
                         >

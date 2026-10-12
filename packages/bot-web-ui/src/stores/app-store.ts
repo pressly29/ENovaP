@@ -17,7 +17,6 @@ export default class AppStore {
     disposeCurrencyReaction: unknown;
     disposeSwitchAccountListener: unknown;
     disposeLandingCompanyChangeReaction: unknown;
-    disposeResidenceChangeReaction: unknown;
     constructor(root_store: RootStore, core: TStores) {
         makeObservable(this, {
             onMount: action.bound,
@@ -27,7 +26,6 @@ export default class AppStore {
             registerCurrencyReaction: action.bound,
             registerOnAccountSwitch: action.bound,
             registerLandingCompanyChangeReaction: action.bound,
-            registerResidenceChangeReaction: action.bound,
             setDBotEngineStores: action.bound,
             onClickOutsideBlockly: action.bound,
             showDigitalOptionsMaltainvestError: action.bound,
@@ -141,9 +139,6 @@ export default class AppStore {
         if (typeof this.disposeLandingCompanyChangeReaction === 'function') {
             this.disposeLandingCompanyChangeReaction();
         }
-        if (typeof this.disposeResidenceChangeReaction === 'function') {
-            this.disposeResidenceChangeReaction();
-        }
 
         window.removeEventListener('click', this.onClickOutsideBlockly);
         window.removeEventListener('beforeunload', this.onBeforeUnload);
@@ -151,7 +146,7 @@ export default class AppStore {
         // Ensure account switch is re-enabled.
         const { ui } = this.core;
 
-        ui.setAccountSwitcherDisabledMessage(false);
+        ui.setAccountSwitcherDisabledMessage?.(false);
         ui.setPromptHandler(false);
 
         if (this.timer) clearInterval(this.timer);

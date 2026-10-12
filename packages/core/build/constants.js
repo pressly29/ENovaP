@@ -82,7 +82,9 @@ const rules = (is_test_env = false) => [
     },
     {
         test: /\.html$/,
-        exclude: /node_modules/,
+        // index.html is HtmlWebpackPlugin's template: html-loader would bypass
+        // its <%= templateParameters %> interpolation (brand name, meta tags).
+        exclude: [/node_modules/, /src[\\/]index\.html$/],
         use: html_loaders,
     },
     {

@@ -1,0 +1,145 @@
+/*
+ * EvPNova app bar and footer (desktop pages outside DTrader).
+ * Heights match the bot layout budget: 5.6rem bar + 3.6rem footer
+ * (bot-web-ui/src/app/app.scss: --bot-content-height: calc(100vh - 140px)).
+ */
+.evp-app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 5.6rem;
+    padding: 0 1.6rem 0 2rem;
+    background: var(--color-surface-primary);
+    border-bottom: 1px solid var(--color-surface-border);
+
+    &--is-disabled {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    &__start,
+    &__end {
+        display: flex;
+        align-items: center;
+        gap: 2.4rem;
+        height: 100%;
+    }
+
+    &__logo {
+        display: flex;
+        align-items: center;
+
+        img {
+            display: block;
+            width: auto;
+            height: 3.2rem;
+        }
+    }
+
+    &__nav {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        height: 100%;
+    }
+
+    &__link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        height: 100%;
+        padding: 0 1.2rem;
+        color: var(--color-text-secondary);
+        font-size: 1.4rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: var(--color-text-primary);
+        }
+
+        &--active {
+            color: var(--color-text-primary);
+
+            &::after {
+                content: '';
+                position: absolute;
+                right: 1.2rem;
+                bottom: 0;
+                left: 1.2rem;
+                height: 0.3rem;
+                border-radius: 0.3rem 0.3rem 0 0;
+                background: var(--brand-primary);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--brand-primary);
+            outline-offset: -2px;
+            border-radius: 0.4rem;
+        }
+    }
+}
+
+.evp-app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.6rem;
+    padding: 0 1.6rem;
+    background: var(--color-surface-primary);
+    border-top: 1px solid var(--color-surface-border);
+    color: var(--color-text-secondary);
+    font-size: 1.2rem;
+
+    &__start,
+    &__end {
+        display: flex;
+        align-items: center;
+        gap: 1.6rem;
+    }
+
+    &__risk {
+        color: var(--color-text-disabled);
+    }
+
+    &__theme {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.8rem;
+        height: 2.8rem;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--color-text-primary);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-interactive-hover);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--brand-primary);
+        }
+    }
+}
+
+// Column layout for EvPNova pages: bar, scrolling content, footer.
+.evp-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+
+    .app-contents {
+        flex: 1;
+        min-height: 0;
+        height: auto;
+    }
+}

@@ -30,7 +30,7 @@ const GTM = (() => {
     };
 
     const pushDataLayer = (data: Record<string, unknown>): void => {
-        return root_store?.core?.gtm?.pushDataLayer(data);
+        return root_store?.core?.gtm?.pushDataLayer?.(data);
     };
 
     const init = (_root_store: RootStore & TStores & TCoreStores & { core: TGTM['core'] }): void => {

@@ -50,7 +50,7 @@ This installs Docker, git and swap, opens ports 22/80/443 in `ufw`, and clones t
 nano /opt/enovap/deploy/droplet/.env
 ```
 
-Set `DOMAIN`, `ACME_EMAIL`, the `REACT_APP_*` values, and the Paystack, Resend and admin secrets. These are the same values you have in Netlify → Site configuration → Environment variables.
+Set `DOMAIN`, `ACME_EMAIL`, `OAUTH_CLIENT_ID` and `DERIV_APP_ID` (from your Deriv app, see **Deriv app** below), the affiliate values, and the Paystack, Resend and admin secrets.
 
 ## 5. Deploy
 
@@ -58,7 +58,7 @@ Set `DOMAIN`, `ACME_EMAIL`, the `REACT_APP_*` values, and the Paystack, Resend a
 /opt/enovap/deploy/droplet/deploy.sh
 ```
 
-The first build takes 20–40 minutes. When it finishes, open `https://<DOMAIN>`. Caddy gets the certificate on the first request after DNS resolves to the droplet.
+The first build takes 10–20 minutes. When it finishes, open `https://<DOMAIN>`. Caddy gets the certificate on the first request after DNS resolves to the droplet.
 
 Updates later:
 
@@ -69,9 +69,21 @@ Updates later:
 
 ## 6. Point external services at the new server
 
-- **Deriv OAuth:** app ID `106913` is hard-coded in `packages/shared/src/utils/config/config.ts`. If you keep `evpnova.com`, nothing changes. If you use a new domain, add it as the redirect URL in your Deriv app settings at api.deriv.com.
+- **Deriv OAuth:** see **Deriv app** below. The redirect URL registered there must be exactly `https://<DOMAIN>`.
 - **Paystack webhook:** the path is unchanged (`https://<DOMAIN>/.netlify/functions/paystack-webhook`). Update it in Paystack only if the domain changes.
+- **Paystack currency:** bot prices are in USD ($25–$30). USD must be enabled on your Paystack business account (Paystack enables it on request for Kenyan and Nigerian merchants). Set `PAYSTACK_CURRENCY=USD`; any other value without prices falls back to USD.
 - **Netlify:** the GitHub Action that deployed to Netlify has been removed, but Netlify's own Git integration still builds on every push. Stop it under Netlify → Site configuration → Build & deploy → **Stop builds**, or delete the Netlify site.
+
+## Deriv app (new Deriv API)
+
+The site uses Deriv's new API: login is OAuth 2.0 with PKCE at `auth.deriv.com`, and trading runs over an OTP-authenticated WebSocket on `api.derivws.com`. Apps created on the old dashboard (such as `106913`) don't work with it.
+
+1. Go to https://developers.deriv.com, log in and open the dashboard.
+2. **Register new application** → type **OAuth** (web app).
+3. Name `EvPNova`; redirect URL `https://evpnova.com` (exactly, no trailing path); scopes `trade` (add `account_manage` if users should create demo/real accounts from the site); markup up to 3% if offered.
+4. Copy the **App ID** into `DERIV_APP_ID` and the **OAuth client ID** into `OAUTH_CLIENT_ID` in `deploy/droplet/.env`, then run `./deploy.sh`. Both are public identifiers that end up in the browser, so they're not secrets. If the dashboard only shows an App ID, Deriv issues the OAuth client on request; send them the exact redirect URL.
+
+Until `OAUTH_CLIENT_ID` is set, the site works logged out (bots, charts, market data on the public API) but **Log in** and **Sign up** can't complete.
 
 ## Automatic deploys (GitHub Actions)
 
@@ -143,7 +155,7 @@ Check the CLI output format with `netlify blobs:list payments --json` first; it 
 | Status | `docker compose ps` |
 | Logs | `docker compose logs -f api` / `docker compose logs -f caddy` |
 | Restart after `.env` change (secrets only) | `docker compose up -d` |
-| Change a `REACT_APP_*` value | `./deploy.sh --no-pull` (they're baked into the bundle) |
+| Change a build value (`OAUTH_CLIENT_ID`, `DERIV_APP_ID`, `REACT_APP_*`) | `./deploy.sh --no-pull` (they're baked into the bundle) |
 | Backup data | `tar czf blobs-$(date +%F).tgz data/blobs` (or enable droplet backups) |
 
 ## Files
@@ -151,7 +163,7 @@ Check the CLI output format with `netlify blobs:list payments --json` first; it 
 | File | Purpose |
 | ---- | ---- |
 | `setup.sh` | One-time droplet bootstrap |
-| `deploy.sh` | Build the frontend in a `node:18` container, publish a release, start services |
+| `deploy.sh` | Build the frontend in a `node:24` container, publish a release, start services |
 | `docker-compose.yml` | `api` + `caddy` services |
 | `Caddyfile` | HTTPS, redirects, headers, SPA fallback, function proxy |
 | `server/` | Function runner + filesystem Blobs shim + its Dockerfile |
