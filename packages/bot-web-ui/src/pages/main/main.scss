@@ -506,13 +506,14 @@
                 background: transparent;
             }
 
+            // Tour "Start"/"Next": the primary action, in brand gold.
             &.danger {
-                background: $color-red;
+                background: var(--brand-primary);
                 border: none;
                 margin-right: 0;
 
                 span {
-                    color: $color-white;
+                    color: #1a1405;
                 }
             }
         }

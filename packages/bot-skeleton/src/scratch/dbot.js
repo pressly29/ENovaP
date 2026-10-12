@@ -159,8 +159,9 @@ class DBot {
                     return;
                 }
                 this.workspace = Blockly.inject(el_scratch_div, {
-                    // Use Blockly CDN media to avoid missing local assets (dropdown arrows, sprites, etc.)
-                    media: 'https://blockly-demo.appspot.com/static/media/',
+                    // Blockly/scratch-blocks media ships with the site (core copies it to /media/);
+                    // the Blockly demo CDN is blocked cross-origin by current browsers.
+                    media: `${public_path}media/`,
                     trashcan: !is_mobile,
                     zoom: { wheel: true, startScale: workspaceScale },
                     scrollbars: true,

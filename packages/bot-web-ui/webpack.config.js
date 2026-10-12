@@ -44,6 +44,7 @@ module.exports = function (env) {
                                 resources: [
                                     path.resolve(__dirname, 'src/styles/legacy-constants.scss'),
                                     ...require('@deriv/shared/src/styles/index.js'),
+                                    path.resolve(__dirname, 'src/styles/legacy-typefaces.scss'),
                                 ],
                             },
                         },

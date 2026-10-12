@@ -56,4 +56,13 @@
     --shadow-menu: var(--color-shadow-medium);
 
     --text-size--xxxs: 0.8rem;
+
+    // Legacy <Text color='...'> names: the template's Text resolves
+    // color='x' to var(--color-text-x).
+    --color-text-prominent: var(--color-text-primary);
+    --color-text-general: var(--color-text-primary);
+    --color-text-less-prominent: var(--color-text-secondary);
+    --color-text-profit-success: var(--color-text-success);
+    --color-text-loss-danger: var(--color-text-danger);
+    --color-text-colored-background: var(--color-text-white);
 }

@@ -40,8 +40,8 @@
         box-shadow: 
             0 12px 32px rgba(0, 0, 0, 0.12),
             0 4px 16px rgba(0, 0, 0, 0.08),
-            0 0 0 1px rgba(99, 102, 241, 0.15);
-        border-color: rgba(99, 102, 241, 0.2);
+            0 0 0 1px rgba(224, 169, 59, 0.15);
+        border-color: rgba(224, 169, 59, 0.2);
 
         &:before {
             opacity: 1;
@@ -52,8 +52,8 @@
         }
 
         .marketplace-card__btn-load {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, #e8b54d 0%, #d49a2a 100%);
+            box-shadow: 0 4px 12px rgba(224, 169, 59, 0.3);
         }
     }
 
@@ -327,8 +327,8 @@
 
     &__feature-pill {
         padding: 4px 8px;
-        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-        color: #6366f1;
+        background: #f3f4f6;
+        color: #374151;
         border-radius: 6px;
         font-size: 10px;
         font-weight: 600;
@@ -366,13 +366,18 @@
         font-size: 13px !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+        background: linear-gradient(135deg, #e8b54d 0%, #d49a2a 100%) !important;
+        color: #1a1405 !important; /* ink on gold: readable at small sizes */
+        box-shadow: 0 2px 8px rgba(224, 169, 59, 0.2) !important;
+
+        .dc-btn__text {
+            color: inherit !important;
+        }
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
         &:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(224, 169, 59, 0.3) !important;
         }
 
         &:active {
@@ -380,7 +385,7 @@
         }
 
         &:focus-visible {
-            outline: 2px solid #6366f1 !important;
+            outline: 2px solid #c8902a !important;
             outline-offset: 2px;
         }
     }
@@ -401,7 +406,7 @@
 
         &:hover {
             background: #f9fafb;
-            border-color: #6366f1;
+            border-color: #e0a93b;
             transform: scale(1.05);
         }
 
@@ -462,7 +467,7 @@
         }
 
         &:hover {
-            border-color: rgba(99, 102, 241, 0.4);
+            border-color: rgba(224, 169, 59, 0.4);
         }
 
         &__name {
@@ -490,8 +495,8 @@
         }
 
         &__feature-pill {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.25));
-            color: #a5b4fc;
+            background: rgba(255, 255, 255, 0.08);
+            color: #d1d5db;
         }
 
         &__footer {

@@ -77,8 +77,46 @@ const enrichActiveSymbol = (item, index) => {
     };
 };
 
+// The legacy API grouped Rise/Fall and Higher/Lower under contract_category
+// "callput" and told them apart by barrier_category (euro_atm / euro_non_atm),
+// which the engine filters on (constants/config.js BARRIER_CATEGORIES). The new
+// API has a separate "higherlower" category and no barrier_category.
+const LEGACY_CONTRACT_CATEGORY = { higherlower: 'callput' };
+const BARRIER_CATEGORY = {
+    callput: 'euro_atm',
+    callputequal: 'euro_atm',
+    higherlower: 'euro_non_atm',
+    endsinout: 'euro_non_atm',
+    callputspread: 'euro_non_atm',
+    staysinout: 'american',
+    touchnotouch: 'american',
+    highlowticks: 'american',
+    runs: 'american',
+    multiplier: 'american',
+    digits: 'non_financial',
+    asian: 'asian',
+    reset: 'reset',
+    lookback: 'lookback',
+};
+
+const toLegacyContract = contract => ({
+    ...contract,
+    contract_category: LEGACY_CONTRACT_CATEGORY[contract.contract_category] ?? contract.contract_category,
+    barrier_category: contract.barrier_category ?? BARRIER_CATEGORY[contract.contract_category] ?? 'american',
+});
+
 export const transformResponse = response => {
     if (!response || typeof response !== 'object') return response;
+
+    if (Array.isArray(response.contracts_for?.available)) {
+        return {
+            ...response,
+            contracts_for: {
+                ...response.contracts_for,
+                available: response.contracts_for.available.map(toLegacyContract),
+            },
+        };
+    }
 
     if (Array.isArray(response.active_symbols)) {
         return { ...response, active_symbols: response.active_symbols.map(enrichActiveSymbol) };

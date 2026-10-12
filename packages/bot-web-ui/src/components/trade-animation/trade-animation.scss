@@ -189,12 +189,12 @@
 
                 .static-circle {
                     animation: animate-circle-appear 1s;
-                    background-color: $COLOR_CORAL_RED;
+                    background-color: var(--brand-primary);
                 }
 
                 .dynamic-circle {
                     animation: animate-circle 1s;
-                    background-color: $COLOR_CORAL_RED;
+                    background-color: var(--brand-primary);
                     transform: scale(0);
                 }
             }

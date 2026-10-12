@@ -14,6 +14,7 @@
     --color-link-visited: #8a6212;
     --color-link-hover: #6e4e0e;
     --color-button-tertiary-text: #8a6212;
+    --color-nav-item-active: #a87a1d;
 }
 
 :root body.theme--dark {
@@ -21,4 +22,28 @@
     --color-link-default: #f5c66b;
     --color-link-visited: #f5c66b;
     --color-link-hover: #e0a93b;
+    --color-nav-item-active: #f5c66b;
+}
+
+/*
+ * DTrader's quill UI kit brands primary actions with Deriv's coral scale.
+ * Re-map that scale to an EvPNova gold ramp (same lightness steps) so its
+ * buttons, tabs and active states match the rest of the site.
+ */
+:root body {
+    --core-color-solid-coral-100: #fdf3de;
+    --core-color-solid-coral-200: #fae3b8;
+    --core-color-solid-coral-300: #f5d18f;
+    --core-color-solid-coral-400: #f0c272;
+    --core-color-solid-coral-500: #ebb85c;
+    --core-color-solid-coral-600: #e5af4a;
+    --core-color-solid-coral-700: #e0a93b;
+    --core-color-solid-coral-800: #c8902a;
+    --core-color-solid-coral-900: #ad7a1f;
+    --core-color-solid-coral-1000: #8a6212;
+    --core-color-solid-coral-1100: #6e4e0e;
+    --core-color-solid-coral-1200: #523a0a;
+    --core-color-solid-coral-1300: #3d2b06;
+    // Ink label on gold primary buttons for contrast.
+    --component-button-label-color-coral-primary: #1a1405;
 }

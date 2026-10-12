@@ -1,0 +1,13 @@
+// Loaded after @deriv/shared's resources (see webpack.config.js). The template's
+// typeface colour "black" is literally black; in the pre-template styles it was
+// the theme-aware general text colour, which the bot stylesheets rely on.
+$FONT_COLORS: (
+    'primary' var(--color-text-primary),
+    'white' var(--color-text-white),
+    'black' var(--color-text-primary),
+    'secondary' var(--color-text-secondary),
+    'disabled' var(--color-text-disabled),
+    'success' var(--color-text-success),
+    'danger' var(--color-text-danger)
+);
+$TYPEFACES_LIST: generate-typefaces();

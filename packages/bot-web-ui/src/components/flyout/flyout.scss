@@ -131,7 +131,7 @@
             cursor: pointer;
             font-weight: bold;
             display: block;
-            color: $COLOR_RED;
+            color: var(--color-text-link);
         }
         &-description {
             font-size: var(--text-size-xs);
