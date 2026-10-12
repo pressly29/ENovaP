@@ -81,7 +81,7 @@ The site uses Deriv's new API: login is OAuth 2.0 with PKCE at `auth.deriv.com`,
 1. Go to https://developers.deriv.com, log in and open the dashboard.
 2. **Register new application** → type **OAuth** (web app).
 3. Name `EvPNova`; redirect URL `https://evpnova.com` (exactly, no trailing path); scopes `trade` (add `account_manage` if users should create demo/real accounts from the site); markup up to 3% if offered.
-4. Copy the **App ID** into `DERIV_APP_ID` and the **OAuth client ID** into `OAUTH_CLIENT_ID` in `deploy/droplet/.env`, then run `./deploy.sh`. Both are public identifiers that end up in the browser, so they're not secrets. If the dashboard only shows an App ID, Deriv issues the OAuth client on request; send them the exact redirect URL.
+4. Copy the **App ID** into both `OAUTH_CLIENT_ID` and `DERIV_APP_ID` in `deploy/droplet/.env` (Deriv's OAuth `client_id` is the app ID), then run `./deploy.sh`. It's a public identifier that ends up in the browser, so it isn't a secret.
 
 Until `OAUTH_CLIENT_ID` is set, the site works logged out (bots, charts, market data on the public API) but **Log in** and **Sign up** can't complete.
 
