@@ -1,31 +1,35 @@
-import { action, extendObservable, observable, makeObservable, runInAction } from 'mobx';
+import { action, extendObservable, makeObservable, observable, runInAction } from 'mobx';
+
 import {
+    BARRIER_COLORS,
+    BARRIER_LINE_STYLES,
+    ChartBarrierStore,
+    DEFAULT_SHADES,
+    getAccuBarriersDefaultTimeout,
+    getAccuBarriersForContractDetails,
+    getContractStatus,
+    getContractUpdateConfig,
+    getContractValidationRules,
+    getDigitInfo,
+    getDisplayStatus,
+    getEndTime,
+    getLimitOrder,
     isAccumulatorContract,
+    isBarrierSupported,
     isDigitContract,
     isEnded,
     isEqualObject,
     isMultiplierContract,
-    isResetContract,
     isOpen,
+    isResetContract,
+    isSmartTraderContract,
     isTurbosContract,
-    getDigitInfo,
-    getDisplayStatus,
+    setLimitOrderBarriers,
     WS,
-    getContractUpdateConfig,
-    getContractValidationRules,
-    BARRIER_LINE_STYLES,
-    DEFAULT_SHADES,
-    isBarrierSupported,
-    getAccuBarriersDefaultTimeout,
-    getAccuBarriersForContractDetails,
-    getEndTime,
-    BARRIER_COLORS,
-    getContractStatus,
 } from '@deriv/shared';
+
+import { calculateMarker, createChartMarkers, getAccumulatorMarkers } from './Helpers/chart-markers';
 import { getChartConfig } from './Helpers/logic';
-import { setLimitOrderBarriers, getLimitOrder } from './Helpers/limit-orders';
-import { ChartBarrierStore } from './chart-barrier-store';
-import { createChartMarkers, calculateMarker, getAccumulatorMarkers } from './Helpers/chart-markers';
 import BaseStore from './base-store';
 
 export default class ContractStore extends BaseStore {
@@ -122,10 +126,20 @@ export default class ContractStore extends BaseStore {
         // TODO: don't update the barriers & markers if they are not changed
         this.updateBarriersArray(contract_info, this.root_store.ui.is_dark_mode_on);
         this.markers_array = createChartMarkers(this.contract_info);
-        this.marker = calculateMarker(this.contract_info, this.root_store.ui.is_dark_mode_on, is_last_contract);
+        this.marker = calculateMarker(
+            this.contract_info,
+            this.root_store.ui.is_dark_mode_on,
+            is_last_contract,
+            this.root_store.ui.is_mobile
+        );
         this.contract_config = getChartConfig(this.contract_info);
         this.display_status = getDisplayStatus(this.contract_info);
         this.is_ended = isEnded(this.contract_info);
+
+        if (this.is_ended && isAccumulatorContract(this.contract_info.contract_type)) {
+            this.root_store.contract_trade.clearAccumulatorBarriersData(false, true);
+        }
+
         this.is_digit_contract = isDigitContract(this.contract_info.contract_type);
         // API doesn't return barrier for digit contracts (sometimes), remove this check once resolved
         if (!this.contract_info.barrier && prev_contract_info.barrier && this.is_digit_contract) {
@@ -134,11 +148,6 @@ export default class ContractStore extends BaseStore {
 
         if (this.is_digit_contract) {
             extendObservable(this.digits_info, getDigitInfo(this.digits_info, this.contract_info));
-        }
-
-        // force to sell the expired contract, in order to remove from portfolio
-        if (+contract_info.is_settleable === 1 && !contract_info.is_sold) {
-            WS.send({ sell_expired: 1 });
         }
 
         const is_multiplier = isMultiplierContract(this.contract_info.contract_type);
@@ -284,6 +293,12 @@ export default class ContractStore extends BaseStore {
             ) {
                 main_barrier?.updateBarriers(barrier || high_barrier, low_barrier);
             }
+            if (isBarrierSupported(contract_type) && !isSmartTraderContract(contract_type)) {
+                // Barrier color will depend on pnl (except old SmartTrader contracts)
+                main_barrier?.updateColor({
+                    barrier_color: is_dark_mode ? BARRIER_COLORS.GRAY : BARRIER_COLORS.BLACK,
+                });
+            }
             if (
                 contract_info.contract_id &&
                 contract_info.contract_id === this.root_store.contract_replay.contract_id
@@ -292,7 +307,7 @@ export default class ContractStore extends BaseStore {
                     barriers: this.barriers_array,
                     contract_info,
                     contract_type,
-                    is_over: true,
+                    is_over: !contract_info.sell_time,
                 });
             }
         }
@@ -311,10 +326,12 @@ export default class ContractStore extends BaseStore {
                 reset_barrier,
             } = contract_info;
             const high_barrier = this.accu_high_barrier || barrier || high;
+            const updated_color = contract_info.profit >= 0 ? BARRIER_COLORS.GREEN : BARRIER_COLORS.RED;
             const common_props = {
                 not_draggable: true,
                 shade: DEFAULT_SHADES['2'],
-                color: BARRIER_COLORS.BLUE,
+                color: isSmartTraderContract(contract_type) ? BARRIER_COLORS.BLUE : updated_color,
+                foregroundColor: isSmartTraderContract(contract_type) ? BARRIER_COLORS.BLUE : updated_color,
             };
             if (
                 isBarrierSupported(contract_type) &&
@@ -331,6 +348,7 @@ export default class ContractStore extends BaseStore {
                         line_style: !isAccumulatorContract(contract_type) && BARRIER_LINE_STYLES.SOLID,
                         hideBarrierLine: isAccumulatorContract(contract_type),
                         shade: isAccumulatorContract(contract_type) && DEFAULT_SHADES['2'],
+                        backgroundColor: isAccumulatorContract(contract_type) ? BARRIER_COLORS.WHITE : 'transparent',
                     }
                 );
 
@@ -380,24 +398,29 @@ export default class ContractStore extends BaseStore {
                 ? { take_profit: getLimitOrder(this).take_profit }
                 : getLimitOrder(this);
 
-        WS.contractUpdate(this.contract_id, limit_order).then(response => {
-            if (response.error) {
-                this.root_store.common.setServicesError({
-                    type: response.msg_type,
-                    ...response.error,
-                });
-                return;
-            }
+        Object.keys(limit_order).length !== 0 &&
+            WS.contractUpdate(this.contract_id, limit_order).then(response => {
+                if (response.error) {
+                    this.root_store.common.setServicesError(
+                        {
+                            type: response.msg_type,
+                            ...response.error,
+                        },
+                        // Temporary switching off old snackbar for DTrader-V2
+                        this.root_store.ui.is_mobile // V2 for mobile, V1 for desktop
+                    );
+                    return;
+                }
 
-            // Update contract store
-            this.populateContractUpdateConfig(response);
-            if (this.root_store.ui.is_history_tab_active) {
-                WS.contractUpdateHistory(this.contract_id).then(this.populateContractUpdateHistory);
-            }
+                // Update contract store
+                this.populateContractUpdateConfig(response);
+                if (this.root_store.ui.is_history_tab_active) {
+                    WS.contractUpdateHistory(this.contract_id).then(this.populateContractUpdateHistory);
+                }
 
-            // Update portfolio store
-            this.root_store.portfolio.populateContractUpdate(response, this.contract_id);
-        });
+                // Update portfolio store
+                this.root_store.portfolio.populateContractUpdate(response, this.contract_id);
+            });
     }
 
     getContractsArray() {

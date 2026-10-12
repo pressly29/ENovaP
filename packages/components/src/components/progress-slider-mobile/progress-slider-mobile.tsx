@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import { getTimePercentage } from '@deriv/shared';
+import { LegacyTimeIcon } from '@deriv/quill-icons';
 import ProgressTicksMobile from './progress-ticks-mobile';
 import CircularProgress from '../circular-progress';
 import RemainingTime from '../remaining-time';
@@ -30,7 +31,7 @@ const ProgressSliderMobile = ({
 }: TProgressSliderMobileProps) => {
     const percentage = getTimePercentage(server_time, Number(start_time), Number(expiry_time));
     return (
-        <div className={classNames('dc-progress-slider-mobile', className)}>
+        <div className={classNames('dc-progress-slider-mobile', className)} data-testid='dt_progress_slider_mobile'>
             {ticks_count ? (
                 <ProgressTicksMobile
                     current_tick={current_tick}
@@ -51,7 +52,7 @@ const ProgressSliderMobile = ({
                         <CircularProgress
                             className='dc-progress-slider-mobile__timer'
                             danger_limit={20}
-                            icon='IcClockOutline'
+                            icon={<LegacyTimeIcon iconSize='xs' fill='var(--color-text-primary)' />}
                             progress={percentage}
                             warning_limit={50}
                         />

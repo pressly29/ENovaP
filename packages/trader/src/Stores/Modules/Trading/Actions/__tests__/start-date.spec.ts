@@ -1,6 +1,7 @@
-import { mockStore } from '@deriv/stores';
-import { ContractType } from '../../Helpers/contract-type';
 import { TRADE_TYPES } from '@deriv/shared';
+import { mockStore } from '@deriv/stores';
+
+import { ContractType } from '../../Helpers/contract-type';
 import { onChangeExpiry, onChangeStartDate } from '../start-date';
 
 jest.mock('@deriv/shared', () => {
@@ -21,7 +22,6 @@ jest.mock('@deriv/shared', () => {
         '1910.00',
     ];
     const vanilla_contracts_for_data = {
-        barrier_category: 'euro_non_atm',
         barriers: 1,
         contract_category: 'vanilla',
         contract_category_display: 'Vanilla Options',
@@ -101,7 +101,7 @@ jest.mock('@deriv/shared', () => {
                                 name: 'Derived',
                                 submarkets: [
                                     {
-                                        name: 'Continuous Indices',
+                                        name: 'Volatility Indices',
                                         symbols: [
                                             {
                                                 events: [
@@ -119,7 +119,7 @@ jest.mock('@deriv/shared', () => {
                                                     },
                                                 ],
                                                 name: 'AUD/JPY',
-                                                symbol: 'frxAUDJPY',
+                                                underlying_symbol: 'frxAUDJPY',
                                                 times: {
                                                     close: ['23:59:59'],
                                                     open: ['00:00:00'],
@@ -130,7 +130,7 @@ jest.mock('@deriv/shared', () => {
                                             {
                                                 events: [],
                                                 name: 'Volatility 10 Index',
-                                                symbol: 'R_10',
+                                                underlying_symbol: 'R_10',
                                                 times: {
                                                     close: ['23:59:59'],
                                                     open: ['00:00:00'],
@@ -209,20 +209,25 @@ describe('onChangeStartDate', () => {
         ).toEqual(result);
     });
     it('should return an object with defined start_time when start_date is not 0', async () => {
+        const result = {
+            contract_start_type: 'spot',
+            duration_units_list,
+            duration_min_max: {
+                daily: { min: 86400, max: 31536000 },
+                intraday: { min: 60, max: 86400 },
+            },
+            duration_unit: 'h',
+            start_time: '22:05',
+            expiry_date: null,
+            expiry_type: 'duration',
+        };
         expect(
             await onChangeStartDate({
                 ...trade_store,
                 start_date: 1701388800,
                 start_time: '22:05',
             })
-        ).toEqual({
-            contract_start_type: 'forward',
-            duration_units_list: [],
-            duration_min_max: {},
-            start_time: '22:05',
-            expiry_date: null,
-            expiry_type: null,
-        });
+        ).toEqual(result);
     });
 });
 

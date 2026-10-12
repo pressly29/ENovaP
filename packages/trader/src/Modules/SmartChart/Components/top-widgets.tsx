@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { DesktopWrapper, MobileWrapper } from '@deriv/components';
+
 import { ChartTitle } from 'Modules/SmartChart';
 import { useTraderStore } from 'Stores/useTraderStores';
+
 import RecentTradeInfo from './recent-trade-info';
 
 type TTopWidgets = {
@@ -38,7 +39,7 @@ const TopWidgets = ({
             onChange={onSymbolChange}
             searchInputClassName='data-hj-whitelist'
             isNestedList={is_mobile}
-            portalNodeId={is_mobile ? 'deriv_app' : undefined}
+            portalNodeId={is_mobile ? 'derivatives_trader' : undefined}
         />
     );
 
@@ -54,9 +55,10 @@ const TopWidgets = ({
 
     return (
         <React.Fragment>
-            {InfoBox}
-            <MobileWrapper>{portal}</MobileWrapper>
-            <DesktopWrapper>{ChartTitleLocal}</DesktopWrapper>
+            {/* Hidden as we disable longcode temporarily */}
+            {/* TODO: enable or delete when decision is made */}
+            {/* {InfoBox} */}
+            {is_mobile ? portal : ChartTitleLocal}
         </React.Fragment>
     );
 };

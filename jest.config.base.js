@@ -3,20 +3,17 @@
  */
 
 module.exports = {
-    collectCoverage: false,
-    collectCoverageFrom: [
-        '**/*.{js,jsx,ts,tsx}',
-        '!**/node_modules/**',
-        '!**/dist/**',
-        '!/integration-tests/',
-        '!/component-tests/',
-    ],
-    coverageReporters: ['lcov'],
-    coverageDirectory: './coverage/',
+    testEnvironment: 'jsdom',
     testRegex: '(/__tests__/.*|(\\.)(test|spec))\\.(js|jsx|tsx|ts)?$',
     // This is needed to transform es modules imported from node_modules of the target component.
-    transformIgnorePatterns: ['/node_modules/(?!@enykeev/react-virtualized).+\\.js$'],
-    setupFiles: ['<rootDir>/../../jest.setup.js'],
+    transformIgnorePatterns: [
+        '/node_modules/(?!(@enykeev/react-virtualized|@simplewebauthn/browser|@deriv-com/ui|@deriv-com/quill-ui||@deriv-com/translations)).+\\.js$',
+    ],
     setupFilesAfterEnv: ['<rootDir>/../../setupTests.js'],
-    testPathIgnorePatterns: ['/integration-tests/', '/component-tests/'],
+    moduleNameMapper: {
+        // Use simple mock for CSS/SCSS imports instead of identity-obj-proxy
+        '\\.(css|less|scss|sass)$': '<rootDir>/../../__mocks__/styleMock.js',
+        '\\.(svg|png|jpg|jpeg|gif|webp)$': '<rootDir>/../../__mocks__/fileMock.js',
+        '@deriv-com/translations': '<rootDir>/../../__mocks__/translation.mock.js',
+    },
 };

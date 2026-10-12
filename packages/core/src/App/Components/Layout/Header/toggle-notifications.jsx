@@ -1,8 +1,10 @@
 import classNames from 'classnames';
 import React from 'react';
-import { Counter, DesktopWrapper, Icon, MobileWrapper, Popover } from '@deriv/components';
+import { Counter, Popover } from '@deriv/components';
+import { LegacyNotification1pxIcon } from '@deriv/quill-icons';
 import NotificationsDialog from 'App/Containers/NotificationsDialog';
 import 'Sass/app/modules/notifications-dialog.scss';
+import { useDevice } from '@deriv-com/ui';
 
 const ToggleNotificationsDrawer = ({
     count,
@@ -10,7 +12,9 @@ const ToggleNotificationsDrawer = ({
     toggleDialog,
     tooltip_message,
     should_disable_pointer_events = false,
+    showPopover = true,
 }) => {
+    const { isMobile } = useDevice();
     const notifications_toggler_el = (
         <div
             className={classNames('notifications-toggle__icon-wrapper', {
@@ -18,10 +22,23 @@ const ToggleNotificationsDrawer = ({
             })}
             onClick={toggleDialog}
         >
-            <Icon className='notifications-toggle__icon' icon='IcBell' />
+            <LegacyNotification1pxIcon className='notifications-toggle__icon' iconSize='xs' />
             {!!count && <Counter count={count} className='notifications-toggle__step' />}
         </div>
     );
+
+    if (isMobile) {
+        return (
+            <div
+                className={classNames('notifications-toggle', {
+                    'notifications-toggle--active': is_visible,
+                })}
+            >
+                {notifications_toggler_el}
+                <NotificationsDialog is_visible={is_visible} toggleDialog={toggleDialog} />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -29,22 +46,20 @@ const ToggleNotificationsDrawer = ({
                 'notifications-toggle--active': is_visible,
             })}
         >
-            <DesktopWrapper>
+            {showPopover ? (
                 <Popover
                     classNameBubble='notifications-toggle__tooltip'
                     alignment='bottom'
                     message={tooltip_message}
                     should_disable_pointer_events={should_disable_pointer_events}
-                    zIndex={9999}
+                    zIndex='9999'
                 >
                     {notifications_toggler_el}
                 </Popover>
-                <NotificationsDialog is_visible={is_visible} toggleDialog={toggleDialog} />
-            </DesktopWrapper>
-            <MobileWrapper>
-                {notifications_toggler_el}
-                <NotificationsDialog is_visible={is_visible} toggleDialog={toggleDialog} />
-            </MobileWrapper>
+            ) : (
+                notifications_toggler_el
+            )}
+            <NotificationsDialog is_visible={is_visible} toggleDialog={toggleDialog} />
         </div>
     );
 };

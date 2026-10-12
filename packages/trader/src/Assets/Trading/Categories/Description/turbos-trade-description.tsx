@@ -1,6 +1,7 @@
 import React from 'react';
-import { Localize } from '@deriv/translations';
+
 import { Text } from '@deriv/components';
+import { Localize } from '@deriv-com/translations';
 
 const TurbosTradeDescription = ({
     onClick,
@@ -16,7 +17,7 @@ const TurbosTradeDescription = ({
         {
             text: (
                 <Localize
-                    i18n_default_text='You receive a <0>payout</0> at <0>expiry</0> if the spot price never touches or breaches the <0>barrier</0> during the contract period. If it does, your contract will be terminated early.'
+                    i18n_default_text='You receive a <0>payout</0> at <0>expiry</0> if the spot price never breaches the <0>barrier</0> during the contract period. If it does, your contract will be terminated early.'
                     components={[
                         <span
                             className='contract-type-info__content-definition'
@@ -31,15 +32,23 @@ const TurbosTradeDescription = ({
         {
             text: (
                 <Localize
-                    i18n_default_text='If you select <0>"Long"</0>, you’ll earn a payout if the spot price never drops below the barrier.<1 />If you select <0>"Short"</0>, you’ll earn a payout if the spot price never rises above the barrier.'
-                    components={[<strong key={0} />, <br key={1} />]}
+                    i18n_default_text='If you select <0>"Up"</0>, you’ll earn a payout if the spot price never drops below the barrier.'
+                    components={[<strong key={0} />]}
                 />
             ),
         },
         {
             text: (
                 <Localize
-                    i18n_default_text='Your payout is equal to the <0>payout per point</0> multiplied by the difference between the <0>final price</0> and the barrier. You will only earn a profit if your payout is higher than your initial stake.'
+                    i18n_default_text='If you select <0>"Down"</0>, you’ll earn a payout if the spot price never rises above the barrier.'
+                    components={[<strong key={0} />]}
+                />
+            ),
+        },
+        {
+            text: (
+                <Localize
+                    i18n_default_text='Your payout is equal to the <0>payout per point</0> multiplied by the distance between the <0>final price</0> and the barrier. You will only earn a profit if your payout is higher than your initial stake.'
                     components={[
                         <span
                             className='contract-type-info__content-definition'

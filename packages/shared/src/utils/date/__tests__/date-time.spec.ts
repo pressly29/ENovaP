@@ -130,3 +130,26 @@ describe('getTimeSince', () => {
         expect(DateTime.getTimeSince(0)).toEqual('');
     });
 });
+
+describe('getTomorrowDate', () => {
+    it("should return tomorrow's date in YYYY-MM-DD format", () => {
+        const server_time = '2025-04-08 09:28:52';
+        const expected_tomorrow = '2025-04-09';
+
+        expect(DateTime.getTomorrowDate(server_time)).toBe(expected_tomorrow);
+    });
+
+    it('should handle different input formats', () => {
+        const date_object = new Date('2025-04-08T09:28:52');
+        const expected_tomorrow = '2025-04-09';
+
+        expect(DateTime.getTomorrowDate(date_object)).toBe(expected_tomorrow);
+    });
+
+    it('should handle month rollover', () => {
+        const server_time = '2025-04-30 09:28:52';
+        const expected_tomorrow = '2025-05-01';
+
+        expect(DateTime.getTomorrowDate(server_time)).toBe(expected_tomorrow);
+    });
+});

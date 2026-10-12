@@ -1,10 +1,16 @@
 import classNames from 'classnames';
 import React, { RefObject } from 'react';
 import { ArrowContainer, Popover as TinyPopover } from 'react-tiny-popover';
-import Icon from '../icon';
+import { useDevice } from '@deriv-com/ui';
 import Text from '../text';
-import { useDevice, useHover, useHoverCallback } from '../../hooks';
+import { useHover, useHoverCallback } from '../../hooks';
 import { TPopoverProps } from '../types';
+import {
+    LegacyInformationIcon,
+    LegacyInfo1pxIcon,
+    LabelPairedQuestionCaptionBoldIcon,
+    StandaloneCircleFillIcon,
+} from '@deriv/quill-icons';
 
 const Popover = ({
     alignment,
@@ -36,10 +42,10 @@ const Popover = ({
     const ref = React.useRef<HTMLDivElement | undefined>();
     const [popover_ref, setPopoverRef] = React.useState<HTMLDivElement | undefined>(undefined);
     const [is_bubble_visible, setIsBubbleVisible] = React.useState(false);
-    const { is_mobile } = useDevice();
+    const { isDesktop } = useDevice();
     const [hover_ref, is_hovered] = useHover(null, true);
     const [bubble_hover_ref, is_bubble_hovered] = useHoverCallback();
-    const should_toggle_on_target_tap = React.useMemo(() => is_mobile && is_open === undefined, [is_mobile, is_open]);
+    const should_toggle_on_target_tap = React.useMemo(() => !isDesktop && is_open === undefined, [isDesktop, is_open]);
 
     React.useEffect(() => {
         if (ref.current) {
@@ -156,7 +162,9 @@ const Popover = ({
                                 position={position}
                                 childRect={childRect}
                                 popoverRect={popoverRect}
-                                arrowColor={has_error ? 'var(--status-danger)' : 'var(--general-active)'}
+                                arrowColor={
+                                    has_error ? 'var(--color-status-danger)' : 'var(--color-interactive-active)'
+                                }
                                 arrowSize={5}
                                 arrowStyle={
                                     relative_render
@@ -164,7 +172,9 @@ const Popover = ({
                                               borderTop: '10px solid transparent',
                                               borderLeft: '10px solid transparent',
                                               borderRight: `10px solid ${
-                                                  has_error ? 'var(--status-danger)' : 'var(--general-active)'
+                                                  has_error
+                                                      ? 'var(--color-status-danger)'
+                                                      : 'var(--color-interactive-active)'
                                               }`,
                                               transform: 'rotate(315deg)',
                                               right: '0px',
@@ -189,11 +199,11 @@ const Popover = ({
                                 >
                                     {!disable_message_icon && icon === 'info' && (
                                         <i className='dc-popover__bubble__icon'>
-                                            <Icon icon='IcInfoBlue' />
+                                            <LegacyInformationIcon fill='var(--color-text-info)' iconSize='xs' />
                                         </i>
                                     )}
                                     {(has_error && (
-                                        <Text size='xxs' color='colored-background'>
+                                        <Text size='xxs' color='white'>
                                             {message}
                                         </Text>
                                     )) || (
@@ -214,9 +224,27 @@ const Popover = ({
                                         message ? 'dc-popover__target__icon' : 'dc-popover__target__icon--disabled'
                                     }
                                 >
-                                    {icon === 'info' && <Icon icon='IcInfoOutline' className={icon_class_name} />}
-                                    {icon === 'question' && <Icon icon='IcUnknown' className={icon_class_name} />}
-                                    {icon === 'dot' && <Icon icon='IcCircle' className={icon_class_name} size={4} />}
+                                    {icon === 'info' && (
+                                        <LegacyInfo1pxIcon
+                                            className={icon_class_name}
+                                            iconSize='xs'
+                                            fill='var(--color-text-disabled)'
+                                        />
+                                    )}
+                                    {icon === 'question' && (
+                                        <LabelPairedQuestionCaptionBoldIcon
+                                            className={icon_class_name}
+                                            fill='var(--color-text-primary)'
+                                        />
+                                    )}
+                                    {icon === 'dot' && (
+                                        <StandaloneCircleFillIcon
+                                            className={icon_class_name}
+                                            width={7}
+                                            height={6}
+                                            fill='var(--color-status-danger)'
+                                        />
+                                    )}
                                     {icon === 'counter' && <span className={icon_class_name}>{counter}</span>}
                                 </i>
                             )}

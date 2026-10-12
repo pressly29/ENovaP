@@ -1,14 +1,16 @@
 import React from 'react';
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
 import ContractError from '../contract-error';
 
 const mocked_props = {
     onClickClose: jest.fn(),
 };
 const test_text = 'test_text';
-jest.mock('@deriv/components', () => ({
-    Icon: jest.fn(() => 'MockedIcon'),
+jest.mock('@deriv/quill-icons', () => ({
+    LegacyClose2pxIcon: jest.fn(() => 'MockedIcon'),
 }));
 
 describe('ContractError', () => {
@@ -22,10 +24,10 @@ describe('ContractError', () => {
 
         expect(screen.getByText(test_text)).toBeInTheDocument();
     });
-    it('should call the function if the icon was clicked', () => {
+    it('should call the function if the close button was clicked', async () => {
         render(<ContractError {...mocked_props} message={test_text} />);
-        const icon = screen.getByText('MockedIcon');
-        userEvent.click(icon);
+        const closeButton = screen.getByText('MockedIcon');
+        await userEvent.click(closeButton);
 
         expect(mocked_props.onClickClose).toBeCalled();
     });

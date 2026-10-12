@@ -1,9 +1,8 @@
 import classNames from 'classnames';
 import React, { LegacyRef } from 'react';
 import { Text, ThemedScrollbars } from '@deriv/components';
-import { routes } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import EmptyNotification from 'App/Components/Elements/Notifications/empty-notification';
 import NotificationsClearAllFooter from './notifications-clear-all-footer';
 import NotificationsList from './notifications-list';
@@ -16,24 +15,14 @@ const NotificationListWrapperForwardRef = React.forwardRef(
         const { is_notifications_empty } = notifications;
         const { is_mobile } = ui;
 
-        const traders_hub = window.location.pathname === routes.traders_hub;
-        const wallets_path = window.location.pathname === routes.wallets;
-
         return (
-            <div
-                data-testid='dt_notifications_list_wrapper'
-                className={classNames('notifications-dialog', {
-                    'notifications-dialog--pre-appstore':
-                        traders_hub || window.location.pathname.startsWith(routes.account) || wallets_path,
-                })}
-                ref={ref}
-            >
+            <div data-testid='dt_notifications_list_wrapper' className='notifications-dialog' ref={ref}>
                 <div className='notifications-dialog__header'>
                     <Text
                         as='h2'
                         className='notifications-dialog__header-text'
                         weight='bold'
-                        color='prominent'
+                        color='primary'
                         styles={{
                             lineHeight: '1.6rem',
                         }}

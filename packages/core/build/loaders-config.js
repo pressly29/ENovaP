@@ -5,9 +5,6 @@ const IS_RELEASE =
     process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'test';
 
 const js_loaders = [
-    '@deriv/shared/src/loaders/deriv-account-loader.js',
-    '@deriv/shared/src/loaders/deriv-cashier-loader.js',
-    '@deriv/shared/src/loaders/deriv-cfd-loader.js',
     {
         loader: 'babel-loader',
         options: {
@@ -41,7 +38,16 @@ const svg_file_loaders = [
     },
 ];
 
-let svg_id_counter = 0;
+// Prefix SVG ids with the file's path under packages/ so inline SVGs on one page cannot collide,
+// even when two files share a name (e.g. settings/left.svg and settings/dark/left.svg, or the
+// same file in core and trader).
+const getSvgIdPrefix = (_node, info) => {
+    if (!info.path) return 'svg';
+    return path
+        .relative(path.resolve(__dirname, '../..'), info.path)
+        .replace(/\.svg$/, '')
+        .replace(/[^\w-]/g, '_');
+};
 
 const svg_loaders = [
     {
@@ -52,25 +58,25 @@ const svg_loaders = [
         },
     },
     {
-        loader: 'react-svg-loader',
+        loader: '@svgr/webpack',
         options: {
-            jsx: true,
-            svgo: {
+            babel: false,
+            svgoConfig: {
+                floatPrecision: 2,
                 plugins: [
-                    { removeTitle: false },
-                    { removeUselessStrokeAndFill: false },
-                    { removeUknownsAndDefaults: false },
                     {
-                        cleanupIDs: {
-                            prefix: {
-                                toString() {
-                                    return `id-${svg_id_counter++}`;
-                                },
+                        name: 'preset-default',
+                        params: {
+                            overrides: {
+                                removeTitle: false,
+                                removeUselessStrokeAndFill: false,
+                                // Keep viewBox so the SVGs scale when CSS resizes them.
+                                removeViewBox: false,
                             },
                         },
                     },
+                    { name: 'prefixIds', params: { prefix: getSvgIdPrefix } },
                 ],
-                floatPrecision: 2,
             },
         },
     },
@@ -84,6 +90,15 @@ const css_loaders = [
         loader: 'css-loader',
         options: {
             sourceMap: !IS_RELEASE,
+            // Block external @import statements from being processed by webpack
+            import: url => {
+                // Block external URLs (http://, https://, //)
+                if (/^https?:\/\//.test(url) || url.startsWith('//')) {
+                    return false;
+                }
+                // Allow all relative and webpack module imports
+                return true;
+            },
         },
     },
     {
@@ -99,13 +114,15 @@ const css_loaders = [
         loader: 'resolve-url-loader',
         options: {
             sourceMap: true,
-            keepQuery: true,
         },
     },
     {
         loader: 'sass-loader',
         options: {
             sourceMap: !IS_RELEASE,
+            sassOptions: {
+                outputStyle: 'expanded',
+            },
         },
     },
     {

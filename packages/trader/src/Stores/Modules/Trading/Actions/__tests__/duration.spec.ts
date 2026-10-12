@@ -1,8 +1,10 @@
-import { mockStore } from '@deriv/stores';
-import { ContractType } from '../../Helpers/contract-type';
-import { TRADE_TYPES } from '@deriv/shared';
-import { onChangeContractType, onChangeExpiry } from '../duration';
 import moment from 'moment';
+
+import { TRADE_TYPES } from '@deriv/shared';
+import { mockStore } from '@deriv/stores';
+
+import { ContractType } from '../../Helpers/contract-type';
+import { onChangeContractType, onChangeExpiry } from '../duration';
 
 jest.mock('@deriv/shared', () => {
     const barrier_intraday = '+0.000';
@@ -30,7 +32,6 @@ jest.mock('@deriv/shared', () => {
     };
     const vanilla_contracts_for_data = {
         ...common_contracts_for_data,
-        barrier_category: 'euro_non_atm',
         barriers: 1,
         contract_category: 'vanilla',
         contract_category_display: 'Vanilla Options',
@@ -45,7 +46,6 @@ jest.mock('@deriv/shared', () => {
                         available: [
                             {
                                 ...common_contracts_for_data,
-                                barrier_category: 'american',
                                 barriers: 2,
                                 contract_category: 'accumulator',
                                 contract_category_display: 'Accumulator',

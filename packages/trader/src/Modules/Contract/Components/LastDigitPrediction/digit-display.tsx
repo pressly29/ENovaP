@@ -1,13 +1,16 @@
-import classNames from 'classnames';
-import { observer } from 'mobx-react';
 import React from 'react';
+import classNames from 'classnames';
+import { observer } from 'mobx-react-lite';
+
+import { TPriceProposalOpenContractsResponse } from '@deriv/api';
 import { DesktopWrapper } from '@deriv/components';
 import { isMobile } from '@deriv/shared';
-import { Bounce } from 'App/Components/Animations';
+
+import { Bounce } from '../Animations';
+
 import Digit from './digit';
 import DigitSpot from './digit-spot';
 import LastDigitStat from './last-digit-stat';
-import { ProposalOpenContract } from '@deriv/api-types';
 
 type TDigitDisplay = Pick<React.ComponentProps<typeof DigitSpot>, 'is_lost' | 'is_won'> &
     Pick<React.ComponentProps<typeof Digit>, 'is_lost' | 'is_won'> &
@@ -21,7 +24,7 @@ type TDigitDisplay = Pick<React.ComponentProps<typeof DigitSpot>, 'is_lost' | 'i
             spot: string | null;
         };
         selected_digit?: number;
-        status: ProposalOpenContract['status'];
+        status: NonNullable<TPriceProposalOpenContractsResponse['proposal_open_contract']>['status'];
         stats?: number | null;
         value: number;
         onLastDigitSpot?: (value: {

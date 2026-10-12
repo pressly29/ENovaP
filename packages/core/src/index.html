@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en" translate="no">
+<!doctype html>
+<html lang="en" dir="auto">
     <head>
         <!-- Set skeleton theme color properties -->
         <style>
             :root {
-                --logo-loading-color: rgba(0, 0, 0, 0.8);
-                --header-footer-bg-color: rgba(0, 0, 0, 0.04);
-                --content-bg-color: #fff;
-                --general-main-1: #ffffff;
-                --general-section-1: #f2f3f4;
-                --text-prominent: #333333;
-                font-size: 62.5%;
+                --color-surface-primary: #fff;
+                --color-text-primary: #000;
+                --initial-loader-display: flex;
             }
 
             #platform_name:after {
@@ -18,65 +14,64 @@
                 margin-left: 8px;
             }
 
-            .deriv-app > .header__loading {
-                background-color: var(--general-main-1);
-                border-bottom: var(--general-main-1);
+            .derivatives-trader > .header__loading {
+                background-color: var(--color-surface-primary);
+                border-bottom: var(--color-surface-primary);
             }
 
-            .deriv-app > .app-contents__loading {
-                background-color: var(--general-main-1);
+            .derivatives-trader > .app-contents__loading {
+                background-color: var(--color-surface-primary);
             }
 
-            .deriv-app > .footer__loading {
-                background-color: var(--general-main-1);
-                border-bottom: var(--general-main-1);
+            .derivatives-trader > .footer__loading {
+                background-color: var(--color-surface-primary);
+                border-bottom: var(--color-surface-primary);
             }
 
-            .initial-loader__loading {
-                background-color: var(--general-main-1);
+            .initial-loader {
+                display: var(--initial-loader-display) !important;
             }
         </style>
+        <!-- Start theme styles and mobile app loader control -->
         <script type="text/javascript">
-            !(function () {
-                if ('PerformanceLongTaskTiming' in window) {
-                    var g = (window.__tti = { e: [] });
-                    g.o = new PerformanceObserver(function (l) {
-                        g.e = g.e.concat(l.getEntries());
-                    });
-                    g.o.observe({ entryTypes: ['longtask'] });
-                }
-            })();
-        </script>
-        <script type="text/javascript">
-            var ui_store = localStorage.getItem('ui_store');
             var l = window.location;
-            var is_bot =
-                /^\/bot/.test(l.pathname) || (/^\/(br_)/.test(l.pathname) && l.pathname.split('/')[2] === 'bot');
-            if (is_bot) {
-                const newUrl = window.location.origin;
-                window.location.href = newUrl;
-            }
-            if (ui_store && ui_store.length > 0) {
-                var is_dark_theme = false;
-                if (is_bot) {
-                    // TODO: [disable-dark-bot] Re-enable dark theme when Bot is ready
-                    is_dark_theme = false;
-                } else {
-                    is_dark_theme = JSON.parse(ui_store).is_dark_mode_on || false;
-                }
 
-                if (is_dark_theme) {
-                    // if dark theme, change the property colors for dark theme
-                    document.documentElement.style.setProperty('--header-footer-bg-color', '#0b0e18');
-                    document.documentElement.style.setProperty('--content-bg-color', '#101320');
-                    document.documentElement.style.setProperty('--logo-loading-color', '#fff');
-                    document.documentElement.style.setProperty('--general-main-1', '#0e0e0e');
-                    document.documentElement.style.setProperty('--general-section-1', '#151717');
-                    document.documentElement.style.setProperty('--text-prominent', '#ffffff');
-                }
+            // Check URL parameter first (takes priority)
+            var urlParams = new URLSearchParams(l.search);
+            var themeParam = urlParams.get('theme');
+
+            var ui_store = localStorage.getItem('ui_store');
+            var is_dark_theme = false;
+
+            if (themeParam === 'dark') {
+                is_dark_theme = true;
+            } else if (themeParam === 'light') {
+                is_dark_theme = false;
+            } else if (ui_store && ui_store.length > 0) {
+                // Fallback to localStorage if no URL parameter
+                is_dark_theme = JSON.parse(ui_store).is_dark_mode_on || false;
+            }
+
+            if (is_dark_theme) {
+                // Add dark class to HTML element before React loads
+                document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
+                // if dark theme, change the property colors for dark theme
+                document.documentElement.style.setProperty('--color-surface-primary', '#181c25');
+                document.documentElement.style.setProperty('--color-text-primary', '#fff');
+            } else {
+                // Add light class for light theme
+                document.documentElement.classList.add('light');
+                document.documentElement.classList.remove('dark');
+            }
+
+            // Hide web app loader when inside native mobile app to prevent double loaders
+            var isMobileApp = urlParams.get('is_mobile_app') === 'true';
+            if (isMobileApp) {
+                document.documentElement.style.setProperty('--initial-loader-display', 'none');
             }
         </script>
-        <!-- End theme styles -->
+        <!-- End theme styles and mobile app loader control -->
         <!-- Start Anti-Clickjack -->
         <style id="antiClickjack">
             body {
@@ -95,44 +90,39 @@
 
         <noscript>Your browser does not support JavaScript!</noscript>
 
-        <!-- Start GTM Script -->
-        <script>
-            try {
-                var gtm_id = 'GTM-NF7884S';
-                if (window.location.hostname === 'deriv-app.binary.sx') gtm_id = 'GTM-TNX2ZKH';
-                (function (w, d, s, l, i) {
-                    w[l] = w[l] || [];
-                    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                    var f = d.getElementsByTagName(s)[0],
-                        j = d.createElement(s),
-                        dl = l != 'dataLayer' ? '&l=' + l : '';
-                    j.defer = true;
-                    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                    f.parentNode.insertBefore(j, f);
-                })(window, document, 'script', 'dataLayer', gtm_id);
-            } catch (err) {
-                console.log('Error inserting GTM script 1 ====>', err);
-            }
-        </script>
-        <!-- End GTM Script -->
-
         <!-- Start URL Handler -->
         <script type="text/javascript">
             (function (l) {
                 if (l.search) {
-                    var q = {};
+                    // Create object without prototype to prevent pollution
+                    var q = Object.create(null);
+
                     l.search
                         .slice(1)
                         .split('&')
                         .forEach(function (v) {
                             var a = v.split('=');
-                            q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
+                            var key = a[0];
+
+                            // Security checks
+                            if (!key || key.length === 0) return;
+                            if (key.includes('__proto__')) return;
+                            if (key.includes('constructor')) return;
+                            if (key.includes('prototype')) return;
+
+                            var value = a.slice(1).join('=').replace(/~and~/g, '&');
+                            q[key] = value;
                         });
-                    if (q.p !== undefined) {
+
+                    // Use hasOwnProperty equivalent for prototype-less object
+                    if (Object.prototype.hasOwnProperty.call(q, 'p')) {
                         window.history.replaceState(
                             null,
                             null,
-                            l.pathname.slice(0, -1) + (q.p || '') + (q.q ? '?' + q.q : '') + l.hash
+                            l.pathname.slice(0, -1) +
+                                (q.p || '') +
+                                (Object.prototype.hasOwnProperty.call(q, 'q') ? '?' + q.q : '') +
+                                l.hash
                         );
                     }
                 }
@@ -140,169 +130,68 @@
         </script>
         <!-- End URL Handler -->
 
-        <!-- Start Cookies script -->
-        <script src="https://static.deriv.com/scripts/cookie.js" async></script>
-        <!-- End Cookies script -->
-
-        <meta
-            name="description"
-            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. Trade forex, digital options, indices, and commodities with advanced charting and analysis."
-        />
+        <meta name="description" content="<%= htmlWebpackPlugin.options.templateParameters.platform_description %>" />
         <meta
             name="keywords"
-            content="digital options, forex, forex trading, online trading, financial trading, binary trading, index trading, trading indices, forex trades, trading commodities, digital options strategy, binary broker, digital options trading platform, binary strategy, finance, stocks, investment, trading, EvPNova, trading platform"
+            content=" digital options, forex, forex trading, online trading, financial trading, binary trading, index trading, trading indices, forex trades, trading commodities, digital options strategy, binary broker, binary bet, digital options trading platform, binary strategy, finance, stocks, investment, trading"
         />
-        <!-- TODO: iOS zoom bug for input elements means we'll get a lower user accessibility score since we're not allowing app.deriv.com to be scalable on mobile -->
+        <meta name="author" content="<%= htmlWebpackPlugin.options.templateParameters.brand_name %>" />
+        <!-- TODO: iOS zoom bug for input elements means we'll get a lower user accessibility score since we're not allowing dtrader.deriv.com to be scalable on mobile -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <meta name="theme-color" content="#414652" />
-        <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
-
-        <!-- Open Graph Meta Tags for Social Sharing -->
-        <meta property="og:title" content="EvPNova - Advanced Financial Trading Platform" />
+        <meta name="theme-color" content="<%= htmlWebpackPlugin.options.templateParameters.theme_color %>" />
+        <meta name="dcterms.rightsHolder" content="<%= htmlWebpackPlugin.options.templateParameters.brand_name %>" />
+        <meta name="dcterms.rights" content="<%= htmlWebpackPlugin.options.templateParameters.brand_name %>" />
         <meta
             property="og:description"
-            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets. Trade forex, digital options, indices, and commodities."
+            content="<%= htmlWebpackPlugin.options.templateParameters.platform_description %>"
         />
+        <meta property="og:title" content="<%= htmlWebpackPlugin.options.templateParameters.platform_name %>" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://evpnova.com/" />
-        <meta
-            property="og:image"
-            content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR3qsyDtQ_1mlX1AoeV963gFP0UZBTcJOcdK0G802Vfg&s"
-        />
-        <meta property="og:site_name" content="EvPNova" />
-
-        <!-- Twitter Card Meta Tags -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="EvPNova - Advanced Financial Trading Platform" />
-        <meta
-            name="twitter:description"
-            content="EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets."
-        />
-        <meta
-            name="twitter:image"
-            content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR3qsyDtQ_1mlX1AoeV963gFP0UZBTcJOcdK0G802Vfg&s"
-        />
-
         <meta name="google" content="notranslate" />
         <meta name="referrer" content="origin" />
-        <meta name="author" content="EvPNova" />
 
-        <!-- Additional SEO Meta Tags -->
-        <meta name="application-name" content="EvPNova Trading Platform" />
-        <meta name="apple-mobile-web-app-title" content="EvPNova" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="mobile-web-app-capable" content="yes" />
+        <!-- Preconnect for critical resources (establishes early connections) -->
+        <link rel="preconnect" href="<%= htmlWebpackPlugin.options.templateParameters.api_core_url %>" />
+        <link rel="preconnect" href="<%= htmlWebpackPlugin.options.templateParameters.api_url %>" />
+        <link rel="preconnect" href="<%= htmlWebpackPlugin.options.templateParameters.auth_url %>" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- Load all fonts in single request with all required weights and language subsets -->
+        <!-- Includes weights: 300,400,500,700 | Subsets: Latin, Cyrillic (Russian), Vietnamese -->
+        <link
+            rel="preload"
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+            onload="
+                this.onload = null;
+                this.rel = 'stylesheet';
+            "
+        />
 
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://browser-update.org" />
+        <!-- Noscript fallback for users with JavaScript disabled -->
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+            />
+        </noscript>
 
-        <!-- SEO: Dynamic canonical and alternate tags -->
-        <script>
-            (function () {
-                try {
-                    var host = window.location.hostname || '';
-                    var path = window.location.pathname || '/';
-                    var canonicalUrl = 'https://evpnova.com' + path;
+        <link rel="alternate" hreflang="en" href="<%= htmlWebpackPlugin.options.templateParameters.canonical_url %>" />
+        <link rel="canonical" href="<%= htmlWebpackPlugin.options.templateParameters.canonical_url %>" />
 
-                    // Netlify branch/preview detection
-                    var is_preview =
-                        /--.*\.netlify\.app$/.test(host) ||
-                        (/netlify\.app$/.test(host) && host !== 'evpnova.netlify.app');
-
-                    // Set dynamic canonical
-                    var canonical = document.createElement('link');
-                    canonical.rel = 'canonical';
-                    canonical.href = canonicalUrl;
-                    document.head.appendChild(canonical);
-
-                    // Set alternate hreflang
-                    var alternate = document.createElement('link');
-                    alternate.rel = 'alternate';
-                    alternate.hreflang = 'en';
-                    alternate.href = canonicalUrl;
-                    document.head.appendChild(alternate);
-
-                    // Block preview/branch deploys from indexing
-                    if (is_preview) {
-                        var robotsMeta = document.createElement('meta');
-                        robotsMeta.name = 'robots';
-                        robotsMeta.content = 'noindex,nofollow';
-                        document.head.appendChild(robotsMeta);
-                    } else {
-                        // Production: Explicitly allow indexing
-                        var robotsMeta = document.createElement('meta');
-                        robotsMeta.name = 'robots';
-                        robotsMeta.content = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
-                        document.head.appendChild(robotsMeta);
-                    }
-                } catch (e) {
-                    // Fallback to static canonical if script fails
-                    console.error('Canonical tag script error:', e);
-                }
-            })();
-        </script>
-
-        <!-- Structured Data (JSON-LD) for Rich Search Results -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "FinancialService",
-                "name": "EvPNova",
-                "description": "EvPNova offers a straightforward platform and ultimate trading tools for engaging in financial markets.",
-                "url": "https://evpnova.com",
-                "logo": "https://evpnova.com/logo.png",
-                "sameAs": [],
-                "areaServed": "Worldwide",
-                "serviceType": "Financial Trading Platform"
-            }
-        </script>
-
-        <title>EvPNova - Advanced Financial Trading Platform | Forex, Options & More</title>
+        <title>
+            <%= htmlWebpackPlugin.options.templateParameters.platform_name %> | <%=
+            htmlWebpackPlugin.options.templateParameters.brand_name %>
+        </title>
         <meta charset="UTF-8" />
-        <meta name="google-site-verification" content="g5u3TyEdmYJ_HKZ6EmpW1nlKwD4XPVeLMhN9leeMfuw" />
     </head>
 
     <body class="body theme">
-        <!-- Start GTM NoScript -->
-        <noscript
-            ><iframe
-                src="https://www.googletagmanager.com/ns.html?id=GTM-NF7884S"
-                height="0"
-                width="0"
-                style="display: none; visibility: hidden"
-            ></iframe
-        ></noscript>
-        <!-- End GTM NoScript -->
-        <!-- Start GTM NoScript of GTM Test Environment -->
-        <noscript
-            ><iframe
-                src="https://www.googletagmanager.com/ns.html?id=GTM-TNX2ZKH"
-                height="0"
-                width="0"
-                style="display: none; visibility: hidden"
-            ></iframe
-        ></noscript>
-        <!-- End GTM NoScript of GTM Test Environment -->
-
-        <!-- TODO: Display shell platform icon and text based on route -->
-
-        <div id="deriv_app" class="deriv-app">
-            <header
-                class="header__loading"
-                style="
-                    background: var(--general-main-1);
-                    border-bottom: 1px solid var(--general-section-1);
-                    position: fixed;
-                    z-index: 99;
-                    box-sizing: border-box;
-                    height: 48px;
-                    width: 100%;
-                    top: 0;
-                "
-            ></header>
-            <div class="app-contents app-contents__loading" style="margin-bottom: 0; overflow: hidden">
-                <div class="initial-loader initial-loader__loading">
+        <div id="derivatives_trader" class="derivatives-trader">
+            <div class="sidebar"></div>
+            <div class="header"></div>
+            <div class="app-contents">
+                <div class="initial-loader">
                     <div class="initial-loader__barspinner barspinner barspinner-light">
                         <div class="initial-loader__barspinner--rect barspinner__rect barspinner__rect--1 rect1"></div>
                         <div class="initial-loader__barspinner--rect barspinner__rect barspinner__rect--2 rect2"></div>
@@ -312,96 +201,9 @@
                     </div>
                 </div>
             </div>
-            <footer
-                class="footer__loading"
-                style="
-                    background: var(--general-main-1);
-                    border-top: 1px solid var(--general-section-1);
-                    position: fixed;
-                    bottom: 0;
-                    width: 100%;
-                    height: 37px;
-                    z-index: 3;
-                "
-            ></footer>
         </div>
-        <div id="wallets_modal_root" class="modal-root"></div>
-        <div id="v2_modal_root" class="modal-root"></div>
         <div id="modal_root" class="modal-root"></div>
-        <div id="modal_root_absolute" class="modal-root modal-root--absolute"></div>
         <!-- modal_root has background color. So, it cannot be used for toast messages. For those cases popup_root is used -->
         <div id="popup_root" class="popup-root"></div>
-        <!-- Temporary Mobile Landscape UI Blocker -->
-        <div id="landscape_blocker" class="landscape-blocker">
-            <div class="landscape-blocker__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="62" fill="none">
-                    <path
-                        fill="#85ACB0"
-                        d="M52.308 62H9.23a9.204 9.204 0 0 1-6.524-2.727A9.345 9.345 0 0 1 0 52.7V9.3a9.344 9.344 0 0 1 2.707-6.573A9.205 9.205 0 0 1 9.23 0h61.538a9.204 9.204 0 0 1 6.524 2.727A9.345 9.345 0 0 1 80 9.3v24.8a3.104 3.104 0 0 1-1.538 2.685 3.058 3.058 0 0 1-3.077 0 3.104 3.104 0 0 1-1.539-2.685V9.3a3.117 3.117 0 0 0-.902-2.19 3.07 3.07 0 0 0-2.175-.91H9.231a3.07 3.07 0 0 0-2.175.91 3.116 3.116 0 0 0-.902 2.19v43.4c.001.822.325 1.61.902 2.19a3.07 3.07 0 0 0 2.175.91h43.077c1.1 0 2.115.59 2.664 1.55.55.959.55 2.14 0 3.1A3.073 3.073 0 0 1 52.308 62Z"
-                    />
-                    <path
-                        fill="#FF444F"
-                        d="M76.923 62H64.615c-1.1 0-2.115-.592-2.664-1.55a3.121 3.121 0 0 1 0-3.1 3.073 3.073 0 0 1 2.664-1.55h9.231v-9.3c0-1.109.587-2.132 1.539-2.686a3.058 3.058 0 0 1 3.076 0A3.104 3.104 0 0 1 80 46.5v12.4c0 .822-.324 1.611-.901 2.192a3.066 3.066 0 0 1-2.176.908ZM52.352 31.045h12.307c1.1 0 2.116.59 2.665 1.55.55.96.55 2.14 0 3.1a3.072 3.072 0 0 1-2.665 1.55h-9.23v9.3a3.104 3.104 0 0 1-1.539 2.685 3.058 3.058 0 0 1-3.077 0 3.104 3.104 0 0 1-1.538-2.685v-12.4c0-.822.324-1.61.9-2.192a3.066 3.066 0 0 1 2.177-.908Z"
-                    />
-                    <path
-                        fill="#85ACB0"
-                        d="M33.846 18.6H3.077c-1.1 0-2.115-.591-2.665-1.55-.55-.96-.55-2.141 0-3.1a3.073 3.073 0 0 1 2.665-1.55h30.77a3.07 3.07 0 0 0 2.174-.91 3.117 3.117 0 0 0 .902-2.19V3.1c0-1.108.587-2.131 1.539-2.685a3.058 3.058 0 0 1 3.076 0A3.104 3.104 0 0 1 43.078 3.1v6.2a9.344 9.344 0 0 1-2.707 6.573 9.205 9.205 0 0 1-6.524 2.727Z"
-                    />
-                    <path
-                        fill="#FF444F"
-                        d="M76.923 62a3.055 3.055 0 0 1-2.175-.909L54.66 40.852c-.755-.787-1.042-1.917-.755-2.973a3.092 3.092 0 0 1 2.154-2.17c1.048-.29 2.17 0 2.951.76l20.088 20.24a3.114 3.114 0 0 1 0 4.384 3.064 3.064 0 0 1-2.175.907Z"
-                    />
-                </svg>
-            </div>
-            <!-- Since its temporary blocker and landscape will be designed with multilingual support, we can ignore localization for text below -->
-            <div class="landscape-blocker__message--landscape">Please adjust your screen size for optimal viewing.</div>
-            <div class="landscape-blocker__message--portrait">
-                Please adjust your <br />
-                screen size for <br />
-                optimal viewing.
-            </div>
-        </div>
-        <!-- End Temporary Mobile Landscape UI Blocker -->
-        <!-- LiveChat script -->
-        <script type="text/javascript">
-            window.__lc = window.__lc || {};
-            window.__lc.license = 12049137;
-            window.__lc.asyncInit = true;
-            (function (n, t, c) {
-                function i(n) {
-                    return e._h ? e._h.apply(null, n) : e._q.push(n);
-                }
-                var e = {
-                    _q: [],
-                    _h: null,
-                    _v: '2.0',
-                    on: function () {
-                        i(['on', c.call(arguments)]);
-                    },
-                    once: function () {
-                        i(['once', c.call(arguments)]);
-                    },
-                    off: function () {
-                        i(['off', c.call(arguments)]);
-                    },
-                    get: function () {
-                        if (!e._h) throw new Error('[LiveChatWidget] You can’t use getters before load.');
-                        return i(['get', c.call(arguments)]);
-                    },
-                    call: function () {
-                        i(['call', c.call(arguments)]);
-                    },
-                    init: function () {
-                        var n = t.createElement('script');
-                        (n.async = !0),
-                            (n.type = 'text/javascript'),
-                            (n.src = 'https://cdn.livechatinc.com/tracking.js'),
-                            t.head.appendChild(n);
-                    },
-                };
-                !n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e);
-            })(window, document, [].slice);
-        </script>
-        <!-- End LiveChat script -->
     </body>
 </html>

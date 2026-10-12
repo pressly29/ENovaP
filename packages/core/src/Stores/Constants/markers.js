@@ -1,7 +1,6 @@
-import { localize } from '@deriv/translations';
 import MarkerLine from '../../Components/markers/marker-line.jsx';
-import MarkerSpotLabel from '../../Components/markers/marker-spot-label.jsx';
 import MarkerSpot from '../../Components/markers/marker-spot.jsx';
+import MarkerSpotLabel from '../../Components/markers/marker-spot-label.jsx';
 
 const default_marker_config = {
     ContentComponent: MarkerLine,
@@ -14,28 +13,29 @@ export const MARKER_TYPES_CONFIG = {
         marker_config: {
             ...default_marker_config,
         },
-        content_config: { line_style: 'dash', label: localize('End Time') },
+        content_config: { line_style: 'solid', label: 'End Time' },
     },
     LINE_PURCHASE: {
         type: 'LINE_PURCHASE',
         marker_config: {
             ...default_marker_config,
         },
-        content_config: { line_style: 'solid', label: localize('Purchase Time') },
+        content_config: { line_style: 'solid', label: 'Purchase Time' },
     },
     LINE_START: {
         type: 'LINE_START',
         marker_config: {
             ...default_marker_config,
+            className: 'chart-marker-line chart-marker-line--start',
         },
-        content_config: { line_style: 'solid', label: localize('Start Time') },
+        content_config: { line_style: 'dash', label: 'Start Time' },
     },
     LINE_RESET: {
         type: 'LINE_RESET',
         marker_config: {
             ...default_marker_config,
         },
-        content_config: { line_style: 'dash', label: localize('Reset Time') },
+        content_config: { line_style: 'dash', label: 'Reset Time' },
     },
     SPOT_ENTRY: {
         type: 'SPOT_ENTRY',
@@ -56,14 +56,14 @@ export const MARKER_TYPES_CONFIG = {
         marker_config: {
             ContentComponent: MarkerSpotLabel,
         },
-        content_config: { spot_className: 'chart-spot__spot' },
+        content_config: { spot_className: 'chart-spot__spot chart-spot__spot--last' },
     },
     SPOT_EXIT_2: {
         type: 'SPOT_EXIT_2',
         marker_config: {
             ContentComponent: MarkerSpot,
         },
-        content_config: { className: 'chart-spot__spot' },
+        content_config: { className: 'chart-spot__spot chart-spot__spot--last' },
     },
     SPOT_MIDDLE: {
         type: 'SPOT_MIDDLE',

@@ -1,4 +1,4 @@
-import PortfolioStore from '../portfolio-store.js';
+import PortfolioStore from '../portfolio-store';
 import { configure } from 'mobx';
 
 configure({ safeDescriptors: false });
@@ -8,7 +8,6 @@ let mockedPortfolioStore: PortfolioStore;
 const symbol = '1HZ100V';
 const contracts = [
     {
-        app_id: 24075,
         buy_price: 10,
         contract_id: 229749680508,
         contract_type: 'MULTUP',
@@ -24,7 +23,6 @@ const contracts = [
         transaction_id: 458367398868,
     },
     {
-        app_id: 16929,
         buy_price: 10,
         contract_id: 230152813328,
         contract_type: 'MULTDOWN',
@@ -57,7 +55,7 @@ beforeEach(() => {
                     subgroup: 'synthetics',
                     subgroup_display_name: 'Synthetics',
                     submarket: 'random_index',
-                    submarket_display_name: 'Continuous Indices',
+                    submarket_display_name: 'Volatility Indices',
                     symbol,
                     symbol_type: 'stockindex',
                 },
@@ -83,10 +81,9 @@ describe('PortfolioStore', () => {
             contract_info: contracts[1],
             contract_update: undefined,
             details: contracts[1].longcode,
-            display_name: '',
+            display_name: 'AUD/JPY',
             id: contracts[1].contract_id,
             indicative: 0,
-            is_unsupported: false,
             payout: contracts[1].payout,
             purchase: contracts[1].buy_price,
             reference: contracts[1].transaction_id,

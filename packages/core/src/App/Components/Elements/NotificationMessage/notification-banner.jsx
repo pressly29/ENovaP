@@ -2,19 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
 import { isMobile } from '@deriv/shared';
-import { Button, Icon, Text } from '@deriv/components';
+import { Button, Text } from '@deriv/components';
+import { LegacyClose2pxIcon } from '@deriv/quill-icons';
 
-const NotificationBanner = ({
-    className,
-    header,
-    message,
-    primary_btn,
-    secondary_btn,
-    img_src,
-    img_alt,
-    onClose,
-    icon,
-}) => (
+const NotificationBanner = ({ className, header, message, primary_btn, secondary_btn, img_src, img_alt, onClose }) => (
     <div
         className={classNames('notification-banner', {
             [`notification-banner__${className}`]: className,
@@ -37,16 +28,20 @@ const NotificationBanner = ({
             )}
             {!!secondary_btn && (
                 <div className='notification-banner__btn-wrapper'>
-                    <Button className='notification-banner__btn' secondary small onClick={secondary_btn.onClick}>
-                        {secondary_btn.text}
-                    </Button>
+                    {secondary_btn.children ? (
+                        <div className='notification-banner__btn'>{secondary_btn.children}</div>
+                    ) : (
+                        <Button className='notification-banner__btn' secondary small onClick={secondary_btn.onClick}>
+                            {secondary_btn.text}
+                        </Button>
+                    )}
                 </div>
             )}
         </div>
         <div className='notification-banner--right'>
             <div className='notification-banner__bg' />
             <img className='notification-banner__img' src={img_src} alt={img_alt} />
-            <Icon className='notification-banner__close-icon' icon={icon ?? 'IcCloseLight'} onClick={onClose} />
+            <LegacyClose2pxIcon className='notification-banner__close-icon' onClick={onClose} iconSize='xs' />
         </div>
     </div>
 );
@@ -63,7 +58,6 @@ NotificationBanner.propTypes = {
         text: PropTypes.string,
         onClick: PropTypes.func,
     }),
-    icon: PropTypes.string,
 };
 
 export default NotificationBanner;

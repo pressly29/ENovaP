@@ -5,7 +5,7 @@
     width: 100%;
 
     .color1-fill {
-        fill: var(--brand-red-coral);
+        fill: var(--brand-primary);
     }
     .color2-fill {
         fill: var(--brand-secondary);
@@ -15,8 +15,8 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        @include typeface(--paragraph-left-bold-active);
-        color: var(--text-prominent);
+        @include typeface(--paragraph-left-bold-primary);
+        color: var(--color-text-primary);
     }
     &-name {
         width: 3.2rem;
@@ -29,14 +29,14 @@
         }
     }
     &__multiplier {
-        color: var(--text-less-prominent);
+        color: var(--color-text-secondary);
         font-size: 1rem;
         display: flex;
         align-items: flex-end;
         margin: 0 0 0.4rem 0.4rem;
     }
 
-    @include mobile {
+    @include mobile-or-tablet-screen {
         width: 0.8rem;
 
         &__full-title {

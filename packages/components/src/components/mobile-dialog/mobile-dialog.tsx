@@ -1,10 +1,12 @@
-import classNames from 'classnames';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
-import Text from '../text/text';
-import Icon from '../icon/icon';
+import classNames from 'classnames';
+
+import { LegacyClose2pxIcon } from '@deriv/quill-icons';
+
 import Div100vhContainer from '../div100vh-container';
+import Text from '../text/text';
 import ThemedScrollbars from '../themed-scrollbars';
 
 type TMobileDialog = {
@@ -21,6 +23,7 @@ type TMobileDialog = {
     title?: React.ReactNode;
     visible?: boolean;
     wrapper_classname?: string;
+    footer_classname?: string;
     learn_more_banner?: React.ReactNode;
 };
 
@@ -37,6 +40,7 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
         title,
         visible,
         wrapper_classname,
+        footer_classname,
         learn_more_banner,
     } = props;
 
@@ -84,6 +88,9 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
         }
     };
 
+    // Create a ref for CSSTransition to fix findDOMNode deprecation warning
+    const node_ref = React.useRef(null);
+
     checkVisibility();
     if (!portal_element) return null;
     return ReactDOM.createPortal(
@@ -97,14 +104,15 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
                 exit: 'dc-mobile-dialog--exit',
             }}
             unmountOnExit
+            nodeRef={node_ref}
         >
-            <div data-testid='dt_mobile_dialog' className='dc-mobile-dialog' onClick={handleClick}>
+            <div ref={node_ref} data-testid='dt_mobile_dialog' className='dc-mobile-dialog' onClick={handleClick}>
                 <Div100vhContainer
                     className={classNames('dc-mobile-dialog__container', {
                         'dc-mobile-dialog__container--has-scroll': props.has_content_scroll,
                         'dc-mobile-dialog__container--has-info-banner': info_banner || learn_more_banner,
                     })}
-                    height_offset={props.content_height_offset || '8px'}
+                    height_offset={props.content_height_offset || '0'}
                 >
                     <ThemedScrollbars
                         is_bypassed={!info_banner && !learn_more_banner}
@@ -124,7 +132,7 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
                             <Text
                                 as='h2'
                                 size='xs'
-                                color='prominent'
+                                color='primary'
                                 weight='bold'
                                 line_height='unset'
                                 className='dc-mobile-dialog__title'
@@ -137,7 +145,11 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
                                     className='icons dc-btn-close dc-mobile-dialog__close-btn'
                                     onClick={props.onClose}
                                 >
-                                    <Icon icon='IcCross' className='dc-mobile-dialog__close-btn-icon' />
+                                    <LegacyClose2pxIcon
+                                        className='dc-mobile-dialog__close-btn-icon'
+                                        iconSize='xs'
+                                        fill='var(--color-text-primary)'
+                                    />
                                 </div>
                             )}
                         </div>
@@ -159,7 +171,7 @@ const MobileDialog = (props: React.PropsWithChildren<TMobileDialog>) => {
                         </div>
                     </div>
                     {footer && (
-                        <div ref={footer_ref} className='dc-mobile-dialog__footer'>
+                        <div ref={footer_ref} className={classNames('dc-mobile-dialog__footer', footer_classname)}>
                             {footer}
                         </div>
                     )}

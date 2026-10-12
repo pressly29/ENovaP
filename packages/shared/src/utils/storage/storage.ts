@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
-import { deriv_urls } from '../url/constants';
+
+import { getTrustedDomainName } from '../brand';
 import { getPropertyValue, isEmptyObject } from '../object/object';
 
 type TCookieStorageThis = {
@@ -90,6 +91,7 @@ InScriptStore.prototype = {
         return getPropertyValue(this.store, key);
     },
     set(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this: { store: any; set: (key: string | string[], value: string, obj: string[]) => void },
         k: string | string[],
         value: string,
@@ -97,11 +99,41 @@ InScriptStore.prototype = {
     ) {
         let key = k;
         if (!Array.isArray(key)) key = [key];
+
+        // Prevent prototype pollution
+        const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+        key.forEach(k => {
+            if (typeof k === 'string' && dangerousKeys.includes(k)) {
+                throw new Error('Invalid property name');
+            }
+        });
+
         if (key.length > 1) {
-            if (!(key[0] in obj) || isEmptyObject(obj[key[0]])) obj[key[0]] = {};
+            // Additional protection against prototype pollution
+            if (typeof key[0] === 'string' && dangerousKeys.includes(key[0])) {
+                throw new Error('Invalid property name');
+            }
+            if (!(key[0] in obj) || isEmptyObject(obj[key[0]])) {
+                // Use Object.defineProperty for safer assignment
+                Object.defineProperty(obj, key[0], {
+                    value: Object.create(null),
+                    writable: true,
+                    enumerable: true,
+                    configurable: true,
+                });
+            }
             this.set(key.slice(1), value, obj[key[0]]);
         } else {
-            obj[key[0]] = value;
+            // Use Object.defineProperty for safer assignment
+            if (typeof key[0] === 'string' && dangerousKeys.includes(key[0])) {
+                throw new Error('Invalid property name');
+            }
+            Object.defineProperty(obj, key[0], {
+                value,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+            });
         }
     },
     getObject(key: string) {
@@ -129,6 +161,7 @@ InScriptStore.prototype = {
     },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const State = new (InScriptStore as any)();
 State.prototype = InScriptStore.prototype;
 /**
@@ -153,10 +186,7 @@ export const CookieStorage = function (this: TCookieStorageThis, cookie_name: st
 
     this.initialized = false;
     this.cookie_name = cookie_name;
-    this.domain =
-        cookie_domain ||
-        /* eslint-disable no-nested-ternary */
-        (hostname.includes('binary.sx') ? 'binary.sx' : deriv_urls.DERIV_HOST_NAME);
+    this.domain = cookie_domain || getTrustedDomainName();
     /* eslint-enable no-nested-ternary */
     this.path = '/';
     this.expires = new Date('Thu, 1 Jan 2037 12:00:00 GMT');
@@ -226,8 +256,12 @@ export const removeCookies = (...cookie_names: string[]) => {
 };
 
 export const LocalStore = isStorageSupported(window.localStorage)
-    ? new (Store as any)(window.localStorage)
-    : new (InScriptStore as any)();
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new (Store as any)(window.localStorage)
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new (InScriptStore as any)();
 export const SessionStore = isStorageSupported(window.sessionStorage)
-    ? new (Store as any)(window.sessionStorage)
-    : new (InScriptStore as any)();
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new (Store as any)(window.sessionStorage)
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new (InScriptStore as any)();

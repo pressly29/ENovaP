@@ -1,12 +1,18 @@
 import React from 'react';
+import classNames from 'classnames';
+
+import { TPriceProposalOpenContractsResponse } from '@deriv/api';
 import { Text } from '@deriv/components';
 import { addComma, formatMoney, getCurrencyDisplayCode, isMobile } from '@deriv/shared';
-import { FastMarker } from 'Modules/SmartChart';
-import classNames from 'classnames';
-import { TRef } from './accumulators-profit-loss-tooltip';
-import { ProposalOpenContract } from '@deriv/api-types';
 
-type TAccumulatorsProfitLossText = Pick<ProposalOpenContract, 'current_spot' | 'current_spot_time' | 'currency'> & {
+import { FastMarker } from 'Modules/SmartChart';
+
+import { TRef } from './accumulators-profit-loss-tooltip';
+
+type TAccumulatorsProfitLossText = Pick<
+    NonNullable<TPriceProposalOpenContractsResponse['proposal_open_contract']>,
+    'current_spot' | 'current_spot_time' | 'currency'
+> & {
     className?: string;
     profit_value: number;
     should_show_profit_percentage?: boolean;
@@ -46,7 +52,7 @@ const AccumulatorsProfitLossText = ({
     const sign = profit_value > 0 ? '+' : '';
 
     const runThroughTenthDigit = (
-        action: typeof ACTIONS[keyof typeof ACTIONS],
+        action: (typeof ACTIONS)[keyof typeof ACTIONS],
         interval_ms: number,
         start: number,
         end: number
@@ -121,8 +127,8 @@ const AccumulatorsProfitLossText = ({
             <Text
                 weight='bold'
                 size={isMobile() ? 's' : 'sm'}
-                color={won ? 'profit-success' : 'loss-danger'}
-                className={classNames(`${className}__profit`, {
+                color={won ? 'var(--color-status-success)' : 'var(--color-status-danger)'}
+                className={classNames(`${className}__profit`, `${className}__profit--${won ? 'won' : 'loss'}`, {
                     [`${className}__profit--fading-in`]: is_fading_in,
                 })}
                 data-testid='dt_accumulator_profit_text'

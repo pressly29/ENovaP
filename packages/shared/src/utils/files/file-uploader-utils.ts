@@ -1,7 +1,16 @@
 import { useMutation } from '@deriv/api';
-import { compressImg, convertToBase64, isImageType, getFormatFromMIME, TImage } from './image/image_utility';
 
-export type TSettings = Parameters<ReturnType<typeof useMutation<'document_upload'>>['mutate']>[0]['payload'];
+import { compressImg, convertToBase64, getFormatFromMIME, isImageType, TImage } from './image/image_utility';
+
+export type TSettings = {
+    document_type?: string;
+    document_id?: string;
+    expiration_date?: string;
+    lifetime_valid?: boolean;
+    page_type?: string;
+    proof_of_ownership?: any;
+    document_issuing_country?: string;
+};
 
 export type TFileObject = TSettings & {
     filename: File['name'];
@@ -16,8 +25,14 @@ export const truncateFileName = (file: File, limit: number) => {
 };
 
 export const getFileExtension = (file: Blob) => {
-    const f = file?.type?.match(/[^/]+$/);
-    return f && f[0];
+    if (!file?.type) return null;
+
+    // Prevent ReDoS by limiting input length and using safer approach
+    const mimeType = file.type;
+    if (mimeType.length > 100) return null; // Prevent long inputs
+
+    const lastSlashIndex = mimeType.lastIndexOf('/');
+    return lastSlashIndex !== -1 ? mimeType.substring(lastSlashIndex + 1) : null;
 };
 
 export const compressImageFiles = (files?: File[]) => {
@@ -45,11 +60,11 @@ export const readFiles = (
     getFileReadErrorMessage: (t: string) => string,
     settings?: Partial<TSettings>
 ) => {
-    const promises: Array<Promise<Partial<TFileObject> | { message: string }>> = [];
+    const promises: Array<Promise<Partial<TFileObject> & { message?: string }>> = [];
 
     files.forEach(f => {
         const fr = new FileReader();
-        const promise = new Promise<Partial<TFileObject> | { message: string }>(resolve => {
+        const promise = new Promise<Partial<TFileObject> & { message?: string }>(resolve => {
             fr.onload = () => {
                 const file_metadata = {
                     filename: f.name,
@@ -85,10 +100,6 @@ export const readFiles = (
     return Promise.all(promises);
 };
 
-export const max_document_size = 8388608;
-
-export const supported_filetypes = 'image/png, image/jpeg, image/jpg, image/gif, application/pdf';
-
 export const UPLOAD_FILE_TYPE = Object.freeze({
     amlglobalcheck: 'amlglobalcheck',
     bankstatement: 'bankstatement',
@@ -110,6 +121,3 @@ export const PAGE_TYPE = Object.freeze({
     front: 'front',
     photo: 'photo',
 });
-
-export const getSupportedFiles = (filename: string) =>
-    /^.*\.(png|PNG|jpg|JPG|jpeg|JPEG|gif|GIF|pdf|PDF)$/.test(filename);

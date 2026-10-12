@@ -1,38 +1,33 @@
 /* eslint-disable import/no-named-as-default-member */
 /* eslint-disable import/no-named-as-default */
-import ReactDOM from 'react-dom';
 import React from 'react';
-import 'babel-polyfill';
-import 'promise-polyfill';
-// eslint-disable-next-line
-import registerServiceWorker from 'Utils/pwa';
-import initStore from 'App/initStore';
+import { createRoot } from 'react-dom/client';
+
 import App from 'App/app.jsx';
-import { checkAndSetEndpointFromUrl } from '@deriv/shared';
+import initStore from 'App/initStore';
+// eslint-disable-next-line
+import registerServiceWorker from 'Utils/PWA';
+
 import AppNotificationMessages from './App/Containers/app-notification-messages.jsx';
 
 if (
     !!window?.localStorage.getItem?.('debug_service_worker') || // To enable local service worker related development
-    (!window.location.hostname.startsWith('localhost') && !/binary\.sx/.test(window.location.hostname)) ||
-    window.location.hostname === 'deriv-app.binary.sx'
+    !window.location.hostname.startsWith('localhost')
 ) {
     registerServiceWorker();
 }
 
-// if we don't clear the local storage, then exchange_rates subscription calls won't be made when user refreshes the page
-// check packages/stores/src/providers/ExchangeRatesProvider.tsx
+const initApp = async () => {
+    // For simplified authentication, we don't need to pass accounts to initStore
+    // The authentication will be handled by temp-auth.js and client-store.js
+    // initStore is now async to perform whoami check before WebSocket connection
+    const root_store = await initStore(AppNotificationMessages);
 
-if (window.localStorage.getItem('exchange_rates')) {
-    window.localStorage.removeItem('exchange_rates');
-}
-const has_endpoint_url = checkAndSetEndpointFromUrl();
-
-// if has endpoint url, APP will be redirected
-if (!has_endpoint_url) {
-    const root_store = initStore(AppNotificationMessages);
-
-    const wrapper = document.getElementById('deriv_app');
+    const wrapper = document.getElementById('derivatives_trader');
     if (wrapper) {
-        ReactDOM.render(<App useSuspense={false} root_store={root_store} />, wrapper);
+        const root = createRoot(wrapper);
+        root.render(<App root_store={root_store} />);
     }
-}
+};
+
+initApp();

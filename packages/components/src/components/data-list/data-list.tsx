@@ -1,23 +1,26 @@
 import React from 'react';
-import classNames from 'classnames';
 import { TransitionGroup } from 'react-transition-group';
 import {
-    List as _List,
+    AutoSizer as _AutoSizer,
+    type AutoSizerProps,
     CellMeasurer as _CellMeasurer,
     CellMeasurerCache,
     CellMeasurerProps,
-    AutoSizer as _AutoSizer,
-    type AutoSizerProps,
+    IndexRange,
+    List as _List,
     ListProps,
     ListRowProps,
-    IndexRange,
 } from 'react-virtualized';
-import { isMobile, isDesktop } from '@deriv/shared';
+import { MeasuredCellParent } from 'react-virtualized/dist/es/CellMeasurer';
+import classNames from 'classnames';
+
+import { isDesktop, isMobile } from '@deriv/shared';
+
+import ThemedScrollbars from '../themed-scrollbars';
+import { TPassThrough, TRow, TTableRowItem } from '../types/common.types';
+
 import DataListCell from './data-list-cell';
 import DataListRow, { TRowRenderer } from './data-list-row';
-import ThemedScrollbars from '../themed-scrollbars';
-import { MeasuredCellParent } from 'react-virtualized/dist/es/CellMeasurer';
-import { TTableRowItem, TPassThrough, TRow } from '../types/common.types';
 
 const List = _List as unknown as React.FC<ListProps>;
 const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
@@ -63,6 +66,7 @@ const DataList = React.memo(
         const list_ref = React.useRef<MeasuredCellParent | null>(null);
         const items_transition_map_ref = React.useRef<{ [key: string]: boolean }>({});
         const data_source_ref = React.useRef<TRow[] | null>(null);
+        const scroll_timeout_ref = React.useRef<ReturnType<typeof setTimeout>>();
         data_source_ref.current = data_source;
 
         const is_dynamic_height = !getRowSize;
@@ -73,6 +77,9 @@ const DataList = React.memo(
                 items_transition_map_ref.current[row_key] = true;
             });
         }, [data_source, keyMapper]);
+
+        const prev_data_length_ref = React.useRef(0);
+        const prev_data_keys_ref = React.useRef<(string | number)[]>([]);
 
         React.useEffect(() => {
             if (is_dynamic_height) {
@@ -86,15 +93,40 @@ const DataList = React.memo(
                 });
             }
             trackItemsForTransition();
+            prev_data_length_ref.current = data_source.length;
+            prev_data_keys_ref.current = data_source.map((item, index) => keyMapper?.(item) || index);
             setLoading(false);
         }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
         React.useEffect(() => {
-            if (is_dynamic_height) {
-                list_ref.current?.recomputeGridSize?.({ columnIndex: 0, rowIndex: 0 });
-            }
             trackItemsForTransition();
-        }, [data_source, is_dynamic_height, trackItemsForTransition]);
+
+            // Only recompute grid size if data actually changed (length or items)
+            // This prevents expensive recalculation on every array reference change
+            const current_length = data_source.length;
+            const length_changed = prev_data_length_ref.current !== current_length;
+
+            // Only compute keys if length matches (avoid unnecessary map operation)
+            let items_changed = length_changed;
+            let current_keys: (string | number)[] | undefined;
+
+            if (!items_changed && current_length > 0) {
+                // Only compute keys if lengths match and array is not empty
+                current_keys = data_source.map((item, index) => keyMapper?.(item) || index);
+                items_changed = current_keys.some((key, index) => prev_data_keys_ref.current[index] !== key);
+            }
+
+            if (items_changed && is_dynamic_height) {
+                // Compute keys if not already computed
+                if (!current_keys) {
+                    current_keys = data_source.map((item, index) => keyMapper?.(item) || index);
+                }
+
+                list_ref.current?.recomputeGridSize?.({ columnIndex: 0, rowIndex: 0 });
+                prev_data_length_ref.current = current_length;
+                prev_data_keys_ref.current = current_keys;
+            }
+        }, [data_source, is_dynamic_height, trackItemsForTransition, keyMapper]);
 
         const footerRowRenderer = () => {
             return <React.Fragment>{other_props.rowRenderer({ row: footer, is_footer: true })}</React.Fragment>;
@@ -103,6 +135,7 @@ const DataList = React.memo(
         const rowRenderer = ({ style, index, key, parent }: ListRowProps) => {
             const { getRowAction, passthrough, row_gap } = other_props;
             const row = data_source[index];
+            const { action_type, shortcode, purchase_time, transaction_time, id } = row;
             const action = getRowAction && getRowAction(row);
             const destination_link = typeof action === 'string' ? action : undefined;
             const action_desc = typeof action === 'object' ? action : undefined;
@@ -137,13 +170,11 @@ const DataList = React.memo(
         };
 
         const handleScroll = (ev: Partial<React.UIEvent<HTMLDivElement>>) => {
-            let timeout;
-
-            clearTimeout(timeout);
+            clearTimeout(scroll_timeout_ref.current);
             if (!is_scrolling) {
                 setIsScrolling(true);
             }
-            timeout = setTimeout(() => {
+            scroll_timeout_ref.current = setTimeout(() => {
                 if (!is_loading) {
                     setIsScrolling(false);
                 }

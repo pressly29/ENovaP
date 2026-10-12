@@ -1,32 +1,30 @@
 import {
-    createMarkerEndTime,
-    createMarkerPurchaseTime,
-    createMarkerSpotEntry,
-    createMarkerSpotExit,
-    createMarkerStartTime,
-    createMarkerSpotMiddle,
-    createMarkerResetTime,
-    getSpotCount,
-} from './chart-marker-helpers';
-import {
     getContractStatus,
     getDecimalPlaces,
     getEndTime,
     isAccumulatorContract,
     isAccumulatorContractOpen,
     isDigitContract,
-    isHighLow,
     isMultiplierContract,
     isOpen,
     isSmartTraderContract,
     isTicksContract,
-    isTouchContract,
-    isTurbosContract,
-    isVanillaContract,
     unique,
 } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
+
 import { MARKER_TYPES_CONFIG } from '../Constants/markers';
+
+import {
+    createMarkerEndTime,
+    createMarkerPurchaseTime,
+    createMarkerResetTime,
+    createMarkerSpotEntry,
+    createMarkerSpotExit,
+    createMarkerSpotMiddle,
+    createMarkerStartTime,
+    getSpotCount,
+} from './chart-marker-helpers';
 import { getChartType } from './logic';
 
 export const createChartMarkers = (contract_info, is_delayed_markers_update) => {
@@ -94,26 +92,28 @@ export const createTickMarkers = (contract_info, is_delayed_markers_update) => {
     const result = [];
 
     if (is_accu_contract_closed) {
-        const { exit_tick_time, tick_stream: ticks } = contract_info || {};
-        if (exit_tick_time && tick_stream.every(({ epoch }) => epoch !== exit_tick_time)) {
-            // sometimes exit_tick is present in tick_stream but missing from audit_details
+        const { tick_stream: ticks } = contract_info || {};
+        const exit_spot_time = contract_info.exit_spot_time;
+        if (exit_spot_time && tick_stream.every(({ epoch }) => epoch !== exit_spot_time)) {
+            // sometimes exit_spot is present in tick_stream but missing from audit_details
             tick_stream.push(ticks[ticks.length - 1]);
         }
-        const exit_tick_count = tick_stream.findIndex(({ epoch }) => epoch === exit_tick_time) + 1;
-        tick_stream.length = exit_tick_count > 0 ? exit_tick_count : tick_stream.length;
+        const exit_spot_count = tick_stream.findIndex(({ epoch }) => epoch === exit_spot_time) + 1;
+        tick_stream.length = exit_spot_count > 0 ? exit_spot_count : tick_stream.length;
     }
 
     tick_stream.forEach((tick, idx) => {
-        const isEntrySpot = _tick => +_tick.epoch === contract_info.entry_tick_time;
-        const is_entry_spot =
-            +tick.epoch !== contract_info.exit_tick_time && (is_accumulator ? isEntrySpot(tick) : idx === 0);
+        const entry_spot_time = contract_info.entry_spot_time;
+        const exit_spot_time = contract_info.exit_spot_time;
+
+        const isEntrySpot = _tick => +_tick.epoch === entry_spot_time;
+        const is_entry_spot = +tick.epoch !== exit_spot_time && (is_accumulator ? isEntrySpot(tick) : idx === 0);
         // accumulators entry spot will be missing from tick_stream when contract is lasting for longer than 10 ticks
         const entry_spot_index = is_accumulator ? tick_stream.findIndex(isEntrySpot) : 0;
-        const is_middle_spot = idx > entry_spot_index && +tick.epoch !== +contract_info.exit_tick_time;
+        const is_middle_spot = idx > entry_spot_index && +tick.epoch !== +exit_spot_time;
         const is_selected_tick = is_ticks_contract && idx + 1 === contract_info.selected_tick;
         const isExitSpot = (_tick, _idx) =>
-            +_tick.epoch === +contract_info.exit_tick_time ||
-            getSpotCount(contract_info, _idx) === contract_info.tick_count;
+            +_tick.epoch === +exit_spot_time || getSpotCount(contract_info, _idx) === contract_info.tick_count;
         const is_exit_spot = isExitSpot(tick, idx);
         const is_current_last_spot = idx === tick_stream.length - 1;
         const exit_spot_index = tick_stream.findIndex(isExitSpot);
@@ -122,9 +122,9 @@ export const createTickMarkers = (contract_info, is_delayed_markers_update) => {
             is_accumulator && (is_accu_contract_closed ? idx === exit_spot_index - 1 : idx === tick_stream.length - 2);
 
         let marker_config;
-        if (is_entry_spot) {
+        if (is_entry_spot && !isDigitContract(contract_info.contract_type)) {
             marker_config = createMarkerSpotEntry(contract_info);
-        } else if (is_middle_spot) {
+        } else if (is_middle_spot || (is_entry_spot && isDigitContract(contract_info.contract_type))) {
             marker_config = createMarkerSpotMiddle(contract_info, tick, idx);
         } else if (is_exit_spot && !is_accu_current_last_spot) {
             tick.align_label = 'top'; // force exit spot label to be 'top' to avoid overlapping
@@ -167,13 +167,13 @@ export const createTickMarkers = (contract_info, is_delayed_markers_update) => {
 };
 
 const dark_theme = {
-    bg: '#0e0e0e',
+    bg: '#181c25',
     fg: '#ffffff',
     grey_border: '#6e6e6e',
-    lost: '#cc2e3d',
-    open: '#377cfc',
+    lost: '#e6190e',
+    open: '#2c9aff',
     sold: '#ffad3a',
-    won: '#00a79e',
+    won: '#008832',
 };
 
 const light_theme = {
@@ -181,9 +181,9 @@ const light_theme = {
     fg: '#333333',
     grey_border: '#999999',
     lost: '#ec3f3f',
-    open: '#377cfc',
+    open: '#2c9aff',
     sold: '#ffad3a',
-    won: '#4bb4b3',
+    won: '#008832',
 };
 
 function getColor({ status, profit, is_dark_theme, is_vanilla }) {
@@ -218,11 +218,101 @@ export const getMarkerContractType = contract_info => {
 
     if (isAccumulatorContract(contract_type)) {
         return 'AccumulatorContract';
-    } else if (isDigitContract(contract_type)) {
-        return 'DigitContract';
     }
 
     return tick_count > 0 ? 'TickContract' : 'NonTickContract';
+};
+
+/**
+ * Returns the direction ("up" or "down") based on contract type
+ * @param {string} contract_type - The contract type string
+ * @returns {string} - "up" or "down"
+ */
+export const getMarkerDirection = contract_type => {
+    if (!contract_type || typeof contract_type !== 'string') {
+        return 'up'; // default fallback
+    }
+
+    const type = contract_type.toUpperCase();
+
+    // UP direction contracts
+    const upContracts = [
+        'CALL',
+        'CALLE',
+        'RISE',
+        'HIGHER',
+        'ASIANU',
+        'MULTUP',
+        'TURBOSLONG',
+        'VANILLALONGCALL',
+        'LBFLOATCALL',
+        'RESETCALL',
+        'RUNHIGH',
+        'TICKHIGH',
+        'ONETOUCH',
+        'CALLSPREAD',
+        'CALL_BARRIER',
+        'DIGITOVER',
+        'DIGITMATCH',
+        'DIGITEVEN',
+    ];
+
+    // DOWN direction contracts
+    const downContracts = [
+        'PUT',
+        'PUTE',
+        'FALL',
+        'LOWER',
+        'ASIAND',
+        'MULTDOWN',
+        'TURBOSSHORT',
+        'VANILLALONGPUT',
+        'LBFLOATPUT',
+        'RESETPUT',
+        'RUNLOW',
+        'TICKLOW',
+        'NOTOUCH',
+        'PUTSPREAD',
+        'PUT_BARRIER',
+        'DIGITODD',
+        'DIGITUNDER',
+        'DIGITDIFF',
+    ];
+
+    // Check for exact matches first
+    if (upContracts.includes(type)) {
+        return 'up';
+    }
+
+    if (downContracts.includes(type)) {
+        return 'down';
+    }
+
+    // Check for partial matches for complex contract types
+    if (
+        type.includes('CALL') ||
+        type.includes('RISE') ||
+        type.includes('HIGHER') ||
+        type.includes('UP') ||
+        type.includes('HIGH') ||
+        type.includes('LONG')
+    ) {
+        return 'up';
+    }
+
+    if (
+        type.includes('PUT') ||
+        type.includes('FALL') ||
+        type.includes('LOWER') ||
+        type.includes('DOWN') ||
+        type.includes('LOW') ||
+        type.includes('SHORT')
+    ) {
+        return 'down';
+    }
+
+    // Default fallback for neutral contracts (ACCU, digits, etc.)
+    return 'up';
 };
 
 export const getStartText = contract_info => {
@@ -245,27 +335,12 @@ export const getStartText = contract_info => {
 };
 
 export const getTickStreamMarkers = (contract_info, barrier_price) => {
-    function getTicks() {
-        if (is_accumulator_contract) {
-            return [];
-        } else if (is_digit_contract) {
-            return [undefined, ...tick_stream.slice(-1)];
-        }
-        return tick_stream;
-    }
-
     const { contract_type, tick_stream } = contract_info;
     const is_digit_contract = isDigitContract(contract_type);
     const is_accumulator_contract = isAccumulatorContract(contract_type);
 
     const last_tick = tick_stream.length > 1 ? tick_stream[tick_stream.length - 1] : null;
-    const [, ...ticks] = getTicks();
-
-    const markers = ticks.map(t => ({
-        epoch: t.epoch,
-        quote: t.tick,
-        type: 'tick',
-    }));
+    const markers = [];
 
     if (!is_digit_contract && !is_accumulator_contract && last_tick) {
         markers.push({
@@ -283,8 +358,9 @@ export const getTickStreamMarkers = (contract_info, barrier_price) => {
     return markers;
 };
 
-export function calculateMarker(contract_info, is_dark_theme, is_last_contract) {
-    if (!contract_info || isMultiplierContract(contract_info.contract_type)) {
+// eslint-disable-next-line no-unused-vars
+export function calculateMarker(contract_info, is_dark_theme, is_last_contract, is_mobile = false) {
+    if (!contract_info) {
         return null;
     }
     const {
@@ -293,33 +369,34 @@ export function calculateMarker(contract_info, is_dark_theme, is_last_contract) 
         date_start,
         date_expiry,
         entry_tick,
-        exit_tick,
-        entry_tick_time,
-        exit_tick_time,
+        entry_spot_time: entry_spot_time_field,
+        exit_spot_time: exit_spot_time_field,
         contract_type,
         tick_count,
         barrier_count,
         barrier,
         high_barrier,
         low_barrier,
-        shortcode,
-        status,
-        profit,
-        is_sold,
     } = contract_info;
+
+    // Backward compatibility: use new property names with fallback to old ones
+    const entry_spot = contract_info.entry_spot ?? entry_tick;
     const is_accumulator_contract = isAccumulatorContract(contract_type);
     const is_digit_contract = isDigitContract(contract_type);
+    const is_multiplier_contract = isMultiplierContract(contract_type);
     const is_tick_contract = tick_count > 0;
-    const is_non_tick_contract = !is_tick_contract;
-    const is_high_low_contract = isHighLow({ shortcode });
-    const is_touch_contract = isTouchContract(contract_type);
-    const is_turbos = isTurbosContract(contract_type);
 
-    const end_time = is_tick_contract ? exit_tick_time : getEndTime(contract_info) || date_expiry;
+    const entry_spot_time = entry_spot_time_field;
+    const exit_spot_time = exit_spot_time_field;
+
+    let end_time = is_tick_contract ? date_expiry : getEndTime(contract_info) || date_expiry;
+    if (is_accumulator_contract || is_multiplier_contract) {
+        end_time = exit_spot_time;
+    }
 
     let barrier_price;
-    if (is_digit_contract || is_accumulator_contract) {
-        barrier_price = +entry_tick;
+    if (is_digit_contract || is_accumulator_contract || is_multiplier_contract) {
+        barrier_price = +entry_spot;
     } else if (+barrier_count === 1 && barrier) {
         barrier_price = +barrier;
     } else if (+barrier_count === 2 && high_barrier && low_barrier) {
@@ -341,62 +418,122 @@ export function calculateMarker(contract_info, is_dark_theme, is_last_contract) 
 
     const price = barrier_price || 0;
 
-    if (is_last_contract && !is_sold) {
-        markers.push({
-            epoch: date_start,
-            quote: is_digit_contract ? undefined : price,
-            type: 'activeStart',
-            text: localize('Start\nTime'),
-        });
-    }
+    const is_contract_finished = contract_info.is_sold || contract_info.is_expired;
+    const exit_spot = contract_info.exit_spot;
 
-    if (date_start && entry_tick) {
-        const color = is_non_tick_contract ? getColor({ status: 'open', profit }) : undefined;
-        markers.push({
-            epoch: date_start,
-            quote: is_digit_contract ? undefined : price,
-            type: 'start',
-            text: getStartText(contract_info),
-            color,
-        });
-    }
+    if (is_contract_finished) {
+        if (!is_accumulator_contract) {
+            // Don't show entrySpot marker for digit contracts
+            if (entry_spot && !is_digit_contract) {
+                markers.push({
+                    epoch: entry_spot_time,
+                    quote: entry_spot,
+                    type: 'entrySpot',
+                    direction: getMarkerDirection(contract_type),
+                });
+            }
 
-    if (entry_tick) {
-        markers.push({
-            epoch: entry_tick_time,
-            quote: price,
-            type: 'entry',
-        });
-
-        if (is_high_low_contract || is_touch_contract || is_turbos) {
+            if (date_start) {
+                markers.push({
+                    epoch: date_start,
+                    quote: price,
+                    type: 'startTimeCollapsed',
+                    direction: getMarkerDirection(contract_type),
+                });
+            }
+            if (end_time) {
+                markers.push({
+                    epoch: end_time,
+                    quote: price,
+                    type: 'exitTimeCollapsed',
+                    direction: getMarkerDirection(contract_type),
+                });
+            }
+        }
+        if (exit_spot_time && exit_spot) {
             markers.push({
-                epoch: entry_tick_time,
-                quote: entry_tick,
-                type: 'entryTick',
+                epoch: exit_spot_time,
+                quote: exit_spot,
+                type: 'exitSpot',
+                direction: getMarkerDirection(contract_type),
+            });
+        }
+
+        //Add profit and loss label marker when contract is finished (sold or expired)
+        // Don't show profitAndLossLabel marker for accumulator contracts
+        // TODO: bring this back when crash issue on iOS is resolved due to profitAndLossLabel marker
+        if (!is_accumulator_contract) {
+            markers.push({
+                epoch: exit_spot_time,
+                quote: price,
+                type: 'profitAndLossLabel',
+                direction: getMarkerDirection(contract_type),
+            });
+        }
+    } else {
+        if (!is_accumulator_contract && date_start && entry_spot) {
+            markers.push({
+                epoch: date_start,
+                quote: price,
+                type: 'startTimeCollapsed',
+                direction: getMarkerDirection(contract_type),
+            });
+        }
+        if (date_start && is_last_contract) {
+            markers.push({
+                epoch: date_start,
+                quote: price,
+                type: 'startTime',
+                direction: getMarkerDirection(contract_type),
+            });
+        }
+
+        if (entry_spot) {
+            // Don't show entrySpot marker for digit contracts
+            if (!is_digit_contract) {
+                markers.push({
+                    epoch: entry_spot_time,
+                    quote: entry_spot,
+                    type: 'entrySpot',
+                    direction: getMarkerDirection(contract_type),
+                });
+            }
+            if (!is_accumulator_contract) {
+                markers.push({
+                    epoch: date_start,
+                    quote: price,
+                    type: 'contractMarker',
+                    text: `${localize('Start')}\n${localize('Time')}`,
+                    direction: getMarkerDirection(contract_type),
+                });
+            }
+        }
+
+        if (exit_spot) {
+            markers.push({
+                epoch: exit_spot_time,
+                quote: exit_spot,
+                type: 'exitSpot',
+                direction: getMarkerDirection(contract_type),
+            });
+        }
+
+        if (!is_accumulator_contract && end_time && entry_spot && !is_tick_contract) {
+            markers.push({
+                epoch: end_time,
+                quote: price,
+                type: 'exitTimeCollapsed',
+                direction: getMarkerDirection(contract_type),
             });
         }
     }
 
-    if (end_time) {
-        markers.push({
-            epoch: end_time,
-            quote: price,
-            type: 'end',
-        });
-    }
-
-    if (exit_tick) {
-        markers.push({
-            epoch: exit_tick_time,
-            quote: +exit_tick,
-            type: 'exit',
-        });
-    } else if (tick_stream?.length > 0) {
+    if (tick_stream?.length > 0) {
         markers.push(...getTickStreamMarkers(contract_info, barrier_price));
     }
 
     if (is_accumulator_contract && tick_stream?.length > 0) {
-        const contract_status = getContractStatus({ contract_type, profit, exit_tick_time, status });
+        const contract_status = getContractStatus(contract_info);
         const is_accu_contract_ended = contract_status !== 'open';
 
         if (is_accu_contract_ended) {
@@ -415,17 +552,93 @@ export function calculateMarker(contract_info, is_dark_theme, is_last_contract) 
         }
     }
 
-    return {
+    const contractMarkerLeftPadding = is_mobile ? 10 : 100;
+
+    // Helper to normalize profit value to a number or null
+    const getNumericProfit = profit => {
+        if (profit === undefined || profit === null) return null;
+        const profit_num = Number(profit);
+        return isNaN(profit_num) ? null : profit_num;
+    };
+
+    // Calculate dynamic profit/loss text
+    const getProfitAndLossText = () => {
+        const { profit, currency } = contract_info;
+        const profit_num = getNumericProfit(profit);
+        if (profit_num === null) return null;
+
+        const decimal_places = getDecimalPlaces(currency);
+        const sign = profit_num > 0 ? '+' : '';
+
+        return `${sign}${profit_num.toFixed(decimal_places)} ${currency}`;
+    };
+
+    const profit_num = getNumericProfit(contract_info.profit);
+
+    const result = {
         type: getMarkerContractType(contract_info),
         markers,
-        color: getColor({
-            status,
-            profit: is_non_tick_contract || is_sold ? profit : undefined,
-            is_dark_theme,
-            is_vanilla: isVanillaContract(contract_type),
-        }),
+        props: {
+            isProfit: profit_num !== null ? profit_num > 0 : true,
+            isRunning: !contract_info?.is_expired,
+            contractMarkerLeftPadding,
+            markerLabel: getContractTypeLabel(contract_info),
+        },
+        direction: getMarkerDirection(contract_type),
+        profitAndLossText: getProfitAndLossText(),
+        currentEpoch: contract_info.current_spot_time,
     };
+    return result;
 }
+
+/**
+ * Returns the first letter of the contract label based on contract type
+ * Touch contracts are categorized as Touch/No Touch
+ * @param {object} contract_info - The contract information object
+ * @returns {string} - The first letter of the label, or null if no match
+ */
+export const getContractTypeLabel = contract_info => {
+    if (!contract_info || typeof contract_info !== 'object') {
+        return null;
+    }
+
+    const { contract_type } = contract_info;
+    if (!contract_type || typeof contract_type !== 'string') {
+        return null;
+    }
+    const type = contract_type.toUpperCase();
+
+    // Touch contracts - Touch/No Touch category
+    const touchContracts = {
+        ONETOUCH: 'T', // Touch
+        NOTOUCH: 'NT', // No Touch
+    };
+
+    // Digit contracts
+    const digitContracts = {
+        DIGITEVEN: 'E', // Even
+        DIGITODD: 'O', // Odd
+        DIGITMATCH: `${contract_info.barrier}`, // Matches
+        DIGITDIFF: `${contract_info.barrier}`, // Differs
+        DIGITOVER: `${contract_info.barrier}`, // Over
+        DIGITUNDER: `${contract_info.barrier}`, // Under
+    };
+
+    // Accumulator contracts
+    const accumulatorContracts = {
+        ACCU: `${contract_info.growth_rate * 100}%`, // Accumulators
+    };
+
+    // Combine all contract mappings
+    const allContracts = {
+        ...touchContracts,
+        ...digitContracts,
+        ...accumulatorContracts,
+    };
+
+    // Only return label if there's an exact match, otherwise return null
+    return allContracts[type] || null;
+};
 
 function getAccumulatorBarrierMarkers({
     contract_info,
@@ -437,9 +650,9 @@ function getAccumulatorBarrierMarkers({
     barrier_spot_distance,
     prev_epoch: epoch,
 }) {
-    const { contract_type, profit, exit_tick_time, status, is_sold } = contract_info || {};
+    const { profit, is_sold } = contract_info || {};
 
-    const contract_status = getContractStatus({ contract_type, profit, exit_tick_time, status });
+    const contract_status = getContractStatus(contract_info || {});
     const is_accu_contract_ended = contract_status !== 'open';
 
     const getStatus = () => {

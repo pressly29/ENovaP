@@ -1,8 +1,11 @@
+import React from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React from 'react';
-import { Icon, Modal, Popover, VerticalTab } from '@deriv/components';
-import { localize } from '@deriv/translations';
+
+import { Modal, Popover, VerticalTab } from '@deriv/components';
+import { LegacySettings1pxIcon } from '@deriv/quill-icons';
+import { useTranslations } from '@deriv-com/translations';
+
 import 'Sass/app/modules/settings.scss';
 
 const ModalContent = ({ settings_extension }) => {
@@ -13,7 +16,15 @@ const ModalContent = ({ settings_extension }) => {
     return <VerticalTab list={content} />;
 };
 
-const ToggleSettings = ({ enableApp, is_settings_visible, disableApp, toggleSettings, settings_extension }) => {
+const ToggleSettings = ({
+    enableApp,
+    is_settings_visible,
+    disableApp,
+    toggleSettings,
+    settings_extension,
+    showPopover,
+}) => {
+    const { localize } = useTranslations();
     const toggle_settings_class = classNames('ic-settings', 'footer__link', {
         'ic-settings--active': is_settings_visible,
     });
@@ -25,9 +36,23 @@ const ToggleSettings = ({ enableApp, is_settings_visible, disableApp, toggleSett
                 onClick={toggleSettings}
                 className={`${toggle_settings_class} footer__link`}
             >
-                <Popover alignment='top' message={localize('Platform settings')} zIndex={9999}>
-                    <Icon icon='IcGear' data_testid='dt_icon' className='footer__icon ic-settings__icon' />
-                </Popover>
+                {showPopover ? (
+                    <Popover alignment='top' message={localize('Platform settings')} zIndex={9999}>
+                        <LegacySettings1pxIcon
+                            data-testid='dt_icon'
+                            className='footer__icon ic-settings__icon'
+                            iconSize='xs'
+                            fill='var(--color-text-primary)'
+                        />
+                    </Popover>
+                ) : (
+                    <LegacySettings1pxIcon
+                        data-testid='dt_icon'
+                        className='footer__icon ic-settings__icon'
+                        iconSize='xs'
+                        fill='var(--color-text-primary)'
+                    />
+                )}
             </a>
             <Modal
                 id='dt_settings_modal'
@@ -52,6 +77,7 @@ ToggleSettings.propTypes = {
     is_settings_visible: PropTypes.bool,
     settings_extension: PropTypes.array,
     toggleSettings: PropTypes.func,
+    showPopover: PropTypes.bool,
 };
 
 export { ToggleSettings };

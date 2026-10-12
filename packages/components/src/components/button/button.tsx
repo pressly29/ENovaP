@@ -1,11 +1,12 @@
 import classNames from 'classnames';
 import React from 'react';
 import ButtonLoading from './button_loading';
-import Icon from '../icon';
+import { LegacyCheck1pxIcon, LegacyPlus2pxIcon } from '@deriv/quill-icons';
 import Text from '../text';
 
 export type TButtonCommonProps = {
     alternate: boolean;
+    black: boolean;
     blue: boolean;
     green: boolean;
     has_effect: boolean;
@@ -26,6 +27,7 @@ export type TButtonCommonProps = {
     tertiary: boolean;
     text: string;
     transparent: boolean;
+    wide: boolean;
 };
 export type TButtonProps = React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>> &
     TButtonCommonProps & {
@@ -45,6 +47,7 @@ const ButtonGroup = ({ children, className }: TButtonGroupProps) => (
     <div className={classNames('dc-btn__group', className)}>{children}</div>
 );
 const Button = ({
+    black,
     blue,
     children,
     className = '',
@@ -75,6 +78,7 @@ const Button = ({
     transparent,
     small,
     tertiary,
+    wide,
     renderText,
     ...props
 }: Partial<TButtonProps>) => {
@@ -83,6 +87,7 @@ const Button = ({
         {
             'dc-btn__effect': has_effect,
             'dc-btn--primary': primary,
+            'dc-btn--black': black,
             'dc-btn--blue': blue,
             'dc-btn--secondary': secondary,
             'dc-btn--tertiary': tertiary,
@@ -96,6 +101,7 @@ const Button = ({
             'dc-btn__medium': medium,
             'dc-btn__small': small,
             'dc-btn__toggle': is_button_toggle,
+            'dc-btn__wide': wide,
             'dc-btn--plus': is_plus,
             'dc-btn--circle': is_circle,
             'dc-btn--circular': is_circular,
@@ -122,10 +128,10 @@ const Button = ({
                     </Text>
                 ))}
             {is_loading && <ButtonLoading />}
-            {is_submit_success && <Icon icon='IcCheckmark' color='active' size={24} />}
-            {is_plus && <Icon icon='IcAddBold' color='black' size={18} />}
+            {is_submit_success && <LegacyCheck1pxIcon fill='var(--color-interactive-active)' iconSize='sm' />}
+            {is_plus && <LegacyPlus2pxIcon fill='var(--color-text-primary)' iconSize='sm' />}
             {!text && !is_loading && children && (
-                <Text size='xs' weight='bold' align='center' className={classNames('dc-btn__text', classNameSpan)}>
+                <Text size='s' weight='bold' align='center' className={classNames('dc-btn__text', classNameSpan)}>
                     {children}
                 </Text>
             )}

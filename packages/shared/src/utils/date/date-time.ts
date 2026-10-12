@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import moment from 'moment';
 
 type TExtendedMoment = typeof moment & {
@@ -13,10 +13,11 @@ type TExtendedMoment = typeof moment & {
 
 // Localize moment instance with specific object
 export const initMoment = (lang: string) => {
-    if (!lang || lang === 'EN') return moment;
-    return import(`moment/locale/${lang.toLowerCase().replace('_', '-')}`)
-        .then(() => moment.locale(lang.toLocaleLowerCase().replace('_', '-')))
-        .catch(() => moment);
+    const hasEnMomentLocale = ['EN', 'AR', 'BN', 'SI', 'KM']; // 'AR', 'BN' & 'SI' langs have non-numeric dates ('২০২৪-০৫-০৭'), our current usage of moment requires us to make all dates numeric
+    if (!lang) return moment;
+    let locale = lang.toLowerCase().replace('_', '-');
+    if (hasEnMomentLocale.includes(lang)) locale = 'en-gb';
+    return import(`moment/locale/${locale}`).then(() => moment.locale(locale)).catch(() => moment);
 };
 
 /**
@@ -50,6 +51,7 @@ export const toMoment = (value?: moment.MomentInput): moment.Moment => {
 };
 
 export const toLocalFormat = (time: moment.MomentInput) => moment.utc(time).local().format('YYYY-MM-DD HH:mm:ss Z');
+
 /**
  * Set specified time on moment object
  * @param  {moment} moment_obj  the moment to set the time on
@@ -99,10 +101,6 @@ export const daysFromTodayTo = (date?: string | moment.Moment) => {
  * @param  {String} date   the date to calculate number of days since
  * @return {Number} an integer of the number of days
  */
-export const daysSince = (date: string) => {
-    const diff = toMoment().startOf('day').diff(toMoment(date).startOf('day'), 'days');
-    return !date ? '' : diff;
-};
 
 /**
  * return the number of months between two specified dates
@@ -126,6 +124,8 @@ export const getDateFromNow = (
     const date = moment(new Date());
     return date.add(days, unit).format(format);
 };
+
+/** returns the DD MM YYYY format */
 
 /**
  * return formatted duration `2 days 01:23:59`
@@ -173,7 +173,6 @@ export const isMinuteValid = (time_str: string) => isTimeValid(time_str) && /^[0
  * return true if the date is typeof string and a valid moment date, else return false
  * @param {String|moment} date date
  */
-export const isDateValid = (date: moment.MomentInput) => moment(date, 'DD MMM YYYY').isValid();
 
 /**
  * add the specified number of days to the given date
@@ -188,7 +187,6 @@ export const addDays = (date: string | moment.Moment, num_of_days: number) =>
  * @param {String} date        date
  * @param {Number} num_of_weeks number of days to add
  */
-export const addWeeks = (date: string, num_of_weeks: number) => toMoment(date).clone().add(num_of_weeks, 'week');
 
 /**
  * add the specified number of months to the given date
@@ -299,4 +297,13 @@ export const getTimeSince = (timestamp: number) => {
         return localize('{{hours_passed}}h ago', { hours_passed: Math.floor(seconds_passed / 3600) });
     }
     return localize('{{days_passed}}d ago', { days_passed: Math.floor(seconds_passed / (3600 * 24)) });
+};
+
+/**
+ * Get tomorrow's date in YYYY-MM-DD format
+ * @param {moment.MomentInput} server_time - Server time to calculate tomorrow from
+ * @return {string} Tomorrow's date in YYYY-MM-DD format
+ */
+export const getTomorrowDate = (server_time: moment.MomentInput): string => {
+    return toMoment(server_time).clone().add(1, 'day').format('YYYY-MM-DD');
 };

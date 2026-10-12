@@ -1,4 +1,4 @@
-const { localize } = require('@deriv/translations');
+const { localize } = require('@deriv-com/translations');
 const BinarySocket = require('./socket_base');
 
 /*
@@ -7,10 +7,14 @@ const BinarySocket = require('./socket_base');
  * 2. offline: it is offline
  */
 const NetworkMonitorBase = (() => {
-    const status_config = {
-        online: { class: 'online', tooltip: localize('Online') },
-        offline: { class: 'offline', tooltip: localize('Offline') },
-        blinking: { class: 'blinker', tooltip: localize('Connecting to server') },
+    // Use getter functions to ensure localize() is called when needed, not at module init
+    const getStatusConfig = status => {
+        const configs = {
+            online: { class: 'online', tooltip: localize('Online') },
+            offline: { class: 'offline', tooltip: localize('Offline') },
+            blinking: { class: 'blinker', tooltip: localize('Connecting to server') },
+        };
+        return configs[status];
     };
 
     let setNetworkStatus;
@@ -22,7 +26,7 @@ const NetworkMonitorBase = (() => {
             if (status !== last_status || is_online !== last_is_online) {
                 last_status = status;
                 last_is_online = is_online;
-                fncUpdateUI(status_config[status], is_online);
+                fncUpdateUI(getStatusConfig(status), is_online);
             }
         };
 
@@ -43,7 +47,13 @@ const NetworkMonitorBase = (() => {
         if (isOnline()) {
             const ws_config = { wsEvent, isOnline, ...socket_general_functions };
             BinarySocket.init({ options: ws_config, client: client_store });
-            BinarySocket.openNewConnection();
+
+            // If a token exists, skip the public connection — client_store.init() will
+            // fetch an OTP and open an authenticated connection instead.
+            const has_token = !!JSON.parse(sessionStorage.getItem('auth_info') ?? 'null')?.access_token;
+            if (!has_token) {
+                BinarySocket.openNewConnection();
+            }
         }
 
         setNetworkStatus(isOnline() ? 'blinking' : 'offline');
@@ -62,7 +72,7 @@ const NetworkMonitorBase = (() => {
             if (isOnline() && BinarySocket.hasReadyState(2, 3)) {
                 BinarySocket.openNewConnection();
             } else {
-                BinarySocket.send({ ping: 1 }); // get stable status sooner
+                BinarySocket.send({ time: 1 }); // get stable status sooner
             }
         }, timeout);
     }

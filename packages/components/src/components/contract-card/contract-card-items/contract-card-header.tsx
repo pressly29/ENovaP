@@ -1,28 +1,32 @@
 import React from 'react';
-import classNames from 'classnames';
 import { CSSTransition } from 'react-transition-group';
+import classNames from 'classnames';
+
+import { LabelPairedQuestionCaptionBoldIcon } from '@deriv/quill-icons';
 import {
-    isHighLow,
     getCurrentTick,
     getGrowthRatePercentage,
-    isAccumulatorContract,
-    isSmartTraderContract,
-    isLookBacksContract,
-    isBot,
-    isMobile,
-    isTurbosContract,
     getLocalizedTurbosSubtype,
+    isAccumulatorContract,
+    isHighLow,
+    isMobile,
+    isMultiplierContract,
+    isSmartTraderContract,
+    isTurbosContract,
 } from '@deriv/shared';
-import ContractTypeCell from './contract-type-cell';
+import { TContractInfo } from '@deriv/shared/src/utils/contract/contract-types';
+
+import { getUnderlyingFromShortcode } from '../../../utils/contract-helpers';
 import Button from '../../button';
-import Icon from '../../icon';
-import Text from '../../text';
-import ProgressSlider from '../../progress-slider';
 import DesktopWrapper from '../../desktop-wrapper';
 import MobileWrapper from '../../mobile-wrapper';
-import TickCounterBar from './tick-counter-bar';
-import { TContractInfo } from '@deriv/shared/src/utils/contract/contract-types';
+import ProgressSlider from '../../progress-slider';
+import SymbolIconsMapper from '../../symbol-icons-mapper';
+import Text from '../../text';
 import { TGetCardLables, TGetContractTypeDisplay } from '../../types/common.types';
+
+import ContractTypeCell from './contract-type-cell';
+import TickCounterBar from './tick-counter-bar';
 
 export type TContractCardHeaderProps = {
     contract_info: TContractInfo;
@@ -52,10 +56,10 @@ const ContractCardHeader = ({
     onClickSell,
     server_time,
 }: TContractCardHeaderProps) => {
+    const nodeRef = React.useRef(null);
     const current_tick = contract_info.tick_count ? getCurrentTick(contract_info) : null;
     const {
         growth_rate,
-        underlying,
         multiplier,
         contract_type,
         shortcode,
@@ -63,20 +67,25 @@ const ContractCardHeader = ({
         date_expiry,
         tick_count,
         tick_passed,
+        underlying_symbol,
     } = contract_info;
-    const is_bot = isBot();
+
+    const effective_underlying = underlying_symbol || getUnderlyingFromShortcode(shortcode);
     const is_sold = !!contract_info.is_sold || is_contract_sold;
     const is_accumulator = isAccumulatorContract(contract_type);
     const is_smarttrader_contract = isSmartTraderContract(contract_type);
     const is_mobile = isMobile();
     const is_turbos = isTurbosContract(contract_type);
-    const is_lookbacks = isLookBacksContract(contract_type);
+    const is_multipliers = isMultiplierContract(contract_type);
+    const is_high_low = isHighLow({ shortcode });
 
     const contract_type_list_info = React.useMemo(
         () => [
             {
-                is_param_displayed: multiplier && !is_lookbacks,
-                displayed_param: `x${multiplier}`,
+                is_param_displayed: is_multipliers,
+                displayed_param: `${getContractTypeDisplay(contract_type ?? '', {
+                    isHighLow: is_high_low,
+                })} x${multiplier}`.trim(),
             },
             {
                 is_param_displayed: is_accumulator,
@@ -87,7 +96,8 @@ const ContractCardHeader = ({
                 displayed_param: getLocalizedTurbosSubtype(contract_type),
             },
         ],
-        [multiplier, growth_rate, is_accumulator, is_turbos, is_lookbacks, contract_type]
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [contract_type, growth_rate, multiplier, is_accumulator, is_multipliers, is_turbos, is_high_low]
     );
 
     const displayed_trade_param =
@@ -98,11 +108,9 @@ const ContractCardHeader = ({
         <React.Fragment>
             <div
                 className={classNames('dc-contract-card__grid', 'dc-contract-card__grid-underlying-trade', {
-                    'dc-contract-card__grid-underlying-trade--trader': !is_bot,
                     'dc-contract-card__grid-underlying-trade--trader--accumulator': !is_mobile && is_accumulator,
-                    [`dc-contract-card__grid-underlying-trade--trader--${
-                        is_accumulator ? 'accumulator' : 'turbos'
-                    }-sold`]: (is_accumulator || is_turbos) && is_sold,
+                    'dc-contract-card__grid-underlying-trade--trader--sold':
+                        (is_accumulator || is_turbos || is_multipliers) && is_sold,
                 })}
             >
                 <div
@@ -111,11 +119,15 @@ const ContractCardHeader = ({
                         'dc-contract-card__underlying-name--accumulator': is_accumulator,
                     })}
                 >
-                    <Icon
-                        icon={underlying ? `IcUnderlying${underlying}` : 'IcUnknown'}
-                        width={is_accumulator ? 46 : 40}
-                        size={32}
-                    />
+                    {effective_underlying ? (
+                        <SymbolIconsMapper symbol={effective_underlying} width={is_accumulator ? 46 : 40} height={32} />
+                    ) : (
+                        <LabelPairedQuestionCaptionBoldIcon
+                            width={is_accumulator ? 46 : 40}
+                            height={32}
+                            fill='var(--color-text-primary)'
+                        />
+                    )}
                     <Text
                         size='xxs'
                         className={classNames('dc-contract-card__symbol', {
@@ -123,7 +135,7 @@ const ContractCardHeader = ({
                         })}
                         weight='bold'
                     >
-                        {display_name || contract_info.display_name}
+                        {display_name}
                     </Text>
                 </div>
                 <div
@@ -135,7 +147,9 @@ const ContractCardHeader = ({
                     <ContractTypeCell
                         displayed_trade_param={displayed_trade_param}
                         getContractTypeDisplay={getContractTypeDisplay}
-                        is_high_low={isHighLow({ shortcode })}
+                        is_high_low={is_high_low}
+                        is_multipliers={is_multipliers}
+                        is_turbos={is_turbos}
                         type={contract_type}
                     />
                 </div>
@@ -149,9 +163,10 @@ const ContractCardHeader = ({
                                 enterDone: 'dc-contract-card__sell-button--enter-done',
                                 exit: 'dc-contract-card__sell-button--exit',
                             }}
+                            nodeRef={nodeRef}
                             unmountOnExit
                         >
-                            <div className='dc-contract-card__sell-button-mobile'>
+                            <div ref={nodeRef} className='dc-contract-card__sell-button-mobile'>
                                 <Button
                                     id={`dc_contract_card_${id}_button`}
                                     className={classNames('dc-btn--sell', {
@@ -167,13 +182,7 @@ const ContractCardHeader = ({
                     ) : null}
                 </MobileWrapper>
             </div>
-            {!is_sold && is_accumulator && (
-                <TickCounterBar
-                    current_tick={tick_passed}
-                    max_ticks_duration={tick_count}
-                    label={getCardLabels().TICKS}
-                />
-            )}
+            {!is_sold && is_accumulator && <TickCounterBar current_tick={tick_passed} label={getCardLabels().TICKS} />}
             <MobileWrapper>
                 <div className='dc-progress-slider--completed' />
             </MobileWrapper>

@@ -1,6 +1,3 @@
-import { isBot } from '../platform';
-import { isStaging } from '../url/helpers';
-
 /*
  * Configuration values needed in js codes
  *
@@ -10,124 +7,108 @@ import { isStaging } from '../url/helpers';
  *
  */
 
-export const livechat_license_id = 12049137;
-export const livechat_client_id = '66aa088aad5a414484c1fd1fa8a5ace7';
+import { getWebSocketURL } from '../brand';
 
-export const domain_app_ids = {
-    // these domains as supported "production domains"
-    'deriv.app': 16929, // TODO: [app-link-refactor] - Remove backwards compatibility for `deriv.app`
-    'app.deriv.com': 16929,
-    'staging-app.deriv.com': 16303,
-    'app.deriv.me': 1411,
-    'staging-app.deriv.me': 1411, // TODO: setup staging for deriv.me
-    'app.deriv.be': 30767,
-    'staging-app.deriv.be': 31186,
-    'binary.com': 1,
-    'test-app.deriv.com': 51072,
-};
+/**
+ * Gets account_type with priority: URL parameter > localStorage > default 'public'
+ * @returns 'real', 'demo', or 'public'
+ */
+export const getAccountType = (): 'real' | 'demo' | 'public' => {
+    const search = window.location.search;
+    const search_params = new URLSearchParams(search);
+    const accountTypeFromUrl = search_params.get('account_type');
 
-export const platform_app_ids = {
-    derivgo: 23789,
-};
+    // First priority: URL parameter
+    if (accountTypeFromUrl === 'real' || accountTypeFromUrl === 'demo') {
+        window.localStorage.setItem('account_type', accountTypeFromUrl);
 
-export const getCurrentProductionDomain = () =>
-    !/^staging\./.test(window.location.hostname) &&
-    Object.keys(domain_app_ids).find(domain => window.location.hostname === domain);
-
-export const isProduction = () => {
-    const all_domains = Object.keys(domain_app_ids).map(domain => `(www\\.)?${domain.replace('.', '\\.')}`);
-    return new RegExp(`^(${all_domains.join('|')})$`, 'i').test(window.location.hostname);
-};
-
-export const isTestLink = () => {
-    return /^((.*)\.binary\.sx)$/i.test(window.location.hostname);
-};
-
-export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
-
-export const getAppId = () => {
-    let app_id = null;
-    const user_app_id = '106913'; // ENova App ID - Registered October 15, 2025
-    const config_app_id = window.localStorage.getItem('config.app_id');
-    const current_domain = getCurrentProductionDomain() || '';
-    window.localStorage.removeItem('config.platform'); // Remove config stored in localstorage if there's any.
-    const platform = window.sessionStorage.getItem('config.platform');
-    const is_bot = isBot();
-    // Added platform at the top since this should take precedence over the config_app_id
-    if (platform && platform_app_ids[platform as keyof typeof platform_app_ids]) {
-        app_id = platform_app_ids[platform as keyof typeof platform_app_ids];
-    } else if (config_app_id) {
-        app_id = config_app_id;
-    } else if (user_app_id.length) {
-        if (/app\.github\.dev/i.test(window.location.hostname)) {
-            app_id = 52759;
-        } else if (/ENova-sgi9\.vercel\.app/i.test(window.location.hostname)) {
-            app_id = 63233;
-        } else {
-            window.localStorage.setItem('config.default_app_id', user_app_id);
-            app_id = user_app_id;
+        // Remove account_type from URL after processing
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('account_type')) {
+            url.searchParams.delete('account_type');
+            window.history.replaceState({}, document.title, url.pathname + url.search);
         }
-    } else if (isStaging()) {
-        window.localStorage.removeItem('config.default_app_id');
-        app_id = is_bot ? 19112 : domain_app_ids[current_domain as keyof typeof domain_app_ids] || 16303; // it's being used in endpoint chrome extension - please do not remove
-    } else if (/localhost/i.test(window.location.hostname)) {
-        app_id = 36300;
-    } else {
-        window.localStorage.removeItem('config.default_app_id');
-        app_id = is_bot ? 19111 : domain_app_ids[current_domain as keyof typeof domain_app_ids] || 16929;
+
+        return accountTypeFromUrl;
     }
 
-    return app_id;
+    // Second priority: localStorage
+    const storedAccountType = window.localStorage.getItem('account_type');
+    if (storedAccountType === 'real' || storedAccountType === 'demo') {
+        return storedAccountType;
+    }
+
+    // Default to public when no account_type parameter or invalid value
+    return 'public';
+};
+
+/**
+ * Gets account_id with priority: URL parameter > localStorage > null
+ * @returns account_id string or null
+ */
+export const getAccountId = (): string | null => {
+    // 1. Check URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountIdFromUrl = urlParams.get('account_id');
+
+    if (accountIdFromUrl) {
+        localStorage.setItem('account_id', accountIdFromUrl);
+        // Remove from URL after storing
+        const url = new URL(window.location.href);
+        url.searchParams.delete('account_id');
+        window.history.replaceState({}, document.title, url.pathname + url.search);
+        return accountIdFromUrl;
+    }
+
+    // 2. Check localStorage
+    return localStorage.getItem('account_id');
+};
+
+/**
+ * Clears account_id from localStorage
+ */
+export const clearAccountId = (): void => {
+    localStorage.removeItem('account_id');
+};
+
+/**
+ * Gets the complete WebSocket URL with proper endpoint and query params
+ * @returns Complete WebSocket URL
+ */
+export const getCompleteWebSocketURL = (): string => {
+    const server = getSocketURL();
+    const account_id = getAccountId();
+    const account_type = getAccountType();
+
+    // Only connect to demo/real if BOTH account_type and account_id are present
+    // Otherwise, connect to public endpoint
+    const shouldUseAuthenticatedEndpoint = account_id && (account_type === 'real' || account_type === 'demo');
+
+    let url = `wss://${server}/${shouldUseAuthenticatedEndpoint ? account_type : 'public'}`;
+
+    // Add account_id query param for authenticated endpoints (real/demo)
+    if (shouldUseAuthenticatedEndpoint) {
+        url += `?account_id=${account_id}`;
+    }
+
+    return url;
 };
 
 export const getSocketURL = () => {
     const local_storage_server_url = window.localStorage.getItem('config.server_url');
-    if (local_storage_server_url) return local_storage_server_url;
-
-    let active_loginid_from_url;
-    const search = window.location.search;
-    if (search) {
-        const params = new URLSearchParams(document.location.search.substring(1));
-        active_loginid_from_url = params.get('acct1');
+    if (local_storage_server_url) {
+        // Validate it's a reasonable hostname (not a full URL, no protocol)
+        if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(local_storage_server_url)) {
+            return local_storage_server_url;
+        }
+        // Clear invalid value
+        window.localStorage.removeItem('config.server_url');
     }
 
-    const loginid = window.localStorage.getItem('active_loginid') || active_loginid_from_url;
-    const is_real = loginid && !/^(VRT|VRW)/.test(loginid);
-
-    const server = 'ws';
-    const server_url = `${server}.derivws.com`;
+    // Get WebSocket server URL from brand config based on environment
+    const server_url = getWebSocketURL();
 
     return server_url;
-};
-
-export const checkAndSetEndpointFromUrl = () => {
-    if (isTestLink()) {
-        const url_params = new URLSearchParams(location.search.slice(1));
-
-        if (url_params.has('qa_server') && url_params.has('app_id')) {
-            const qa_server = url_params.get('qa_server') || '';
-            const app_id = url_params.get('app_id') || '';
-
-            url_params.delete('qa_server');
-            url_params.delete('app_id');
-
-            if (/^(^(www\.)?qa[0-9]{1,4}\.deriv.dev|(.*)\.derivws\.com)$/.test(qa_server) && /^[0-9]+$/.test(app_id)) {
-                localStorage.setItem('config.app_id', app_id);
-                localStorage.setItem('config.server_url', qa_server);
-            }
-
-            const params = url_params.toString();
-            const hash = location.hash;
-
-            location.href = `${location.protocol}//${location.hostname}${location.pathname}${
-                params ? `?${params}` : ''
-            }${hash || ''}`;
-
-            return true;
-        }
-    }
-
-    return false;
 };
 
 export const getDebugServiceWorker = () => {
@@ -135,22 +116,4 @@ export const getDebugServiceWorker = () => {
     if (debug_service_worker_flag) return !!parseInt(debug_service_worker_flag);
 
     return false;
-};
-
-// ENova Affiliate Configuration (no secrets in client bundle)
-// Values are provided server-side via Netlify Function; keep client defaults empty.
-export const affiliate_config = {
-    token: '',
-    campaign: '',
-    medium: '',
-    source: '',
-};
-
-// ENova App Configuration (non-sensitive placeholders only)
-export const enova_config = {
-    app_id: '',
-    app_name: '',
-    markup_percentage: 0,
-    oauth_redirect_url: '',
-    verification_url: '',
 };

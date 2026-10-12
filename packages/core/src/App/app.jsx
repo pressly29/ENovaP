@@ -1,107 +1,153 @@
 import React from 'react';
-import WS from 'Services/ws-methods';
-import PropTypes from 'prop-types';
-import { withTranslation } from 'react-i18next';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { Analytics } from '@deriv-com/analytics';
-import { BreakpointProvider } from '@deriv/quill-design';
-import { APIProvider } from '@deriv/api';
-import {
-    POIProvider,
-    initFormErrorMessages,
-    setSharedCFDText,
-    setUrlLanguage,
-    setWebsocket,
-    useOnLoadTranslation,
-} from '@deriv/shared';
-import { StoreProvider, ExchangeRatesProvider } from '@deriv/stores';
-import { getLanguage, initializeTranslations } from '@deriv/translations';
-import { CFD_TEXT } from '../Constants/cfd-text';
+import PropTypes from 'prop-types';
+
+import { APIProvider, useMobileBridge } from '@deriv/api';
+import { Loading } from '@deriv/components';
+import { initFormErrorMessages, setUrlLanguage, setWebsocket } from '@deriv/shared';
+import { StoreProvider } from '@deriv/stores';
+import { BreakpointProvider } from '@deriv-com/quill-ui';
+import { getInitialLanguage, initializeI18n, TranslationProvider } from '@deriv-com/translations';
+
+import { clearTokens, exchangeCodeForToken } from 'Services/oauth';
+import WS from 'Services/ws-methods';
+
 import { FORM_ERROR_MESSAGES } from '../Constants/form-error-messages';
+
 import AppContent from './AppContent';
-import initHotjar from '../Utils/Hotjar';
-import ReactGA from 'react-ga4';
+
 import 'Sass/app.scss';
 
-ReactGA.initialize('G-N2C6TM8LFY');
-
-const AppWithoutTranslation = ({ root_store }) => {
+const App = ({ root_store }) => {
+    const i18nInstance = initializeI18n({
+        cdnUrl: process.env.TRANSLATIONS_CDN_URL || '',
+    });
     const l = window.location;
     const base = l.pathname.split('/')[1];
     const has_base = /^\/(br_)/.test(l.pathname);
-    const [is_translation_loaded] = useOnLoadTranslation();
+    const { preferred_language } = root_store.client;
+    const { is_dark_mode_on } = root_store.ui;
+    const is_dark_mode = is_dark_mode_on || JSON.parse(localStorage.getItem('ui_store'))?.is_dark_mode_on;
+    const language = preferred_language ?? getInitialLanguage();
+    const { isBridgeAvailable, sendBridgeEvent } = useMobileBridge();
+
+    // Handle OAuth2 callback — the auth server redirects back to / with ?code=...&state=...
+    // No separate /callback route needed; we handle it inline here on every mount.
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const state = params.get('state');
+
+        const cleanURL = () => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('code');
+            url.searchParams.delete('state');
+            window.history.replaceState({}, '', url.toString());
+        };
+
+        if (!code) return; // Normal load — not an OAuth callback
+
+        // Validate CSRF token
+        const stored_csrf = sessionStorage.getItem('oauth_csrf_token');
+        if (!state || state !== stored_csrf) {
+            // eslint-disable-next-line no-console
+            console.error('[OAuth] CSRF token mismatch — aborting token exchange');
+            clearTokens();
+            cleanURL();
+            return;
+        }
+
+        sessionStorage.removeItem('oauth_csrf_token');
+
+        exchangeCodeForToken(code)
+            .then(() => {
+                // Token is now in sessionStorage. Reload to /  so initStore
+                // picks it up on fresh boot — avoids the race where onClientInit
+                // already ran before the token exchange completed.
+                window.location.replace('/');
+            })
+            .catch(err => {
+                // eslint-disable-next-line no-console
+                console.error('[OAuth] Token exchange failed:', err);
+                cleanURL();
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Send trading:ready event to ensure smooth loader transition
+    React.useEffect(() => {
+        if (isBridgeAvailable) {
+            sendBridgeEvent('trading:ready');
+        }
+    }, [isBridgeAvailable, sendBridgeEvent]);
 
     React.useEffect(() => {
+        sessionStorage.removeItem('redirect_url');
         const loadSmartchartsStyles = () => {
-            import('@deriv/deriv-charts/dist/smartcharts.css');
+            import('@deriv-com/smartcharts-champion/dist/smartcharts.css');
         };
 
-        const loadExternalScripts = async () => {
-            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-            await delay(3000);
-            window.LiveChatWidget.init();
-
-            await delay(2000);
-            initHotjar(root_store.client);
-        };
-
-        initializeTranslations();
+        // Check for theme query parameter and set theme accordingly
+        const urlParams = new URLSearchParams(window.location.search);
+        const themeParam = urlParams.get('theme');
+        if (themeParam === 'dark') {
+            root_store.ui.setDarkMode(true);
+        } else if (themeParam === 'light') {
+            root_store.ui.setDarkMode(false);
+        }
 
         // TODO: [translation-to-shared]: add translation implemnentation in shared
-        setUrlLanguage(getLanguage());
+        setUrlLanguage(language);
         initFormErrorMessages(FORM_ERROR_MESSAGES);
-        setSharedCFDText(CFD_TEXT);
         root_store.common.setPlatform();
         loadSmartchartsStyles();
 
-        // Set maximum timeout before we load livechat in case if page loading is disturbed or takes too long
-        const max_timeout = setTimeout(loadExternalScripts, 15 * 1000); // 15 seconds
-
-        window.addEventListener('load', () => {
-            clearTimeout(max_timeout);
-            loadExternalScripts();
-        });
-
-        return () => {
-            window.removeEventListener('load', loadExternalScripts);
-        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const platform_passthrough = {
         root_store,
         WS,
+        i18nInstance,
+        language,
     };
 
     setWebsocket(WS);
 
     React.useEffect(() => {
-        if (!root_store.client.email) {
-            Analytics.reset();
+        const html = document?.querySelector('html');
+
+        if (!html) return;
+        if (is_dark_mode) {
+            html.classList?.remove('light');
+            html.classList?.add('dark');
+        } else {
+            html.classList?.remove('dark');
+            html.classList?.add('light');
         }
-    }, [root_store.client.email]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
-        <>
-            {is_translation_loaded ? (
-                <Router basename={has_base ? `/${base}` : null}>
-                    <StoreProvider store={root_store}>
-                        <APIProvider>
-                            <AppContent passthrough={platform_passthrough} />
-                        </APIProvider>
-                    </StoreProvider>
-                </Router>
-            ) : (
-                <></>
-            )}
-        </>
+        <Router basename={has_base ? `/${base}` : null}>
+            <StoreProvider store={root_store}>
+                <BreakpointProvider>
+                    <APIProvider>
+                        <TranslationProvider defaultLang={language} i18nInstance={i18nInstance}>
+                            {/* This is required as translation provider uses suspense to reload language */}
+                            <React.Suspense fallback={<Loading />}>
+                                <AppContent passthrough={platform_passthrough} />
+                            </React.Suspense>
+                        </TranslationProvider>
+                    </APIProvider>
+                </BreakpointProvider>
+            </StoreProvider>
+        </Router>
     );
 };
 
-AppWithoutTranslation.propTypes = {
+App.propTypes = {
     root_store: PropTypes.object,
 };
-const App = withTranslation()(AppWithoutTranslation);
 
 export default App;

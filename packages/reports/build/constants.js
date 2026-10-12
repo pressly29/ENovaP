@@ -20,6 +20,8 @@ const {
 } = require('./loaders-config');
 
 const ALIASES = {
+    'react/jsx-runtime.js': 'react/jsx-runtime',
+    'react/jsx-runtime': 'react/jsx-runtime',
     _common: path.resolve(__dirname, '../src/_common'),
     Constants: path.resolve(__dirname, '../src/Constants'),
     Components: path.resolve(__dirname, '../src/Components'),
@@ -121,11 +123,7 @@ const plugins = (base, is_test_env) => [
                   filter: file => file.name !== 'CNAME',
               }),
           ]),
-    ...(is_test_env
-        ? [new StylelintPlugin(stylelintConfig())]
-        : [
-              // ...(!IS_RELEASE ? [ new BundleAnalyzerPlugin({ analyzerMode: 'static' }) ] : []),
-          ]),
+    ...(is_test_env ? [new StylelintPlugin(stylelintConfig())] : []),
 ];
 
 module.exports = {

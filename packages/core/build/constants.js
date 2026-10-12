@@ -4,13 +4,12 @@ const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin');
 const PreloadWebpackPlugin = require('preload-webpack-plugin');
-const IgnorePlugin = require('webpack').IgnorePlugin;
+const { IgnorePlugin, DefinePlugin } = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const path = require('path');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const { GenerateSW } = require('workbox-webpack-plugin');
 
@@ -33,7 +32,6 @@ const {
     IS_RELEASE,
 } = require('./loaders-config');
 const Dotenv = require('dotenv-webpack');
-const { DefinePlugin } = require('webpack');
 
 const HOISTED_PACKAGES = {
     react: path.resolve(__dirname, '../../../node_modules/react'),
@@ -41,11 +39,13 @@ const HOISTED_PACKAGES = {
     'react-router': path.resolve(__dirname, '../../../node_modules/react-router'),
     'react-router-dom': path.resolve(__dirname, '../../../node_modules/react-router-dom'),
     mobx: path.resolve(__dirname, '../../../node_modules/mobx'),
-    'mobx-react': path.resolve(__dirname, '../../../node_modules/mobx-react'),
-    '@deriv/shared': path.resolve(__dirname, '../node_modules/@deriv/shared'),
-    '@deriv/components': path.resolve(__dirname, '../node_modules/@deriv/components'),
-    '@deriv/translations': path.resolve(__dirname, '../node_modules/@deriv/translations'),
-    '@deriv/deriv-charts': path.resolve(__dirname, '../../../node_modules/@deriv/deriv-charts'),
+    'mobx-react-lite': path.resolve(__dirname, '../../../node_modules/mobx-react-lite'),
+    '@deriv/shared': path.resolve(__dirname, '../../../node_modules/@deriv/shared'),
+    '@deriv/components': path.resolve(__dirname, '../../../node_modules/@deriv/components'),
+    '@deriv-com/translations': path.resolve(__dirname, '../../../node_modules/@deriv-com/translations'),
+    '@deriv-com/smartcharts-champion': path.resolve(__dirname, '../../../node_modules/@deriv-com/smartcharts-champion'),
+    '@deriv/trader': path.resolve(__dirname, '../../../node_modules/@deriv/trader'),
+    '@deriv/reports': path.resolve(__dirname, '../../../node_modules/@deriv/reports'),
 };
 
 const ALIASES = {
@@ -85,7 +85,7 @@ const rules = (is_test_env = false) => [
         use: html_loaders,
     },
     {
-        test: /\.(png|jpg|gif|woff|woff2|eot|ttf|otf|pdf)$/,
+        test: /\.(png|jpg|gif|woff|woff2|eot|ttf|otf|pdf|webp)$/,
         exclude: /node_modules/,
         use: file_loaders,
     },
@@ -124,21 +124,14 @@ const MINIMIZERS = !IS_RELEASE
 
 const plugins = ({ base, is_test_env }) => {
     return [
-        new Dotenv({}),
+        new Dotenv({
+            path: path.resolve(__dirname, '../../../.env'),
+            systemvars: true, // also read from actual environment (CI secrets, shell exports)
+            silent: true, // don't error if .env file is missing (CI won't have one)
+        }),
         new DefinePlugin({
-            'process.env.DATADOG_APPLICATION_ID': JSON.stringify(process.env.DATADOG_APPLICATION_ID),
-            'process.env.DATADOG_CLIENT_TOKEN': JSON.stringify(process.env.DATADOG_CLIENT_TOKEN),
-            'process.env.DATADOG_SESSION_REPLAY_SAMPLE_RATE': JSON.stringify(
-                process.env.DATADOG_SESSION_REPLAY_SAMPLE_RATE
-            ),
-            'process.env.DATADOG_SESSION_SAMPLE_RATE': JSON.stringify(process.env.DATADOG_SESSION_SAMPLE_RATE),
             'process.env.REF_NAME': JSON.stringify(process.env.REF_NAME),
-            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-            'process.env.RUDDERSTACK_KEY': JSON.stringify(process.env.RUDDERSTACK_KEY),
-            'process.env.GROWTHBOOK_CLIENT_KEY': JSON.stringify(process.env.GROWTHBOOK_CLIENT_KEY),
-            'process.env.GROWTHBOOK_DECRYPTION_KEY': JSON.stringify(process.env.GROWTHBOOK_DECRYPTION_KEY),
-            'process.env.IS_GROWTHBOOK_ENABLED': JSON.stringify(process.env.IS_GROWTHBOOK_ENABLED),
-            'process.env.REMOTE_CONFIG_URL': JSON.stringify(process.env.REMOTE_CONFIG_URL),
+            'process.env.TRANSLATIONS_CDN_URL': JSON.stringify(process.env.TRANSLATIONS_CDN_URL || ''),
         }),
         new CleanWebpackPlugin(),
         new CopyPlugin(copyConfig(base)),
@@ -151,12 +144,7 @@ const plugins = ({ base, is_test_env }) => {
         ...(IS_RELEASE
             ? []
             : [new WebpackManifestPlugin({ fileName: 'asset-manifest.json', filter: file => file.name !== 'CNAME' })]),
-        ...(is_test_env
-            ? [new StylelintPlugin(stylelintConfig())]
-            : [
-                  new GenerateSW(generateSWConfig(IS_RELEASE)),
-                  // ...(!IS_RELEASE ? [new BundleAnalyzerPlugin({ analyzerMode: 'static' })] : []),
-              ]),
+        ...(is_test_env ? [new StylelintPlugin(stylelintConfig())] : [new GenerateSW(generateSWConfig(IS_RELEASE))]),
     ];
 };
 

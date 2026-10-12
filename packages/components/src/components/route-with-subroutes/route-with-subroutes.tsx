@@ -1,14 +1,7 @@
 import React from 'react';
 import { Redirect, RedirectProps, Route, RouteComponentProps, RouteProps } from 'react-router-dom';
-import {
-    alternateLinkTagChange,
-    canonicalLinkTagChange,
-    redirectToLogin,
-    removeBranchName,
-    routes as shared_routes,
-    isEmptyObject,
-    default_title,
-} from '@deriv/shared';
+
+import { getBrandName, redirectToLogin, removeBranchName, routes as shared_routes } from '@deriv/shared';
 
 type TRoute = RouteProps & { default: boolean };
 
@@ -18,6 +11,7 @@ type TRoutesWithSubRoutesProps = {
     getTitle?: () => string;
     is_authenticated?: boolean;
     is_logged_in?: boolean;
+    is_logging_in?: boolean;
     path: string;
     routes: TRoute[];
     to: RedirectProps['to'];
@@ -32,6 +26,7 @@ const RouteWithSubRoutes = ({
     getTitle,
     is_authenticated,
     is_logged_in = false,
+    is_logging_in = false,
     path,
     routes,
     to,
@@ -64,11 +59,11 @@ const RouteWithSubRoutes = ({
             }
 
             result = <Redirect to={redirect_to} />;
-        } else if (is_authenticated && !is_logged_in) {
+        } else if (is_authenticated && !is_logged_in && !is_logging_in) {
             if (should_redirect_login) {
-                redirectToLogin(is_logged_in, language);
+                redirectToLogin(language);
             } else {
-                result = <Redirect to={shared_routes.root} />;
+                result = <Redirect to={shared_routes.index} />;
             }
         } else {
             const default_subroute = routes.find(r => r.default);
@@ -83,7 +78,7 @@ const RouteWithSubRoutes = ({
                         <Component {...props} routes={routes} />
                     ) : (
                         <React.Fragment>
-                            {should_redirect ? <Redirect to={shared_routes.root} /> : <Component404 />}
+                            {should_redirect ? <Redirect to={shared_routes.index} /> : <Component404 />}
                         </React.Fragment>
                     )}
                 </React.Fragment>
@@ -91,10 +86,7 @@ const RouteWithSubRoutes = ({
         }
 
         const title = getTitle?.() || '';
-        document.title = `ENova`;
-
-        alternateLinkTagChange();
-        canonicalLinkTagChange();
+        document.title = `${title} | ${getBrandName()}`;
 
         return result;
     };

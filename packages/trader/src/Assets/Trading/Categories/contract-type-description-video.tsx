@@ -1,7 +1,9 @@
 import React from 'react';
+
+import { VideoPlayer } from '@deriv/components';
 import { useStore } from '@deriv/stores';
-import { getDescriptionVideoId } from 'Modules/Trading/Helpers/video-config';
-import VideoPlayer from 'App/Components/Elements/VideoPlayer';
+
+import { getDescriptionVideoId } from 'AppV2/Utils/video-config';
 
 type TContractTypeDescriptionVideo = {
     data_testid?: string;
@@ -20,6 +22,9 @@ const ContractTypeDescriptionVideo = ({ data_testid, selected_contract_type }: T
                 src={getDescriptionVideoId(selected_contract_type, is_dark_theme)}
                 is_mobile={is_mobile}
                 data_testid={data_testid}
+                should_show_controls={true}
+                muted={true}
+                hide_volume_control={true}
             />
         </div>
     );

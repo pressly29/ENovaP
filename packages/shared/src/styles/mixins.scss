@@ -3,6 +3,15 @@
  *------------------------------------*/
 
 /*
+ * RTL Language Mixin
+ */
+@mixin rtl {
+    [dir='rtl'] & {
+        @content;
+    }
+}
+
+/*
  * SASS interpolation
  */
 // Requires the calc-interpolation function which can also be used independently
@@ -104,17 +113,17 @@
     @if $size {
         font-size: $size;
     }
-    @if $colour {
-        color: $colour;
+    @if $align {
+        text-align: $align;
     }
     @if $weight {
         font-weight: $weight;
     }
+    @if $colour {
+        color: $colour;
+    }
     @if $tt {
         text-transform: $tt;
-    }
-    @if $align {
-        text-align: $align;
     }
     @if $size == 1.6rem {
         line-height: map-get($map: $LINEHEIGHTS, $key: 'large');
@@ -164,7 +173,7 @@
     box-shadow: 0 0 0 0px rgba(0, 0, 0, 0);
 
     &:hover {
-        box-shadow: 0 0 0 0.5em var(--state-hover);
+        box-shadow: 0 0 0 0.5em var(--color-interactive-hover);
     }
 }
 
@@ -206,7 +215,7 @@
  * Tooltip colors
  * @param $color - color property
  * Usage example:
-   @include tooltipColor($COLOR_RED);
+   @include tooltipColor(var(--brand-primary));
  */
 @mixin tooltipColor($color) {
     &:before {

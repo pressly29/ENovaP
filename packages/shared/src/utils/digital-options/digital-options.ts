@@ -1,9 +1,11 @@
-import { isEuCountry } from '../location';
+import { routes } from '../routes';
+import { mapErrorMessage } from '../error-mapping';
 
 type TMessage = {
     title: string;
     text: string;
     link: string;
+    subcode?: string;
 };
 
 type TShowError = {
@@ -29,22 +31,19 @@ export const showDigitalOptionsUnavailableError = (
     should_redirect?: boolean,
     should_clear_error_on_click = true
 ) => {
-    const { title, text, link } = message;
+    const { title, text, link, subcode } = message;
+
+    // Use mapped message if subcode is available, otherwise use original text
+    const mappedMessage = subcode ? mapErrorMessage({ message: text, subcode }) : text;
+
     showError({
-        message: text,
+        message: mappedMessage,
         header: title,
         redirect_label: link,
         redirectOnClick,
         should_show_refresh: false,
-        redirect_to: '/appstore/traders-hub',
+        redirect_to: routes.index,
         should_clear_error_on_click,
         should_redirect,
     });
-};
-
-export const isEuResidenceWithOnlyVRTC = (accounts: TAccounts[]) => {
-    return (
-        accounts?.length === 1 &&
-        accounts.every(acc => isEuCountry(acc.residence ?? '') && acc.landing_company_shortcode === 'virtual')
-    );
 };

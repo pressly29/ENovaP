@@ -1,6 +1,7 @@
-import classNames from 'classnames';
 import React from 'react';
-import { Icon } from '@deriv/components';
+import classNames from 'classnames';
+
+import { TradeTypeIconsMapper } from '@deriv/components';
 import { TRADE_TYPES } from '@deriv/shared';
 
 type TIconTradeCategory = {
@@ -17,10 +18,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeCall' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeCall' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypePut' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypePut' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -29,10 +30,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeCallBarrier' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeCallBarrier' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypePutBarrier' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypePutBarrier' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -41,10 +42,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeExpirymiss' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeExpirymiss' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeExpiryrange' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeExpiryrange' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -53,10 +54,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeRange' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeRange' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeUpordown' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeUpordown' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -65,10 +66,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigitmatch' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigitmatch' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigitdiff' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigitdiff' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -77,10 +78,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigiteven' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigiteven' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigitodd' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigitodd' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -89,10 +90,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigitover' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigitover' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeDigitunder' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeDigitunder' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -101,10 +102,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeOnetouch' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeOnetouch' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeNotouch' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeNotouch' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -113,10 +114,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeAsianu' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeAsianu' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeAsiand' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeAsiand' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -124,21 +125,21 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
             case TRADE_TYPES.LB_CALL:
                 IconCategory = (
                     <div className='category-wrapper'>
-                        <Icon icon='IcTradetypeLbcall' className='category-type' color='brand' />
+                        <TradeTypeIconsMapper icon='IcTradetypeLbcall' className='category-type' />
                     </div>
                 );
                 break;
             case TRADE_TYPES.LB_PUT:
                 IconCategory = (
                     <div className='category-wrapper'>
-                        <Icon icon='IcTradetypeLbput' className='category-type' color='brand' />
+                        <TradeTypeIconsMapper icon='IcTradetypeLbput' className='category-type' />
                     </div>
                 );
                 break;
             case TRADE_TYPES.LB_HIGH_LOW:
                 IconCategory = (
                     <div className='category-wrapper'>
-                        <Icon icon='IcTradetypeLbhighlow' className='category-type' color='brand' />
+                        <TradeTypeIconsMapper icon='IcTradetypeLbhighlow' className='category-type' />
                     </div>
                 );
                 break;
@@ -146,10 +147,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeRunhigh' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeRunhigh' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeRunlow' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeRunlow' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -158,10 +159,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeResetcall' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeResetcall' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeResetput' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeResetput' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -170,10 +171,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeTickhigh' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeTickhigh' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeTicklow' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeTicklow' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -182,10 +183,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeCallspread' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeCallspread' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypePutspread' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypePutspread' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -194,10 +195,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeMultup' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeMultup' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeMultdown' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeMultdown' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -205,7 +206,7 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
             case TRADE_TYPES.ACCUMULATOR:
                 IconCategory = (
                     <div className='category-wrapper'>
-                        <Icon icon='IcTradetypeAccu' className='category-type' color='brand' />
+                        <TradeTypeIconsMapper icon='IcTradetypeAccu' className='category-type' />
                     </div>
                 );
                 break;
@@ -214,10 +215,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeTurboslong' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeTurboslong' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeTurbosshort' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeTurbosshort' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -227,10 +228,10 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
                 IconCategory = (
                     <React.Fragment>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeVanillaLongCall' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeVanillaLongCall' className='category-type' />
                         </div>
                         <div className='category-wrapper'>
-                            <Icon icon='IcTradetypeVanillaLongPut' className='category-type' color='brand' />
+                            <TradeTypeIconsMapper icon='IcTradetypeVanillaLongPut' className='category-type' />
                         </div>
                     </React.Fragment>
                 );
@@ -238,7 +239,7 @@ const IconTradeCategory = ({ category, className }: TIconTradeCategory) => {
             default:
                 IconCategory = (
                     <div className='category-wrapper'>
-                        <Icon icon='IcUnknown' className='category-type' color='brand' />
+                        <TradeTypeIconsMapper icon='IcUnknown' className='category-type' />
                     </div>
                 );
                 break;

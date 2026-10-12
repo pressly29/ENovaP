@@ -16,14 +16,14 @@ describe('getQueryKeys()', () => {
     });
     it('it should return ordered props', () => {
         const input_payload = {
-            exchange_rates: 1,
-            base_currency: 'USD',
+            active_symbols: 'brief',
+            product_type: 'basic',
             req_id: 1,
         };
 
         const expected_output = {
-            base_currency: 'USD',
-            exchange_rates: 1,
+            active_symbols: 'brief',
+            product_type: 'basic',
         };
 
         const [, output] = getQueryKeys('name', input_payload);
@@ -31,10 +31,9 @@ describe('getQueryKeys()', () => {
     });
     it('it should return consistent ordered props even if props are passed in different order', () => {
         const input_payload1 = {
-            redirect_uri: 'http://localhost:3000/redirect',
-            homepage: 'http://localhost:3000/',
+            homepage: 'https://test.example.com/',
             scopes: ['read', 'trade'],
-            verification_uri: 'http://localhost:3000/verify',
+            verification_uri: 'https://test.example.com/verify',
             github: 'https://github.com/test_org/app',
             app_register: 1,
             appstore: 'https://itunes.apple.com/test_app',
@@ -44,9 +43,8 @@ describe('getQueryKeys()', () => {
 
         const input_payload2 = {
             appstore: 'https://itunes.apple.com/test_app',
-            redirect_uri: 'http://localhost:3000/redirect',
-            homepage: 'http://localhost:3000/',
-            verification_uri: 'http://localhost:3000/verify',
+            homepage: 'https://test.example.com/',
+            verification_uri: 'https://test.example.com/verify',
             github: 'https://github.com/test_org/app',
             app_register: 1,
             name: 'Test Application',
@@ -59,11 +57,10 @@ describe('getQueryKeys()', () => {
             appstore: 'https://itunes.apple.com/test_app',
             github: 'https://github.com/test_org/app',
             googleplay: 'https://play.google.com/store/apps/details?id=test.app',
-            homepage: 'http://localhost:3000/',
+            homepage: 'https://test.example.com/',
             name: 'Test Application',
-            redirect_uri: 'http://localhost:3000/redirect',
             scopes: ['read', 'trade'],
-            verification_uri: 'http://localhost:3000/verify',
+            verification_uri: 'https://test.example.com/verify',
         };
 
         const [, output1] = getQueryKeys('name', input_payload1);

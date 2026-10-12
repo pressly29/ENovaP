@@ -1,30 +1,31 @@
+import { TContractsForSymbolResponse, TTradingTimesResponse } from '@deriv/api';
 import {
-    WS,
-    getPropertyValue,
-    getSortedTradeTypes,
-    cloneObject,
-    isTimeValid,
-    minDate,
-    toMoment,
-    getUnitMap,
     buildBarriersConfig,
     buildDurationConfig,
-    hasIntradayDurationUnit,
-    buildForwardStartingConfig,
-    unsupported_contract_types_list,
+    cloneObject,
     getCleanedUpCategories,
     getContractCategoriesConfig,
-    getContractTypesConfig,
     getContractSubtype,
+    getContractTypesConfig,
     getLocalizedBasis,
-    TTradeTypesCategories,
+    getPropertyValue,
+    getSortedTradeTypes,
+    getUnitMap,
+    hasIntradayDurationUnit,
+    isTimeValid,
+    toMoment,
     TRADE_TYPES,
+    TTradeTypesCategories,
+    unsupported_contract_types_list,
+    WS,
 } from '@deriv/shared';
-import ServerTime from '_common/base/server_time';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
+
+import { TConfig, TTradeStore } from 'Types';
+
 import { isSessionAvailable } from './start-date';
-import { ContractsFor, ContractsForSymbolResponse, TradingTimes, TradingTimesResponse } from '@deriv/api-types';
-import { TTradeStore } from '../../../../Types/common-prop.type';
+
+import ServerTime from '_common/base/server_time';
 
 type TBarriers = Record<
     keyof TTradeStore['duration_min_max'],
@@ -36,17 +37,7 @@ type TBarriers = Record<
 > & {
     count: number;
 };
-type TConfig = ReturnType<typeof getContractTypesConfig>[string]['config'] & {
-    has_spot?: boolean;
-    durations?: ReturnType<typeof buildDurationConfig>;
-    trade_types?: { [key: string]: string };
-    barriers?: ReturnType<typeof buildBarriersConfig>;
-    forward_starting_dates?: ReturnType<typeof buildForwardStartingConfig>;
-    growth_rate_range?: number[];
-    multiplier_range?: number[];
-    cancellation_range?: string[];
-    barrier_choices?: string[];
-};
+
 type TNonAvailableContractsList = Record<'contract_category' | 'contract_display_name' | 'contract_type', string>[];
 type TTextValueStrings = {
     text: string;
@@ -68,7 +59,6 @@ export const ContractType = (() => {
         ReturnType<typeof getBasis> &
         ReturnType<typeof getTradeTypes> &
         ReturnType<typeof getStartDates> &
-        ReturnType<typeof getStartType> &
         ReturnType<typeof getBarriers> &
         ReturnType<typeof getDurationUnit> &
         ReturnType<typeof getDurationUnitsList> &
@@ -85,25 +75,43 @@ export const ContractType = (() => {
     let non_available_categories: TTradeTypesCategories = {};
     const trading_events: { [key: string]: Record<string, TEvents | undefined> } = {};
     const trading_times: { [key: string]: Record<string, TTimes> } = {};
-    let has_only_forward_starting_contracts = false;
 
     const buildContractTypesConfig = (symbol: string): Promise<void> =>
-        WS.contractsFor(symbol).then((r: Required<ContractsForSymbolResponse>) => {
+        WS.contractsFor(symbol).then((r: Required<TContractsForSymbolResponse>) => {
             const has_contracts = getPropertyValue(r, ['contracts_for']);
-            has_only_forward_starting_contracts =
-                has_contracts && !r.contracts_for.available.find(contract => contract.start_type !== 'forward');
-            if (!has_contracts || has_only_forward_starting_contracts) return;
+            if (!has_contracts) return;
             const contract_categories = getContractCategoriesConfig();
             contract_types = getContractTypesConfig(symbol);
             available_contract_types = {};
             available_categories = cloneObject(contract_categories); // To preserve the order (will clean the extra items later in this function)
             r.contracts_for.available.forEach(contract => {
-                const type = Object.keys(contract_types).find(
-                    key =>
-                        contract_types[key].trade_types.indexOf(contract.contract_type) !== -1 &&
+                const type = Object.keys(contract_types).find(key => {
+                    const isContractTypeMatch = contract_types[key].trade_types.indexOf(contract.contract_type) !== -1;
+
+                    // Handle the new API structure where Rise/Fall and Higher/Lower are distinguished by contract_category
+                    if (contract.contract_category) {
+                        // For Rise/Fall contracts with contract_category "callput"
+                        if (contract.contract_category === 'callput' && key === 'rise_fall') {
+                            return isContractTypeMatch;
+                        }
+                        // For Higher/Lower contracts with contract_category "higherLower"
+                        if (contract.contract_category === 'higherLower' && key === 'high_low') {
+                            return isContractTypeMatch;
+                        }
+                        // For other contract types, just match by contract_type
+                        if (contract.contract_category !== 'callput' && contract.contract_category !== 'higherLower') {
+                            return isContractTypeMatch;
+                        }
+                        return false;
+                    }
+
+                    // Fallback to old logic for backward compatibility
+                    return (
+                        isContractTypeMatch &&
                         (typeof contract_types[key].barrier_count === 'undefined' ||
-                            Number(contract_types[key].barrier_count) === contract.barriers) // To distinguish betweeen Rise/Fall & Higher/Lower
-                );
+                            Number(contract_types[key].barrier_count) === contract.barriers)
+                    );
+                });
 
                 if (!type) return; // ignore unsupported contract types
 
@@ -126,12 +134,11 @@ export const ContractType = (() => {
                 const config: TConfig = available_contract_types[type].config || {};
 
                 // set config values
-                config.has_spot = config.has_spot || contract.start_type === 'spot';
+                config.has_spot = true; // Default to spot behavior since start_type was removed from API
                 config.durations = config.hide_duration ? undefined : buildDurationConfig(contract, config.durations);
                 config.trade_types = buildTradeTypesConfig(contract, config.trade_types);
                 config.barriers = buildBarriersConfig(contract, config.barriers);
                 config.barrier_choices = contract.barrier_choices as TConfig['barrier_choices'];
-                config.forward_starting_dates = buildForwardStartingConfig(contract, config.forward_starting_dates);
                 config.growth_rate_range = contract.growth_rate_range as TConfig['growth_rate_range'];
                 config.multiplier_range = contract.multiplier_range as TConfig['multiplier_range'];
                 config.cancellation_range = contract.cancellation_range as TConfig['cancellation_range'];
@@ -169,17 +176,21 @@ export const ContractType = (() => {
         });
 
     const buildTradeTypesConfig = (
-        contract: ContractsFor['available'][number],
+        contract: NonNullable<TContractsForSymbolResponse['contracts_for']>['available'][number],
         trade_types: { [key: string]: string } = {}
     ) => {
-        trade_types[contract.contract_type] = contract.contract_display ?? '';
+        // contract_display property has been removed from the API
+        // Using contract_type as the display value since display properties are no longer provided
+        trade_types[contract.contract_type] = contract.contract_type;
         return trade_types;
     };
 
     const getArrayDefaultValue = <T>(arr_new_values: Array<T>, value: T): T =>
         arr_new_values.indexOf(value) !== -1 ? value : arr_new_values[0];
 
-    const getContractValues = (store: TTradeStore): TContractValues | Record<string, never> => {
+    const getContractValues = (
+        store: TTradeStore
+    ): (TContractValues & { contract_start_type: 'spot' }) | Record<string, never> => {
         const {
             contract_expiry_type,
             contract_type,
@@ -192,6 +203,8 @@ export const ContractType = (() => {
             short_barriers,
             long_barriers,
             strike_price_choices,
+            v2_params_initial_values,
+            root_store,
         } = store;
 
         if (!contract_type) return {};
@@ -206,7 +219,13 @@ export const ContractType = (() => {
                 break;
             case 'Call':
             case 'Put':
-                stored_barriers_data = strike_price_choices;
+                stored_barriers_data =
+                    v2_params_initial_values?.strike && root_store?.ui.is_mobile // V2 for mobile only
+                        ? ({
+                              ...strike_price_choices,
+                              barrier: v2_params_initial_values.strike,
+                          } as TTradeStore['strike_price_choices'])
+                        : strike_price_choices;
                 break;
             default:
                 stored_barriers_data = {};
@@ -216,12 +235,11 @@ export const ContractType = (() => {
         const obj_basis = getBasis(contract_type, basis);
         const obj_trade_types = getTradeTypes(contract_type);
         const obj_start_dates = getStartDates(contract_type, start_date);
-        const obj_start_type = getStartType(obj_start_dates.start_date);
         const obj_barrier = getBarriers(contract_type, contract_expiry_type, stored_barriers_data?.barrier);
-        const obj_duration_unit = getDurationUnit(duration_unit, contract_type, obj_start_type.contract_start_type);
+        const obj_duration_unit = getDurationUnit(duration_unit, contract_type);
 
-        const obj_duration_units_list = getDurationUnitsList(contract_type, obj_start_type.contract_start_type);
-        const obj_duration_units_min_max = getDurationMinMax(contract_type, obj_start_type.contract_start_type);
+        const obj_duration_units_list = getDurationUnitsList(contract_type);
+        const obj_duration_units_min_max = getDurationMinMax(contract_type);
         const obj_accumulator_range_list = getAccumulatorRange(contract_type);
         const obj_barrier_choices = getBarrierChoices(contract_type, stored_barriers_data?.barrier_choices);
         const obj_multiplier_range_list = getMultiplierRange(contract_type, multiplier);
@@ -234,7 +252,7 @@ export const ContractType = (() => {
             ...obj_basis,
             ...obj_trade_types,
             ...obj_start_dates,
-            ...obj_start_type,
+            contract_start_type: 'spot' as const, // All contracts now default to spot behavior
             ...obj_barrier,
             ...obj_duration_unit,
             ...obj_duration_units_list,
@@ -253,7 +271,7 @@ export const ContractType = (() => {
             .reduce<string[]>((k, l) => [...k, ...(list[l].categories as TTextValueStrings[]).map(ct => ct.value)], [])
             .filter(
                 type =>
-                    !unsupported_contract_types_list.includes(type as typeof unsupported_contract_types_list[number])
+                    !unsupported_contract_types_list.includes(type as (typeof unsupported_contract_types_list)[number])
             );
         const sortedList = getSortedTradeTypes(filteredList);
 
@@ -263,7 +281,8 @@ export const ContractType = (() => {
     };
 
     const getComponents = (c_type: string) => {
-        const check = ['duration', 'amount', ...contract_types[c_type].components].filter(
+        if (!contract_types) return {};
+        const check = ['duration', 'amount', ...(contract_types[c_type]?.components ?? [])].filter(
             component =>
                 !(
                     component === 'duration' &&
@@ -278,7 +297,7 @@ export const ContractType = (() => {
         );
     };
 
-    const getDurationUnitsList = (contract_type: string, contract_start_type: string) => {
+    const getDurationUnitsList = (contract_type: string) => {
         return {
             duration_units_list:
                 (getPropertyValue(available_contract_types, [
@@ -286,39 +305,65 @@ export const ContractType = (() => {
                     'config',
                     'durations',
                     'units_display',
-                    contract_start_type,
                 ]) as TTextValueStrings[]) || [],
         };
     };
 
-    const getDurationUnit = (duration_unit: string, contract_type: string, contract_start_type: string) => {
+    const getDurationUnit = (duration_unit: string, contract_type: string) => {
+        // For Vanilla contracts, validate that the duration_unit is supported
+        // If not supported, default to 'm' (minutes)
+        // This preserves user selection while ensuring valid duration units
+        const vanillaContractTypes = [
+            'vanilla_call',
+            'vanilla_put',
+            'vanillalongcall',
+            'vanillalongput',
+            'call_put',
+            'rise_fall',
+            'rise_fall_equal',
+            'higher_lower',
+            'call',
+            'put',
+        ];
+
+        if (vanillaContractTypes.includes(contract_type)) {
+            // Get available duration units for this contract type
+            const { duration_units_list } = getDurationUnitsList(contract_type);
+            const available_units = duration_units_list.map(unit => unit.value);
+
+            // If the requested duration_unit is available, use it; otherwise default to 'm'
+            if (available_units.includes(duration_unit)) {
+                return {
+                    duration_unit,
+                };
+            }
+            return {
+                duration_unit: 'm',
+            };
+        }
+
         const duration_units =
             (getPropertyValue(available_contract_types, [
                 contract_type,
                 'config',
                 'durations',
                 'units_display',
-                contract_start_type,
             ]) as TTextValueStrings[]) || [];
         const arr_units: string[] = [];
         duration_units.forEach(obj => {
             arr_units.push(obj.value);
         });
 
+        const resolved_duration_unit = getArrayDefaultValue(arr_units, duration_unit);
+
         return {
-            duration_unit: getArrayDefaultValue(arr_units, duration_unit),
+            duration_unit: resolved_duration_unit || duration_unit,
         };
     };
 
-    const getDurationMinMax = (contract_type: string, contract_start_type: string, contract_expiry_type?: string) => {
+    const getDurationMinMax = (contract_type: string, contract_expiry_type?: string) => {
         let duration_min_max: TTradeStore['duration_min_max'] =
-            getPropertyValue(available_contract_types, [
-                contract_type,
-                'config',
-                'durations',
-                'min_max',
-                contract_start_type,
-            ]) || {};
+            getPropertyValue(available_contract_types, [contract_type, 'config', 'durations', 'min_max']) || {};
 
         if (contract_expiry_type) {
             duration_min_max =
@@ -334,11 +379,6 @@ export const ContractType = (() => {
 
     const getFullContractTypes = () => available_contract_types;
 
-    const getStartType = (start_date: number) => ({
-        // Number(0) refers to 'now'
-        contract_start_type: start_date === Number(0) ? 'spot' : 'forward',
-    });
-
     const getStartDates = (contract_type: string, current_start_date: number) => {
         const config: TConfig = getPropertyValue(available_contract_types, [contract_type, 'config']);
         const start_dates_list = [];
@@ -346,9 +386,6 @@ export const ContractType = (() => {
         if (config?.has_spot) {
             // Number(0) refers to 'now'
             start_dates_list.push({ text: localize('Now'), value: Number(0) });
-        }
-        if (config?.forward_starting_dates) {
-            start_dates_list.push(...config.forward_starting_dates);
         }
 
         const start_date = start_dates_list.find(item => item.value === current_start_date)
@@ -360,7 +397,7 @@ export const ContractType = (() => {
 
     const getSessions = (contract_type: string, start_date: number) => {
         const config: TConfig = getPropertyValue(available_contract_types, [contract_type, 'config']) || {};
-        const sessions = config.forward_starting_dates?.find(option => option.value === start_date)?.sessions;
+        const sessions = undefined;
         return { sessions };
     };
 
@@ -401,7 +438,7 @@ export const ContractType = (() => {
     };
 
     const buildMoment = (date: string | number | null, time?: string | null) => {
-        const [hour, minute] = isTimeValid(time ?? '') ? time?.split(':') ?? [] : [0, 0];
+        const [hour, minute] = isTimeValid(time ?? '') ? (time?.split(':') ?? []) : [0, 0];
         return toMoment(date || ServerTime.get())
             .hour(+hour)
             .minute(+minute);
@@ -420,8 +457,10 @@ export const ContractType = (() => {
             return [];
         }
         if (!(date in trading_events)) {
-            const trading_times_response: TradingTimesResponse = await WS.tradingTimes(date);
-            const trading_times_data = trading_times_response.trading_times as TradingTimes;
+            const trading_times_response: TTradingTimesResponse = await WS.tradingTimes(date);
+            const trading_times_data = trading_times_response.trading_times as NonNullable<
+                TTradingTimesResponse['trading_times']
+            >;
             if (getPropertyValue(trading_times_response, ['trading_times', 'markets'])) {
                 for (let i = 0; i < trading_times_data.markets.length; i++) {
                     const submarkets = trading_times_data.markets[i].submarkets;
@@ -435,7 +474,7 @@ export const ContractType = (() => {
                                         trading_events[trading_times_response.echo_req.trading_times as string] = {};
                                     }
                                     trading_events[trading_times_response.echo_req.trading_times as string][
-                                        symbol.symbol
+                                        symbol.underlying_symbol
                                     ] = symbol.events as TEvents;
                                 }
                             }
@@ -448,6 +487,24 @@ export const ContractType = (() => {
         return trading_events[date][underlying as string];
     };
 
+    const getTradingDays = async (date: string, underlying: string | null = null) => {
+        if (!date || !underlying) return null;
+
+        const response: TTradingTimesResponse = await WS.tradingTimes(date);
+        const trading_times = response.trading_times as NonNullable<TTradingTimesResponse['trading_times']>;
+
+        if (!getPropertyValue(response, ['trading_times', 'markets'])) return null;
+
+        const symbol_data = trading_times.markets.flatMap(
+            market =>
+                market.submarkets?.flatMap(
+                    submarket => submarket.symbols?.find(symbol => symbol.underlying_symbol === underlying) || []
+                ) || []
+        )[0];
+
+        return symbol_data?.trading_days || null;
+    };
+
     const getTradingTimes = async (
         date: string | null,
         underlying: string | null = null
@@ -457,8 +514,10 @@ export const ContractType = (() => {
         }
 
         if (!(date in trading_times)) {
-            const trading_times_response: TradingTimesResponse = await WS.tradingTimes(date);
-            const trading_times_data = trading_times_response.trading_times as TradingTimes;
+            const trading_times_response: TTradingTimesResponse = await WS.tradingTimes(date);
+            const trading_times_data = trading_times_response.trading_times as NonNullable<
+                TTradingTimesResponse['trading_times']
+            >;
             if (getPropertyValue(trading_times_response, ['trading_times', 'markets'])) {
                 for (let i = 0; i < trading_times_data.markets.length; i++) {
                     const submarkets = trading_times_data.markets[i].submarkets;
@@ -472,7 +531,7 @@ export const ContractType = (() => {
                                         trading_times[trading_times_response.echo_req.trading_times as string] = {};
                                     }
                                     trading_times[trading_times_response.echo_req.trading_times as string][
-                                        symbol.symbol
+                                        symbol.underlying_symbol
                                     ] = {
                                         open: (symbol.times as TTimes).open,
                                         close: (symbol.times as TTimes).close,
@@ -527,11 +586,7 @@ export const ContractType = (() => {
                     'YYYY-MM-DD'
                 );
             } else {
-                // forward starting contracts should only show today and tomorrow as expiry date
-                const is_invalid =
-                    moment_expiry.isBefore(moment_start, 'day') ||
-                    (start_date && moment_expiry.isAfter(moment_start.clone().add(1, 'day')));
-                proper_expiry_date = (is_invalid ? moment_start : moment_expiry).format('YYYY-MM-DD');
+                proper_expiry_date = moment_expiry.format('YYYY-MM-DD');
             }
         }
 
@@ -570,20 +625,6 @@ export const ContractType = (() => {
                 const end_moment = buildMoment(expiry_date, expiry_time);
 
                 end_time = end_moment.format('HH:mm');
-                // When the contract is forwarding, and the duration is endtime, users can purchase the contract within 24 hours.
-                const expiry_sessions = [
-                    {
-                        open: start_moment.clone().add(5, 'minute'), // expiry time should be at least 5 minute after start_time
-                        close: minDate(
-                            start_moment.clone().add(24, 'hour'),
-                            buildMoment(expiry_date, market_close_time)
-                        ),
-                    },
-                ];
-
-                if (!isSessionAvailable(expiry_sessions, end_moment)) {
-                    end_time = getValidTime(expiry_sessions, end_moment.clone(), start_moment.clone());
-                }
                 if (end_moment.isSameOrBefore(start_moment) || end_moment.diff(start_moment, 'minute') < 5) {
                     const is_end_of_day = start_moment.get('hours') === 23 && start_moment.get('minute') >= 55;
                     const is_end_of_session =
@@ -591,10 +632,6 @@ export const ContractType = (() => {
                     end_time = start_moment.clone().add(is_end_of_day || is_end_of_session ? 0 : 5, 'minutes');
                     // Set the end_time to be multiple of 5 to be equal as the SELECTED_TIME that shown to the client.
                     end_time = setMinuteMultipleByFive(end_time as moment.Moment).format('HH:mm');
-                }
-                // Set the expiry_time to 5 minute less than start_time for forwading contracts when the expiry_time is null and the expiry_date is tomorrow.
-                if (end_time === '00:00' && start_moment.isBefore(end_moment, 'day')) {
-                    end_time = start_moment.clone().subtract(5, 'minute').format('HH:mm');
                 }
             }
         }
@@ -708,12 +745,11 @@ export const ContractType = (() => {
         getExpiryType,
         getSessions,
         getStartTime,
-        getStartType,
         getTradingEvents,
+        getTradingDays,
         getTradingTimes,
         getContractCategories: () => ({
             contract_types_list: available_categories,
-            has_only_forward_starting_contracts,
             non_available_contract_types_list: non_available_categories,
         }),
     };

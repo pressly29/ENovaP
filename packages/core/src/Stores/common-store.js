@@ -1,21 +1,20 @@
-import * as SocketCache from '_common/base/socket_cache';
-import { action, computed, makeObservable, observable } from 'mobx';
-import { changeLanguage, getAllowedLanguages } from '@deriv/translations';
+import { action, makeObservable, observable } from 'mobx';
+
 import {
-    getAppId,
-    getUrlBinaryBot,
-    getUrlSmartTrader,
     initMoment,
     isMobile,
-    platforms,
+    mapErrorMessage,
     routes,
+    setLocale,
     toMoment,
+    UNSUPPORTED_LANGUAGES,
 } from '@deriv/shared';
+import { getAllowedLanguages, getInitialLanguage } from '@deriv-com/translations';
+
 import BaseStore from './base-store';
-import BinarySocket from '_common/base/socket_base';
+
 import ServerTime from '_common/base/server_time';
-import WS from 'Services/ws-methods';
-import { currentLanguage } from 'Utils/Language/index';
+import * as SocketCache from '_common/base/socket_cache';
 
 export default class CommonStore extends BaseStore {
     constructor(root_store) {
@@ -24,19 +23,15 @@ export default class CommonStore extends BaseStore {
         makeObservable(this, {
             addRouteHistoryItem: action.bound,
             allowed_languages: observable,
-            app_id: observable,
             app_router: observable,
             app_routing_history: observable,
             changeCurrentLanguage: action.bound,
             changeSelectedLanguage: action.bound,
             changing_language_timer_id: observable,
-            checkAppId: action.bound,
             current_language: observable,
-            deposit_url: observable,
             error: observable,
             has_error: observable,
             init: action.bound,
-            is_from_derivgo: computed,
             is_language_changing: observable,
             is_network_online: observable,
             is_socket_opened: observable,
@@ -49,7 +44,6 @@ export default class CommonStore extends BaseStore {
             services_error: observable,
             setAppRouterHistory: action.bound,
             setAppstorePlatform: action.bound,
-            setDepositURL: action.bound,
             setError: action.bound,
             setInitialRouteHistoryItem: action.bound,
             setIsSocketOpened: action.bound,
@@ -58,6 +52,7 @@ export default class CommonStore extends BaseStore {
             setSelectedContractType: action.bound,
             setServerTime: action.bound,
             setServicesError: action.bound,
+            resetServicesError: action.bound,
             setWithdrawURL: action.bound,
             showError: action.bound,
             was_socket_opened: observable,
@@ -65,13 +60,11 @@ export default class CommonStore extends BaseStore {
         });
     }
 
-    allowed_languages = Object.keys(getAllowedLanguages());
-    app_id = undefined;
+    allowed_languages = Object.keys(getAllowedLanguages(UNSUPPORTED_LANGUAGES));
     app_router = { history: null };
     app_routing_history = [];
     changing_language_timer_id = '';
-    current_language = currentLanguage;
-    deposit_url = '';
+    current_language = getInitialLanguage();
     has_error = false;
     is_language_changing = false;
     is_network_online = false;
@@ -96,13 +89,6 @@ export default class CommonStore extends BaseStore {
         this.setPlatform();
     }
 
-    checkAppId() {
-        if (this.app_id && this.app_id !== getAppId()) {
-            BinarySocket.closeAndOpenNewConnection();
-        }
-        this.app_id = getAppId();
-    }
-
     changeCurrentLanguage(new_language) {
         if (this.current_language !== new_language) {
             if (this.changing_language_timer_id) clearTimeout(this.changing_language_timer_id);
@@ -115,36 +101,31 @@ export default class CommonStore extends BaseStore {
     }
 
     changeSelectedLanguage = async key => {
+        if (UNSUPPORTED_LANGUAGES.includes(key)) {
+            return Promise.reject(new Error(`Language ${key} is not supported`));
+        }
         SocketCache.clear();
         if (key === 'EN') {
             window.localStorage.setItem('i18n_language', key);
         }
-        await WS.wait('authorize');
-        return new Promise((resolve, reject) => {
-            WS.setSettings({
-                set_settings: 1,
-                preferred_language: key,
-            }).then(async () => {
-                const new_url = new URL(window.location.href);
-                if (key === 'EN') {
-                    new_url.searchParams.delete('lang');
-                } else {
-                    new_url.searchParams.set('lang', key);
-                }
-                window.history.pushState({ path: new_url.toString() }, '', new_url.toString());
-                try {
-                    await initMoment(key);
-                    await changeLanguage(key, () => {
-                        this.changeCurrentLanguage(key);
-                        BinarySocket.closeAndOpenNewConnection(key);
-                        this.root_store.client.setIsAuthorize(false);
-                    });
-                    resolve();
-                } catch (e) {
-                    reject();
-                }
-            });
-        });
+
+        // Update URL with language parameter
+        const new_url = new URL(window.location.href);
+        if (key === 'EN') {
+            new_url.searchParams.delete('lang');
+        } else {
+            new_url.searchParams.set('lang', key);
+        }
+        window.history.pushState({ path: new_url.toString() }, '', new_url.toString());
+
+        // Update i18n and moment locale
+        try {
+            await initMoment(key);
+            await setLocale(key);
+            this.changeCurrentLanguage(key);
+        } catch (e) {
+            return Promise.reject(e);
+        }
     };
 
     setAppstorePlatform(platform) {
@@ -163,10 +144,6 @@ export default class CommonStore extends BaseStore {
         }
     }
 
-    get is_from_derivgo() {
-        return platforms[this.platform]?.platform_name === platforms.derivgo.platform_name;
-    }
-
     setInitialRouteHistoryItem(location) {
         if (window.location.href.indexOf('?ext_platform_url=') !== -1) {
             const ext_url = decodeURI(new URL(window.location.href).searchParams.get('ext_platform_url'));
@@ -175,15 +152,7 @@ export default class CommonStore extends BaseStore {
                 url: ext_url,
                 should_redirect: true,
             });
-            if (ext_url?.indexOf(getUrlSmartTrader()) === 0) {
-                this.addRouteHistoryItem({ pathname: ext_url, action: 'PUSH', is_external: true });
-            } else if (ext_url?.indexOf(routes.cashier_p2p) === 0) {
-                this.addRouteHistoryItem({ pathname: ext_url, action: 'PUSH' });
-            } else if (ext_url?.indexOf(getUrlBinaryBot()) === 0) {
-                this.addRouteHistoryItem({ pathname: ext_url, action: 'PUSH', is_external: true });
-            } else {
-                this.addRouteHistoryItem({ ...location, action: 'PUSH' });
-            }
+            this.addRouteHistoryItem({ ...location, action: 'PUSH' });
 
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
@@ -198,25 +167,14 @@ export default class CommonStore extends BaseStore {
     setIsSocketOpened(is_socket_opened) {
         // note that it's not for account switch that we're doing this,
         // but rather to reset account related stores like portfolio and contract-trade
-        const should_broadcast_account_change = this.was_socket_opened && is_socket_opened;
 
         this.is_socket_opened = is_socket_opened;
         this.was_socket_opened = this.was_socket_opened || is_socket_opened;
-
-        if (should_broadcast_account_change) {
-            this.root_store.client.broadcastAccountChangeAfterAuthorize();
-        }
     }
 
     setNetworkStatus(status, is_online) {
-        if (this.network_status.class) {
-            this.network_status.class = status.class;
-            this.network_status.tooltip = status.tooltip;
-        } else {
-            this.network_status = status;
-        }
+        this.network_status = { ...status };
         this.is_network_online = is_online;
-
         const { addNotificationMessage, client_notifications, removeNotificationMessage } =
             this.root_store.notifications;
         if (!is_online) {
@@ -267,22 +225,20 @@ export default class CommonStore extends BaseStore {
         });
     }
 
-    setDepositURL(deposit_url) {
-        this.deposit_url = deposit_url;
-    }
-
     setWithdrawURL(withdraw_url) {
         this.withdraw_url = withdraw_url;
     }
-
-    setServicesError(error) {
+    resetServicesError() {
+        this.services_error = {};
+    }
+    setServicesError(error, hide_toast = false) {
         this.services_error = error;
         if (isMobile()) {
             if (error.code === 'CompanyWideLimitExceeded' || error.code === 'PleaseAuthenticate') {
                 this.root_store.ui.toggleServicesErrorModal(true);
-            } else {
+            } else if (!hide_toast) {
                 this.root_store.ui.addToast({
-                    content: error.message,
+                    content: mapErrorMessage(error),
                     type: 'error',
                 });
             }
@@ -311,46 +267,7 @@ export default class CommonStore extends BaseStore {
 
     isCurrentLanguage = lang => lang === this.current_language;
 
-    routeBackInApp(history, additional_platform_path = []) {
-        let route_to_item_idx = -1;
-        const route_to_item = this.app_routing_history.find((history_item, idx) => {
-            if (history_item.action === 'PUSH') {
-                if (history_item.is_external) {
-                    return true;
-                }
-
-                const parent_path = history_item.pathname.split('/')[1];
-                const platform_parent_paths = [routes.mt5, routes.bot, routes.trade, routes.dxtrade].map(
-                    i => i.split('/')[1]
-                ); // map full path to just base path (`/mt5/abc` -> `mt5`)
-
-                if (
-                    platform_parent_paths.includes(parent_path) ||
-                    additional_platform_path.includes(history_item.pathname)
-                ) {
-                    route_to_item_idx = idx;
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        if (route_to_item) {
-            if (route_to_item.is_external) {
-                window.location.href = route_to_item.pathname;
-                return;
-            } else if (route_to_item_idx > -1) {
-                this.app_routing_history.splice(0, route_to_item_idx + 1);
-                // remove once p2p is ready
-                const ui_store = this.root_store.ui;
-                if (route_to_item.pathname === routes.cashier_p2p && ui_store.is_mobile)
-                    history.push(`${route_to_item.pathname}/verification`);
-                else history.push(route_to_item.pathname);
-                return;
-            }
-        }
-
-        history.push(routes.trade);
+    routeBackInApp(history) {
+        history.push(routes.index);
     }
 }

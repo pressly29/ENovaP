@@ -1,12 +1,15 @@
 import React from 'react';
-import classNames from 'classnames';
 import { CSSTransition } from 'react-transition-group';
+import classNames from 'classnames';
+
 import { Money, Text } from '@deriv/components';
-import { localize } from '@deriv/translations';
-import AccumulatorsProfitLossText from './accumulators-profit-loss-text';
-import { FastMarker } from 'Modules/SmartChart';
 import { getDecimalPlaces } from '@deriv/shared';
 import { useStore } from '@deriv/stores';
+import { Localize } from '@deriv-com/translations';
+
+import { FastMarker } from 'Modules/SmartChart';
+
+import AccumulatorsProfitLossText from './accumulators-profit-loss-text';
 
 type TContractInfo = ReturnType<typeof useStore>['portfolio']['all_positions'][number]['contract_info'];
 
@@ -27,8 +30,8 @@ const AccumulatorsProfitLossTooltip = ({
     current_spot,
     current_spot_time,
     currency,
-    exit_tick,
-    exit_tick_time,
+    exit_spot,
+    exit_spot_time,
     high_barrier,
     is_sold,
     profit,
@@ -36,10 +39,15 @@ const AccumulatorsProfitLossTooltip = ({
     should_show_profit_text,
     is_mobile,
 }: TAccumulatorsProfitLossTooltip) => {
+    const actual_exit_spot_time = exit_spot_time;
+    const actual_exit_spot = exit_spot;
     const [is_tooltip_open, setIsTooltipOpen] = React.useState(false);
     const won = Number(profit) >= 0;
     const tooltip_timeout = React.useRef<ReturnType<typeof setTimeout>>();
     const should_show_profit_percentage = getDecimalPlaces(currency) > 2 && !!profit_percentage;
+
+    // Create a ref for CSSTransition to fix findDOMNode deprecation warning
+    const node_ref = React.useRef(null);
 
     React.useEffect(() => {
         return () => {
@@ -73,32 +81,33 @@ const AccumulatorsProfitLossTooltip = ({
 
     const onRef = (ref: TRef | null): void => {
         if (ref) {
-            if (!exit_tick) {
+            if (!actual_exit_spot) {
                 // this call will hide the marker:
                 ref.setPosition({ epoch: null, price: null });
             }
-            if (exit_tick_time && exit_tick) {
+            if (actual_exit_spot_time && actual_exit_spot) {
                 ref.setPosition({
-                    epoch: +exit_tick_time,
-                    price: +exit_tick,
+                    epoch: +actual_exit_spot_time,
+                    price: +actual_exit_spot,
                 });
             }
         }
     };
 
-    if (typeof profit !== 'number') return null;
+    if (profit === undefined || isNaN(Number(profit))) return null;
+
     if (!is_sold && current_spot_time && high_barrier && should_show_profit_text)
         return (
             <AccumulatorsProfitLossText
                 currency={currency}
                 current_spot={current_spot}
                 current_spot_time={current_spot_time}
-                profit_value={should_show_profit_percentage ? profit_percentage : profit}
+                profit_value={should_show_profit_percentage ? profit_percentage : Number(profit)}
                 should_show_profit_percentage={should_show_profit_percentage}
             />
         );
 
-    return is_sold && exit_tick_time ? (
+    return is_sold && actual_exit_spot_time ? (
         <FastMarker markerRef={onRef} className={classNames(className, won ? 'won' : 'lost')}>
             <span
                 className={`${className}__spot-circle`}
@@ -115,10 +124,11 @@ const AccumulatorsProfitLossTooltip = ({
                 }}
                 unmountOnExit
                 classNames={`${className}__content`}
+                nodeRef={node_ref}
             >
-                <div className={classNames(`${className}__content`, `arrow-${opposite_arrow_position}`)}>
+                <div ref={node_ref} className={classNames(`${className}__content`, `arrow-${opposite_arrow_position}`)}>
                     <Text size={is_mobile ? 'xxxxs' : 'xxs'} className={`${className}__text`}>
-                        {localize('Total profit/loss:')}
+                        <Localize i18n_default_text='Total profit/loss:' />
                     </Text>
                     <Text size={is_mobile ? 'xxxs' : 'xs'} className={`${className}__text`} weight='bold'>
                         <Money amount={profit} currency={currency} has_sign show_currency />

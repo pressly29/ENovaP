@@ -1,12 +1,13 @@
 import React from 'react';
 import { configure, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CONTRACT_TYPES, mockContractInfo, getCardLabels, isMobile } from '@deriv/shared';
+import { CONTRACT_TYPES, mockContractInfo, getCardLabels } from '@deriv/shared';
+import { useDevice } from '@deriv-com/ui';
 import ContractUpdateForm from '../contract-update-form';
 
-jest.mock('@deriv/shared', () => ({
-    ...jest.requireActual('@deriv/shared'),
-    isMobile: jest.fn(() => false),
+jest.mock('@deriv-com/ui', () => ({
+    ...jest.requireActual('@deriv-com/ui'),
+    useDevice: jest.fn(() => ({ isDesktop: true })),
 }));
 
 const contract_info = mockContractInfo({
@@ -138,12 +139,28 @@ describe('ContractUpdateForm', () => {
         expect(take_profit_checkbox).toBeChecked();
         expect(take_profit_input).toHaveDisplayValue('56');
         expect(apply_button).toBeEnabled();
+    });
+    it(`should allow unchecking checkbox and clicking Apply button`, async () => {
+        const user = userEvent.setup();
+        const new_props = {
+            ...mock_props,
+            current_focus: 'contract_update_take_profit',
+            contract: {
+                ...contract,
+                contract_update_config: { contract_update_stop_loss: '', contract_update_take_profit: '5' },
+                contract_update_take_profit: '56',
+                has_contract_update_take_profit: true,
+            },
+        };
+        render(<ContractUpdateForm {...new_props} />);
+        const take_profit_checkbox = screen.getByRole('checkbox', { name: getCardLabels().TAKE_PROFIT });
+        const apply_button = screen.getByRole('button', { name: getCardLabels().APPLY });
         // when checkbox is unchecked, Apply button should remain enabled:
-        userEvent.click(take_profit_checkbox);
+        await user.click(take_profit_checkbox);
         expect(take_profit_checkbox).not.toBeChecked();
         expect(apply_button).toBeEnabled();
         // when Apply button is clicked, toggleDialog should be called:
-        userEvent.click(apply_button);
+        await user.click(apply_button);
         expect(new_props.toggleDialog).toHaveBeenCalled();
     });
     it(`should render checked Take profit input with checkbox, disabled Apply button & error message
@@ -171,8 +188,26 @@ describe('ContractUpdateForm', () => {
         expect(take_profit_input).toHaveDisplayValue('');
         expect(apply_button).toBeDisabled();
         expect(error_message).toBeInTheDocument();
+    });
+    it(`should call onChange when typing in take profit input`, async () => {
+        const user = userEvent.setup();
+        const new_props = {
+            ...mock_props,
+            current_focus: 'contract_update_take_profit',
+            contract: {
+                ...contract,
+                contract_update_take_profit: '',
+                has_contract_update_take_profit: true,
+                validation_errors: {
+                    contract_update_take_profit: ['Please enter a take profit amount.'],
+                    contract_update_stop_loss: [],
+                },
+            },
+        };
+        render(<ContractUpdateForm {...new_props} />);
+        const take_profit_input = screen.getByRole('textbox');
         // when typing a value, onChange should be called:
-        userEvent.type(take_profit_input, '5');
+        await user.type(take_profit_input, '5');
         expect(new_props.contract.onChange).toHaveBeenCalled();
     });
     it(`should render unchecked Take profit & Stop loss checkboxes with popover icons, inputs and disabled Apply button
@@ -200,7 +235,7 @@ describe('ContractUpdateForm', () => {
         expect(apply_button).toBeDisabled();
     });
     it('should render correct Total profit/loss, unchecked checkboxes without inputs & popover icons on mobile', () => {
-        (isMobile as jest.Mock).mockReturnValue(true);
+        (useDevice as jest.Mock).mockReturnValue({ isDesktop: false });
         const newProps = {
             ...mock_props,
             contract: {

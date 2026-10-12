@@ -1,10 +1,9 @@
 import React from 'react';
 import classNames from 'classnames';
 import { Button, Dropdown, Input, Text } from '@deriv/components';
-import { useLocalStorageData } from '@deriv/hooks';
+import { useLocalStorageData } from '@deriv/api';
 import { useStore } from '@deriv/stores';
 import { useWS } from '@deriv/shared';
-import { getLanguage } from '@deriv/translations';
 import './mock-dialog.scss';
 
 type MockServerStatus = 'online' | 'connecting' | 'offline';
@@ -70,13 +69,13 @@ const MockDialog = () => {
 
     const handleSessionIdChange = (id: string) => {
         if (id) {
-            WS.closeAndOpenNewConnection(getLanguage(), id);
+            WS.closeAndOpenNewConnection(id);
         }
     };
 
     const handleClearAll = () => {
         clearAllData();
-        WS.closeAndOpenNewConnection(getLanguage(), '');
+        WS.closeAndOpenNewConnection('');
     };
 
     const getServerStatus = (): MockServerStatus => {

@@ -9,7 +9,6 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const path = require('path');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
@@ -31,8 +30,10 @@ const {
 } = require('./loaders-config');
 
 const ALIASES = {
+    'react/jsx-runtime.js': 'react/jsx-runtime',
+    'react/jsx-runtime': 'react/jsx-runtime',
     _common: path.resolve(__dirname, '../src/_common'),
-    App: path.resolve(__dirname, '../src/App'),
+    AppV2: path.resolve(__dirname, '../src/AppV2'),
     Assets: path.resolve(__dirname, '../src/Assets'),
     Constants: path.resolve(__dirname, '../src/Constants'),
     Fonts: path.resolve(__dirname, '../src/public/fonts'),
@@ -87,7 +88,7 @@ const rules = (is_test_env = false) => [
         use: html_loaders,
     },
     {
-        test: /\.(png|jpg|gif|woff|woff2|eot|ttf|otf)$/,
+        test: /\.(png|jpg|gif|woff|woff2|eot|ttf|otf|webp)$/,
         exclude: /node_modules/,
         use: file_loaders,
     },
@@ -131,8 +132,7 @@ const plugins = (base, is_test_env) => [
     new IgnorePlugin({ resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/ }),
     new MiniCssExtractPlugin(cssConfig()),
     new CircularDependencyPlugin({ exclude: /node_modules/, failOnError: true }),
-    // Run TypeScript type checking only on release builds to speed up dev builds and avoid test-only type failures.
-    ...(IS_RELEASE ? [new ForkTsCheckerWebpackPlugin()] : []),
+    new ForkTsCheckerWebpackPlugin(),
     ...(IS_RELEASE
         ? []
         : [
@@ -141,11 +141,7 @@ const plugins = (base, is_test_env) => [
                   filter: file => file.name !== 'CNAME',
               }),
           ]),
-    ...(is_test_env
-        ? [new StylelintPlugin(stylelintConfig())]
-        : [
-              // ...(!IS_RELEASE ? [ new BundleAnalyzerPlugin({ analyzerMode: 'static' }) ] : []),
-          ]),
+    ...(is_test_env ? [new StylelintPlugin(stylelintConfig())] : []),
 ];
 
 module.exports = {

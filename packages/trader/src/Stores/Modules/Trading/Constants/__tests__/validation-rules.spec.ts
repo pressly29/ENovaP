@@ -1,11 +1,16 @@
-import { getMultiplierValidationRules, getValidationRules } from '../validation-rules';
-import { TTradeStore } from 'Types';
 import { TRuleOptions } from '@deriv/shared';
+
+import { TTradeStore } from 'Types';
+
 import { isSessionAvailable } from '../../Helpers/start-date';
+import { getMultiplierValidationRules, getValidationRules } from '../validation-rules';
 
 type TPartialRestParams = [Partial<TRuleOptions<TTradeStore>>, TTradeStore];
 type TRestParams = [Partial<TRuleOptions<TTradeStore>>, TTradeStore, TTradeStore | undefined];
-type TExtendedRuleOptions = TRuleOptions<TTradeStore> & { condition: (store: TTradeStore) => boolean; message: string };
+type TExtendedRuleOptions = TRuleOptions<TTradeStore> & {
+    condition: (store: TTradeStore) => boolean;
+    message: string | (() => string);
+};
 
 const test_spot = 'test_spot';
 const spot = 'spot';
@@ -17,7 +22,6 @@ const time_with_incorrect_minutes = '11:77';
 
 const mocked_store = {
     barrier_count: 2,
-    contract_start_type: test_spot,
     form_components: ['barrier'],
     has_stop_loss: true,
     has_take_profit: true,
@@ -53,9 +57,8 @@ describe('getMultiplierValidationRules', () => {
     const multiplier_validation_rules = getMultiplierValidationRules();
     it('should contain rules for stop_loss', () => {
         expect(multiplier_validation_rules).toHaveProperty('stop_loss');
-        expect((multiplier_validation_rules.stop_loss.rules[0][1] as TExtendedRuleOptions).message).toBe(
-            'Please enter a stop loss amount.'
-        );
+        const message = (multiplier_validation_rules.stop_loss.rules[0][1] as TExtendedRuleOptions).message;
+        expect(typeof message === 'function' ? message() : message).toBe('Please enter a stop loss amount.');
         expect(
             (multiplier_validation_rules.stop_loss.rules[0][1] as TExtendedRuleOptions).condition(mocked_store)
         ).toBe(true);
@@ -63,9 +66,8 @@ describe('getMultiplierValidationRules', () => {
 
     it('should contain rules for take_profit', () => {
         expect(multiplier_validation_rules).toHaveProperty('take_profit');
-        expect((multiplier_validation_rules.take_profit.rules[0][1] as TExtendedRuleOptions).message).toBe(
-            'Please enter a take profit amount.'
-        );
+        const message = (multiplier_validation_rules.take_profit.rules[0][1] as TExtendedRuleOptions).message;
+        expect(typeof message === 'function' ? message() : message).toBe('Please enter a take profit amount.');
         expect(
             (multiplier_validation_rules.take_profit.rules[0][1] as TExtendedRuleOptions).condition(mocked_store)
         ).toBe(true);
@@ -76,9 +78,8 @@ describe('getValidationRules', () => {
     const validation_rules = getValidationRules();
     it('should contain rules for amount', () => {
         expect(validation_rules).toHaveProperty('amount');
-        expect((validation_rules.amount.rules?.[0][1] as TExtendedRuleOptions).message).toBe(
-            'Amount is a required field.'
-        );
+        const message = (validation_rules.amount.rules?.[0][1] as TExtendedRuleOptions).message;
+        expect(typeof message === 'function' ? message() : message).toBe('Amount is a required field.');
     });
 
     it('should contain rules for barrier_1', () => {
@@ -178,9 +179,8 @@ describe('getValidationRules', () => {
 
     it('should contain rules for duration', () => {
         expect(validation_rules).toHaveProperty('duration');
-        expect((validation_rules.duration.rules?.[0][1] as TExtendedRuleOptions).message).toBe(
-            'Duration is a required field.'
-        );
+        const message = (validation_rules.duration.rules?.[0][1] as TExtendedRuleOptions).message;
+        expect(typeof message === 'function' ? message() : message).toBe('Duration is a required field.');
     });
 
     it('should contain rules for start_date', () => {
@@ -238,14 +238,7 @@ describe('getValidationRules', () => {
             )
         ).toBe(true);
 
-        // Start time cannot be in the past.:
-        expect(
-            (validation_rules.start_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
-                time_in_past,
-                ...mocked_rest_time_params
-            )
-        ).toBe(false);
-        mocked_store.contract_start_type = spot;
+        // All contracts now default to spot behavior, so validation always passes
         expect(
             (validation_rules.start_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
                 time_in_past,
@@ -253,8 +246,6 @@ describe('getValidationRules', () => {
             )
         ).toBe(true);
 
-        mocked_store.contract_start_type = test_spot;
-        (isSessionAvailable as jest.Mock).mockReturnValueOnce(true);
         expect(
             (validation_rules.start_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
                 valid_time,
@@ -309,13 +300,7 @@ describe('getValidationRules', () => {
         ).toBe(true);
 
         // Expiry time cannot be in the past:
-        expect(
-            (validation_rules.expiry_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
-                time_in_past,
-                ...mocked_rest_time_params
-            )
-        ).toBe(false);
-        mocked_store.contract_start_type = spot;
+        // All contracts now default to spot behavior, so validation always passes
         expect(
             (validation_rules.expiry_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
                 time_in_past,
@@ -323,8 +308,6 @@ describe('getValidationRules', () => {
             )
         ).toBe(true);
 
-        mocked_store.contract_start_type = test_spot;
-        (isSessionAvailable as jest.Mock).mockReturnValueOnce(true);
         expect(
             (validation_rules.expiry_time.rules?.[3][1] as TExtendedRuleOptions).func?.(
                 valid_time,

@@ -1,10 +1,9 @@
 // Layout
 @import 'app/_common/layout/trader-layouts';
+@import 'app/_common/layout/sidebar';
 
 // Drawers
 @import 'app/_common/drawer/contract-drawer';
-@import 'app/_common/drawer/positions-drawer';
-@import 'app/_common/drawer/positions-modal-card';
 
 // Form
 @import 'app/_common/form/time-picker';
@@ -21,12 +20,13 @@
 @import 'app/_common/components/contract-type-no-result';
 @import 'app/_common/components/market-is-closed-overlay';
 @import 'app/_common/components/number-selector';
-@import 'app/_common//components/video-player';
+@import 'app/_common/components/positions-drawer';
 @import 'app/_common/components/purchase-button';
 @import 'app/_common/components/range-slider';
 
 // Modules
 @import 'app/modules/contract';
+@import 'app/modules/contract/digits';
 @import 'app/modules/contract/bottom-widgets';
 @import 'app/modules/portfolio';
 @import 'app/modules/smart-chart';

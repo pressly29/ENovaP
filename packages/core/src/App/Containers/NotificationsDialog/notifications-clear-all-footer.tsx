@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { Button, Text } from '@deriv/components';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import { observer, useStore } from '@deriv/stores';
 
 type TNotificationsClearAllFooter = {
@@ -28,7 +28,7 @@ const NotificationsClearAllFooter = observer(({ clearNotifications }: TNotificat
                     disabled={is_notifications_empty}
                     onClick={clearNotifications}
                 >
-                    <Text size='xxs' color='prominent' weight='bold'>
+                    <Text size='xxs' color='primary' weight='bold'>
                         <Localize i18n_default_text='Clear All' />
                     </Text>
                 </Button>

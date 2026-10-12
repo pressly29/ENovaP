@@ -1,11 +1,12 @@
 import React from 'react';
 import classNames from 'classnames';
-import { matchStringByChar, getPosition, getSearchNotFoundOption } from '@deriv/shared';
-import Icon from '../icon';
+import { matchStringByChar, getPosition } from '@deriv/shared';
+import { LegacyChevronDown1pxIcon } from '@deriv/quill-icons';
 import Input from '../input';
 import DropdownList, { TItem } from '../dropdown-list';
 import { useBlockScroll } from '../../hooks/use-blockscroll';
 import { getEnglishCharacters } from '../../../utils/helper';
+import { localize } from '@deriv-com/translations';
 
 type TAutocompleteProps = {
     autoComplete: string;
@@ -36,6 +37,10 @@ type TAutocompleteProps = {
     data_testid: string;
     readOnly?: boolean;
 };
+/**
+ * Returns default value for the text to render when there are no matching results.
+ */
+export const getSearchNotFoundOption = () => localize('No results found');
 
 const KEY_CODE = {
     ENTER: 13,
@@ -352,13 +357,14 @@ const Autocomplete = React.memo((props: TAutocompleteProps) => {
                         other_props.trailing_icon ? (
                             other_props.trailing_icon
                         ) : (
-                            <Icon
-                                icon='IcChevronDown'
-                                className={{
+                            <LegacyChevronDown1pxIcon
+                                className={classNames({
                                     'dc-autocomplete__trailing-icon': true,
                                     'dc-autocomplete__trailing-icon--opened': should_show_list,
                                     'dc-autocomplete__trailing-icon--disabled': other_props.disabled,
-                                }}
+                                })}
+                                iconSize='xs'
+                                fill='var(--color-text-primary)'
                             />
                         )
                     }

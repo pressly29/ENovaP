@@ -1,21 +1,45 @@
 import { removeCookies } from '@deriv/shared';
-import SocketCache from '_common/base/socket_cache';
+
 import WS from './ws-methods';
 
-export const requestLogout = () => WS.logout().then(doLogout);
+import { clearTokens } from './oauth';
+import SocketCache from '_common/base/socket_cache';
 
-function endChat() {
-    window.LC_API?.close_chat?.();
-}
+/**
+ * Log out via WebSocket { logout: 1 } message (v4), then clear all local state.
+ * The function name is kept as requestRestLogout for backward compatibility with
+ * client-store.js which calls it directly.
+ */
+export const requestRestLogout = async () => {
+    try {
+        // v4: server invalidates the session on receiving { logout: 1 }
+        await WS.logout();
+    } catch (e) {
+        // Continue cleanup even if the WS call fails (e.g. already disconnected)
+    }
 
-const doLogout = response => {
-    if (response.logout !== 1) return undefined;
-    removeCookies('affiliate_token', 'affiliate_tracking', 'onfido_token');
+    // Clear OAuth tokens
+    clearTokens();
+
+    // Clear all other auth-related storage
+    removeCookies('affiliate_token', 'affiliate_tracking', 'onfido_token', 'gclid', 'utm_data');
     localStorage.removeItem('closed_toast_notifications');
-    localStorage.removeItem('is_wallet_migration_modal_closed');
-    localStorage.removeItem('active_wallet_loginid');
+    localStorage.removeItem('config.account1');
+    localStorage.removeItem('config.tokens');
+    localStorage.removeItem('verification_code.system_email_change');
+    localStorage.removeItem('verification_code.request_email');
+    localStorage.removeItem('new_email.system_email_change');
+    localStorage.removeItem('active_loginid');
+    localStorage.removeItem('active_user_id');
+    localStorage.removeItem('current_account');
+
+    // Write cross-tab logout sentinel — initStore.js storage listener picks this up
+    localStorage.setItem('logout_event', String(Date.now()));
+
     SocketCache.clear();
-    sessionStorage.clear();
-    endChat();
-    return response;
+    Object.keys(sessionStorage)
+        .filter(key => key !== 'trade_store')
+        .forEach(key => sessionStorage.removeItem(key));
+
+    return { logout: 1 };
 };

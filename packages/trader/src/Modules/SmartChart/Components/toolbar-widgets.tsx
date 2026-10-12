@@ -1,20 +1,27 @@
 import React from 'react';
-import { isDesktop } from '@deriv/shared';
-import { ChartMode, DrawTools, Share, StudyLegend, Views, ToolbarWidget } from 'Modules/SmartChart';
+
+import { isDesktopOs, isTabletOs } from '@deriv/shared';
+import { useDevice } from '@deriv-com/ui';
+
+import { ChartMode, DrawTools, Share, StudyLegend, ToolbarWidget, Views } from 'Modules/SmartChart';
 
 type TToolbarWidgetsProps = {
-    is_mobile?: boolean;
     position?: string;
     updateChartType: (type: string) => void;
     updateGranularity: (granularity: number) => void;
 };
 
-const ToolbarWidgets = ({ is_mobile, position, updateChartType, updateGranularity }: TToolbarWidgetsProps) => {
+const ToolbarWidgets = ({ position, updateChartType, updateGranularity }: TToolbarWidgetsProps) => {
+    const { isMobile } = useDevice();
+    const is_real_desktop_device = isDesktopOs() && !isTabletOs; // in a tablet simulator on desktop, isDesktopOs returns true
+
     return (
-        <ToolbarWidget position={position || (is_mobile ? 'bottom' : null)}>
+        <ToolbarWidget position={position || (isMobile ? 'bottom' : null)}>
             <ChartMode portalNodeId='modal_root' onChartType={updateChartType} onGranularity={updateGranularity} />
-            {isDesktop() && <StudyLegend portalNodeId='modal_root' searchInputClassName='data-hj-whitelist' />}
-            {isDesktop() && (
+            {is_real_desktop_device && !isMobile && (
+                <StudyLegend portalNodeId='modal_root' searchInputClassName='data-hj-whitelist' />
+            )}
+            {!isMobile && (
                 <Views
                     portalNodeId='modal_root'
                     searchInputClassName='data-hj-whitelist'
@@ -22,8 +29,8 @@ const ToolbarWidgets = ({ is_mobile, position, updateChartType, updateGranularit
                     onGranularity={updateGranularity}
                 />
             )}
-            {isDesktop() && <DrawTools portalNodeId='modal_root' />}
-            {isDesktop() && <Share portalNodeId='modal_root' />}
+            <DrawTools portalNodeId='modal_root' />
+            {is_real_desktop_device && !isMobile && <Share portalNodeId='modal_root' />}
         </ToolbarWidget>
     );
 };

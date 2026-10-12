@@ -1,17 +1,19 @@
 import debounce from 'lodash.debounce';
-import { action, computed, observable, runInAction, makeObservable, override } from 'mobx';
-import { filterDisabledPositions, toMoment, WS } from '@deriv/shared';
+import { action, computed, makeObservable, observable, override, reaction } from 'mobx';
+
+import { filterDisabledPositions, mapErrorMessage, toMoment, WS } from '@deriv/shared';
+
+import BaseStore from '../../base-store';
+import getDateBoundaries from '../Profit/Helpers/format-request';
 
 import { formatStatementTransaction } from './Helpers/format-response';
-import getDateBoundaries from '../Profit/Helpers/format-request';
-import BaseStore from '../../base-store';
 
 const batch_size = 100; // request response limit
 const delay_on_scroll_time = 150; // fetch debounce delay on scroll
 
 export default class StatementStore extends BaseStore {
     data = [];
-    is_loading = false;
+    is_loading = true;
     has_loaded_all = false;
     date_from = null;
     date_to = toMoment().startOf('day').add(1, 'd').subtract(1, 's').unix();
@@ -28,6 +30,10 @@ export default class StatementStore extends BaseStore {
     constructor({ root_store }) {
         // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
         super({ root_store });
+
+        // Initialize disposers for cleanup
+        this.loginReactionDisposer = null;
+        this.reconnectHandler = null;
 
         makeObservable(this, {
             data: observable,
@@ -49,8 +55,6 @@ export default class StatementStore extends BaseStore {
             handleDateChange: action.bound,
             handleFilterChange: action.bound,
             handleScroll: action.bound,
-            loadAccountStatistics: action.bound,
-            accountSwitcherListener: action.bound,
             networkStatusChangeListener: action.bound,
             onMount: action.bound,
             onUnmount: override,
@@ -109,18 +113,12 @@ export default class StatementStore extends BaseStore {
 
     statementHandler(response, should_load_partially) {
         if ('error' in response) {
-            this.error = response.error.message;
+            this.error = mapErrorMessage(response.error);
             return;
         }
 
         const formatted_transactions = response.statement.transactions
-            .map(transaction =>
-                formatStatementTransaction(
-                    transaction,
-                    this.root_store.client.currency,
-                    this.root_store.active_symbols.active_symbols
-                )
-            )
+            .map(transaction => formatStatementTransaction(transaction, this.root_store.client.currency))
             .filter(filterDisabledPositions);
 
         if (should_load_partially) {
@@ -171,55 +169,61 @@ export default class StatementStore extends BaseStore {
         this.fetchOnScroll(left_to_scroll);
     }
 
-    async loadAccountStatistics() {
-        this.account_statistics = {};
-        const { client } = this.root_store;
-        const is_mx_mlt = client.standpoint.iom || client.standpoint.malta;
-        if (is_mx_mlt) {
-            const response_account_statistics = await WS.accountStatistics();
-            runInAction(() => {
-                if (response_account_statistics.error) {
-                    this.account_statistics = {};
-                    return;
-                }
-
-                this.account_statistics = response_account_statistics.account_statistics;
-            });
-        }
-    }
-
-    accountSwitcherListener() {
-        return new Promise(resolve => {
-            this.clearTable();
-            this.clearDateFilter();
-            this.loadAccountStatistics();
-            return resolve(this.fetchNextBatch());
-        });
-    }
-
     networkStatusChangeListener(is_online) {
-        this.is_loading = !is_online;
+        this.is_loading = this.is_loading || !is_online;
     }
 
-    async onMount() {
+    onMount() {
         this.assertHasValidCache(
             this.client_loginid,
             this.clearDateFilter,
-            this.clearTable,
+            this.client_loginid ? this.clearTable : () => null,
             WS.forgetAll.bind(null, 'proposal')
         );
         this.client_loginid = this.root_store.client.loginid;
-        this.onSwitchAccount(this.accountSwitcherListener);
         this.onNetworkStatusChange(this.networkStatusChangeListener);
-        await WS.wait('authorize');
-        this.fetchNextBatch(true);
-        this.loadAccountStatistics();
+
+        // Check current state first to handle both initial connection and reconnection
+        if (this.root_store.client.is_logged_in) {
+            this.fetchNextBatch(true);
+        } else if (!this.loginReactionDisposer) {
+            // Only create reaction if one doesn't exist
+            this.loginReactionDisposer = reaction(
+                () => this.root_store.client.is_logged_in,
+                () => {
+                    if (this.root_store.client.is_logged_in) {
+                        this.fetchNextBatch(true);
+                    }
+                }
+            );
+        }
+
+        // Add reconnection handler - onReconnect is only called when account_id exists
+        // Store the handler so we can remove it later
+        if (!this.reconnectHandler) {
+            this.reconnectHandler = () => {
+                this.clearTable();
+                this.fetchNextBatch(true);
+            };
+            WS.setOnReconnect(this.reconnectHandler);
+        }
     }
 
     /* DO NOT call clearDateFilter() upon unmounting the component, date filters should stay
     as we change tab or click on any contract for later references as discussed with UI/UX and QA */
     onUnmount() {
-        this.disposeSwitchAccount();
         WS.forgetAll('proposal');
+
+        // Dispose MobX reaction to prevent memory leak
+        if (this.loginReactionDisposer) {
+            this.loginReactionDisposer();
+            this.loginReactionDisposer = null;
+        }
+
+        // Remove reconnection handler
+        if (this.reconnectHandler) {
+            WS.removeOnReconnect(this.reconnectHandler);
+            this.reconnectHandler = null;
+        }
     }
 }

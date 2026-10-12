@@ -20,18 +20,18 @@ $FONT_SIZES: (
 );
 
 $FONT_COLORS: (
-    'active' var(--text-colored-background),
-    'prominent' var(--text-prominent),
-    'black' var(--text-general),
-    'grey' var(--text-less-prominent),
-    'disabled' var(--text-disabled),
-    'green' var(--text-profit-success),
-    'red' var(--text-loss-danger)
+    'primary' var(--color-text-primary),
+    'white' var(--color-text-white),
+    'black' var(--color-text-black),
+    'secondary' var(--color-text-secondary),
+    'disabled' var(--color-text-disabled),
+    'success' var(--color-text-success),
+    'danger' var(--color-text-danger)
 );
 
 $FONT_WEIGHTS: ('bold' 700, 'semibold' 500, 'normal' 400, 'light' 300);
 
-$TEXT_ALIGN: ('center' center, 'left' left, 'right' right);
+$TEXT_ALIGN: ('center' center, 'left' start, 'right' end);
 
 $LINEHEIGHTS: (
     'large': 1.75,

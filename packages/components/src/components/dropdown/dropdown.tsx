@@ -9,7 +9,7 @@ import DisplayText from './display-text';
 import Text from '../text/text';
 import { useBlockScroll, useOnClickOutside } from '../../hooks';
 import ThemedScrollbars from '../themed-scrollbars/themed-scrollbars';
-import Icon from '../icon/icon';
+import { LegacyChevronLeft1pxIcon, LegacyChevronDown1pxIcon } from '@deriv/quill-icons';
 
 type TDropdown = {
     className?: string;
@@ -43,9 +43,12 @@ type TDropdown = {
     onChange?: (e: { target: { name: string; value: string } }) => void;
     onClick?: () => void;
     placeholder?: string;
-    suffix_icon?: string;
+    should_animate_suffix_icon?: boolean;
+    suffix_icon?: React.ReactElement;
+    suffix_icon_size?: string;
     should_open_on_hover?: boolean;
     should_scroll_to_selected?: boolean;
+    should_auto_close_dropdown_list?: boolean;
     should_autohide?: boolean;
     test_id?: string;
     value?: string | number;
@@ -69,7 +72,8 @@ type TDropdownList = {
     onKeyPressed: (event: KeyboardEvent, item: TListItem) => void;
     parent_ref: React.RefObject<HTMLElement>;
     portal_id?: string;
-    suffix_icon?: string;
+    suffix_icon?: React.ReactElement;
+    suffix_icon_size?: string;
     should_scroll_to_selected?: boolean;
     should_autohide?: boolean;
     value?: string | number;
@@ -181,6 +185,8 @@ const DropdownList = React.forwardRef<HTMLDivElement, TDropdownList>((props, lis
         return undefined;
     };
 
+    const transition_ref = React.useRef(null);
+
     const el_dropdown_list = (
         <CSSTransition
             in={is_list_visible}
@@ -188,8 +194,9 @@ const DropdownList = React.forwardRef<HTMLDivElement, TDropdownList>((props, lis
             classNames={transitionClassName()}
             onEntered={setListDimension}
             unmountOnExit
+            nodeRef={transition_ref}
         >
-            <div style={style} className={dropdownListClassName()}>
+            <div ref={transition_ref} style={style} className={dropdownListClassName()}>
                 <div
                     className={listClassNames()}
                     style={getDropDownAlignment()}
@@ -276,8 +283,11 @@ const Dropdown = ({
     onClick,
     placeholder,
     suffix_icon,
+    should_animate_suffix_icon = false,
+    suffix_icon_size = 'xs',
     should_open_on_hover = false,
     should_scroll_to_selected,
+    should_auto_close_dropdown_list,
     should_autohide,
     test_id,
     value,
@@ -325,6 +335,12 @@ const Dropdown = ({
             'dc-dropdown__display--is-left-text': is_align_text_left,
         });
     };
+
+    React.useEffect(() => {
+        if (should_auto_close_dropdown_list) {
+            setIsListVisible(false);
+        }
+    }, [should_auto_close_dropdown_list]);
 
     React.useEffect(() => {
         if (is_nativepicker && !is_nativepicker_visible && is_list_visible) {
@@ -487,7 +503,14 @@ const Dropdown = ({
                         id='dropdown-display'
                         ref={dropdown_ref}
                     >
-                        {!!suffix_icon && <Icon className='suffix-icon' icon={suffix_icon} size={16} />}
+                        {!!suffix_icon &&
+                            React.cloneElement(suffix_icon, {
+                                className: classNames('suffix-icon', {
+                                    'suffix-icon--flip': is_list_visible && should_animate_suffix_icon,
+                                }),
+                                iconSize: suffix_icon_size,
+                                fill: 'var(--color-text-primary)',
+                            })}
                         <DisplayText
                             className={classNames({
                                 'dc-dropdown__display--has-suffix-icon-text': suffix_icon,
@@ -500,18 +523,30 @@ const Dropdown = ({
                             list={list}
                         />
                     </div>
-                    {!(isSingleOption() || !!suffix_icon) && (
-                        <Icon
-                            icon={is_alignment_left ? 'IcChevronLeft' : 'IcChevronDown'}
-                            className={classNames('dc-dropdown__select-arrow', classNameIcon, {
-                                'dc-dropdown__select-arrow--left': is_alignment_left,
-                                'dc-dropdown__select-arrow--up': is_list_visible,
-                                'dc-dropdown__select-arrow--error': error || hint,
-                            })}
-                        />
-                    )}
+                    {!(isSingleOption() || !!suffix_icon) &&
+                        (is_alignment_left ? (
+                            <LegacyChevronLeft1pxIcon
+                                className={classNames('dc-dropdown__select-arrow', classNameIcon, {
+                                    'dc-dropdown__select-arrow--left': is_alignment_left,
+                                    'dc-dropdown__select-arrow--up': is_list_visible,
+                                    'dc-dropdown__select-arrow--error': error || hint,
+                                })}
+                                iconSize='xs'
+                                fill='var(--color-text-primary)'
+                            />
+                        ) : (
+                            <LegacyChevronDown1pxIcon
+                                className={classNames('dc-dropdown__select-arrow', classNameIcon, {
+                                    'dc-dropdown__select-arrow--left': is_alignment_left,
+                                    'dc-dropdown__select-arrow--up': is_list_visible,
+                                    'dc-dropdown__select-arrow--error': error || hint,
+                                })}
+                                iconSize='xs'
+                                fill='var(--color-text-primary)'
+                            />
+                        ))}
                     {error && (
-                        <Text as='p' size='xxs' color='loss-danger' className='dc-field--error'>
+                        <Text as='p' size='xxs' color='var(--color-status-danger)' className='dc-field--error'>
                             {error}
                         </Text>
                     )}

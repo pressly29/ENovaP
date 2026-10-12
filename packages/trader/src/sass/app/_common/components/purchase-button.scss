@@ -1,7 +1,7 @@
 /** @define btn-purchase */
 .btn-purchase {
     position: relative;
-    background-color: var(--purchase-section-1);
+    background-color: var(--color-trade-buy-bg);
     overflow: hidden;
     height: 56px;
     width: 100%;
@@ -19,7 +19,7 @@
     outline: 0;
     font-size: 1rem;
 
-    @include mobile {
+    @include mobile-screen {
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
@@ -59,8 +59,8 @@
             padding: 0.8rem;
             width: 100%;
             height: 100%;
-            color: var(--text-colored-background);
-            background-color: var(--status-danger);
+            color: var(--color-surface-primary);
+            background-color: var(--color-status-danger);
             justify-content: center;
             align-items: center;
             line-height: 1.4;
@@ -72,44 +72,43 @@
         }
     }
 
+    &__icon path {
+        fill: var(--color-text-white);
+    }
+
     &__icon_wrapper {
         @extend %inline-icon-white;
         /* postcss-bem-linter: ignore */
         .color1-fill {
-            fill: var(--text-colored-background);
+            fill: var(--color-surface-primary);
         }
         /* postcss-bem-linter: ignore */
         .color2-fill {
-            fill: var(--text-colored-background);
+            fill: var(--color-surface-primary);
         }
-        @include mobile {
+        @include mobile-screen {
             margin-right: 0.5rem;
         }
     }
     &__info {
-        color: var(--text-colored-background);
+        color: var(--color-surface-primary);
         text-align: left;
         position: relative;
         display: flex;
         flex-grow: 1;
         align-items: center;
-        padding-left: 10px;
+        padding-inline-start: 10px;
         height: 56px;
     }
     &__info--left {
-        background-color: var(--purchase-main-1);
+        background-color: var(--color-trade-buy);
         width: 40%;
         transition: transform linear 0.25s;
         z-index: 2;
-
-        .btn-purchase__text_wrapper {
-            margin-left: 24px;
-            position: absolute;
-        }
     }
     &__info--right {
         width: 45%;
-        padding-right: 1rem;
+        padding-inline-end: 1rem;
         background-color: transparent;
         display: flex;
         justify-content: flex-end;
@@ -121,7 +120,7 @@
     }
     &__effect-detail {
         position: absolute;
-        background-color: var(--purchase-main-1);
+        background-color: var(--color-trade-buy);
         transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         width: 116px;
         height: 100%;
@@ -133,8 +132,8 @@
         transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         transform: rotate(45deg);
         height: 100%;
-        background: var(--purchase-main-1);
-        left: 80px;
+        background: var(--color-trade-buy);
+        inset-inline-start: 80px;
         position: absolute;
         top: 0;
         bottom: 0;
@@ -150,10 +149,14 @@
     &__type-wrapper {
         display: flex;
         align-items: center;
+        gap: 0.4rem;
         transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         transform: none;
     }
     &__shadow-wrapper {
+        @include rtl {
+            direction: rtl;
+        }
         position: relative;
 
         .btn-purchase__box-shadow {
@@ -163,7 +166,7 @@
             height: 50%;
             z-index: 0;
             opacity: 0.9;
-            box-shadow: 0 16px 14px 0 var(--shadow-menu);
+            box-shadow: 0 16px 14px 0 var(--color-shadow-medium);
             transition: opacity 0.25s linear;
             pointer-events: none;
         }
@@ -194,80 +197,80 @@
         }
     }
     &--1 {
-        background-color: var(--purchase-section-1);
+        background-color: var(--color-trade-buy-bg);
 
         .btn-purchase__info--left {
-            background-color: var(--purchase-main-1);
+            background-color: var(--color-trade-buy);
         }
         .btn-purchase__effect-detail {
-            background: var(--purchase-main-1);
+            background: var(--color-trade-buy);
 
             &--arrow {
-                background: var(--purchase-main-1);
+                background: var(--color-trade-buy);
             }
         }
 
-        @include mobile {
-            background: var(--purchase-section-1);
+        @include mobile-screen {
+            background: var(--color-trade-buy-bg);
             background: linear-gradient(
                 0deg,
-                var(--purchase-section-1) 0%,
-                var(--purchase-section-1) 50%,
-                var(--purchase-main-1) 50%,
-                var(--purchase-main-1) 100%
+                var(--color-trade-buy-bg) 0%,
+                var(--color-trade-buy-bg) 50%,
+                var(--color-trade-buy) 50%,
+                var(--color-trade-buy) 100%
             );
-        }
-
-        &__vanilla-opts {
-            @include mobile {
-                background: var(--purchase-section-1);
-                background: linear-gradient(
-                    0deg,
-                    var(--purchase-section-1) 0%,
-                    var(--purchase-section-1) 15%,
-                    var(--purchase-main-1) 15%,
-                    var(--purchase-main-1) 100%
-                );
-            }
         }
     }
     &--2 {
-        background-color: var(--purchase-section-2);
+        background-color: var(--color-trade-sell-bg);
 
         .btn-purchase__info--left {
-            background-color: var(--purchase-main-2);
+            background-color: var(--color-trade-sell);
         }
         .btn-purchase__effect-detail {
-            background: var(--purchase-main-2);
+            background: var(--color-trade-sell);
 
             &--arrow {
-                background: var(--purchase-main-2);
+                background: var(--color-trade-sell);
             }
         }
         @include mobile {
-            background: var(--purchase-section-2);
+            background: var(--color-trade-sell-bg);
             background: linear-gradient(
                 0deg,
-                var(--purchase-section-2) 0%,
-                var(--purchase-section-2) 50%,
-                var(--purchase-main-2) 50%,
-                var(--purchase-main-2) 100%
+                var(--color-trade-sell-bg) 0%,
+                var(--color-trade-sell-bg) 50%,
+                var(--color-trade-sell) 50%,
+                var(--color-trade-sell) 100%
             );
         }
+    }
 
-        &__vanilla-opts {
-            @include mobile {
-                background: var(--purchase-section-1);
+    &--has-bottom-gradient {
+        @include mobile-screen {
+            &-1 {
+                background: var(--color-trade-buy-bg);
                 background: linear-gradient(
                     0deg,
-                    var(--purchase-section-2) 0%,
-                    var(--purchase-section-2) 15%,
-                    var(--purchase-main-2) 15%,
-                    var(--purchase-main-2) 100%
+                    var(--color-trade-buy-bg) 0%,
+                    var(--color-trade-buy-bg) 15%,
+                    var(--color-trade-buy) 15%,
+                    var(--color-trade-buy) 100%
+                );
+            }
+            &-2 {
+                background: var(--color-trade-sell-bg);
+                background: linear-gradient(
+                    0deg,
+                    var(--color-trade-sell-bg) 0%,
+                    var(--color-trade-sell-bg) 15%,
+                    var(--color-trade-sell) 15%,
+                    var(--color-trade-sell) 100%
                 );
             }
         }
     }
+
     &--disabled,
     &[disabled] {
         cursor: default;
@@ -319,7 +322,7 @@
             flex: none;
         }
         .btn-purchase__effect-detail--arrow {
-            left: 40px;
+            inset-inline-start: 40px;
         }
         &.btn-purchase--swoosh {
             .btn-purchase {
@@ -344,11 +347,11 @@
             }
         }
         .trade-container__price-info {
-            @include mobile {
+            @include mobile-screen {
                 justify-content: center;
             }
         }
-        @include mobile {
+        @include mobile-screen {
             &-deal-cancel {
                 height: 64px;
             }
@@ -359,15 +362,15 @@
             &__info {
                 &--left {
                     width: 65%;
-                    padding-left: 1.6rem;
+                    padding-inline-start: 1.6rem;
                 }
                 &--right {
                     width: 30%;
-                    padding-right: 1.6rem;
+                    padding-inline-end: 1.6rem;
                 }
             }
             &__effect-detail--arrow {
-                left: 11rem;
+                inset-inline-start: 11rem;
             }
         }
         &.btn-purchase--swoosh {
@@ -383,15 +386,7 @@
                 }
             }
         }
-        @include mobile {
-            background: var(--purchase-section-1);
-            background: linear-gradient(
-                0deg,
-                var(--purchase-section-1) 0%,
-                var(--purchase-section-1) 15%,
-                var(--purchase-main-1) 15%,
-                var(--purchase-main-1) 100%
-            );
+        @include mobile-screen {
             .btn-purchase {
                 &__bottom,
                 &__top {
@@ -411,10 +406,10 @@
             }
             &__effect-detail {
                 &--arrow {
-                    left: 12rem;
+                    inset-inline-start: 12rem;
                 }
             }
-            @include mobile {
+            @include mobile-screen {
                 &__top {
                     align-items: center;
                     width: auto;

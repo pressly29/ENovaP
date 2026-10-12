@@ -25,7 +25,7 @@ const useInfiniteQuery = <T extends TSocketPaginateableEndpointNames>(
     const initial_offset = payload?.offset || 0;
     const limit = payload?.limit || 50;
 
-    return _useInfiniteQuery<TSocketResponseData<T>, TSocketError<T>>(
+    return _useInfiniteQuery<TSocketResponseData<T>, TSocketError<T>['error']>(
         getQueryKeys(name, payload),
 
         ({ pageParam = 0 }) =>
@@ -33,7 +33,7 @@ const useInfiniteQuery = <T extends TSocketPaginateableEndpointNames>(
                 ...payload,
                 limit,
                 offset: pageParam * limit + initial_offset,
-            } as unknown as TSocketRequestPayload<T>),
+            } as TSocketRequestPayload<T>['payload']),
         {
             ...options,
             getNextPageParam: options?.getNextPageParam ? options.getNextPageParam : (_lastPage, pages) => pages.length,

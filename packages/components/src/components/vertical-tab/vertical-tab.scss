@@ -1,11 +1,3 @@
-$MIN_HEIGHT_FULL_SCREEN: calc(100vh - #{$HEADER_HEIGHT + $FOOTER_HEIGHT});
-
-$FLOATING_PADDING: 2.4rem;
-$FLOATING_HEADER_HEIGHT: 53px;
-$MIN_HEIGHT_FLOATING: calc(
-    100vh - #{$HEADER_HEIGHT} - #{$FOOTER_HEIGHT} - #{$FLOATING_HEADER_HEIGHT} - #{$FLOATING_PADDING}
-);
-
 .dc-vertical-tab {
     display: flex;
     align-items: flex-start;
@@ -13,9 +5,6 @@ $MIN_HEIGHT_FLOATING: calc(
     border-radius: $BORDER_RADIUS;
     height: 100%;
 
-    &:not(&--floating) {
-        background-color: var(--general-section-1);
-    }
     &--floating {
         justify-content: center;
     }
@@ -28,7 +17,7 @@ $MIN_HEIGHT_FLOATING: calc(
     &__title {
         grid-area: form-title;
         height: 5rem;
-        border-top: 1px solid var(--general-section-1);
+        border-top: 1px solid var(--color-surface-border);
     }
     &__content-container {
         position: relative;
@@ -38,24 +27,25 @@ $MIN_HEIGHT_FLOATING: calc(
         display: flex;
         flex-flow: column nowrap;
         flex-grow: 1;
-    }
-    &__content-inner {
-        position: absolute;
-        z-index: 0;
-        height: 100%;
-        width: 100%;
-        display: flex;
+
+        &--has-side-note {
+            flex-flow: unset;
+        }
     }
     &--full-screen {
-        min-height: $MIN_HEIGHT_FULL_SCREEN;
+        min-height: calc(100svh - 5.4rem - 2.4rem); // 5.4rem for header + page overlay padding
         width: 100%;
 
-        // .dc-vertical-tab__tab {
-        //     min-width: 15%;
-        // }
+        @include mobile-or-tablet-screen {
+            min-height: calc(100svh - 4rem - 2.4rem); // 4rem for mobile header + page overlay padding
+        }
     }
     &--full-screen.dc-vertical-tab--floating {
-        min-height: $MIN_HEIGHT_FLOATING;
+        min-height: calc(100svh - 5.4rem - 2.4rem); // 5.4rem for header + page overlay padding
+
+        @include mobile-or-tablet-screen {
+            min-height: calc(100svh - 4rem - 2.4rem); // 4rem for mobile header + page overlay padding
+        }
     }
     &:not(.dc-vertical-tab--full-screen):not(.dc-vertical-tab--floating) {
         // height: 600px;
@@ -80,7 +70,7 @@ $MIN_HEIGHT_FLOATING: calc(
             margin-left: auto;
 
             &:hover {
-                background: var(--general-hover);
+                background: var(--color-interactive-hover);
             }
         }
     }
@@ -90,7 +80,7 @@ $MIN_HEIGHT_FLOATING: calc(
         height: 100%;
         flex-direction: column;
         border-radius: $BORDER_RADIUS 0 0 $BORDER_RADIUS;
-        background-color: var(--general-section-1);
+        background-color: var(--color-surface-section);
         position: relative;
 
         &--floating {
@@ -155,7 +145,7 @@ $MIN_HEIGHT_FLOATING: calc(
     &__header-group {
         @include typeface(--paragraph-left-bold-black, none);
         line-height: 1.5;
-        color: var(--text-general);
+        color: var(--color-text-primary);
         padding: 1rem 1.2rem 1rem 1.6rem;
         cursor: pointer;
         display: flex;
@@ -166,7 +156,7 @@ $MIN_HEIGHT_FLOATING: calc(
         user-select: none;
 
         &:hover:not(.dc-vertical-tab__header--active):not(.dc-vertical-tab__header-group--active) {
-            background-color: var(--state-hover);
+            background-color: var(--color-interactive-hover);
         }
         &__link {
             font-weight: normal;
@@ -176,7 +166,7 @@ $MIN_HEIGHT_FLOATING: calc(
             margin-right: 1.6rem;
 
             &--active {
-                --fill-color1: var(--text-prominent);
+                --fill-color1: var(--color-text-primary);
             }
         }
         &__counter {
@@ -184,7 +174,7 @@ $MIN_HEIGHT_FLOATING: calc(
             right: 2rem;
         }
         &--active &__link {
-            color: var(--text-prominent);
+            color: var(--color-text-primary);
             font-weight: bold;
         }
         &--highlight {
@@ -192,9 +182,9 @@ $MIN_HEIGHT_FLOATING: calc(
             position: absolute;
             display: block;
             content: '';
-            color: var(--text-prominent);
-            background-color: var(--state-normal);
-            border-left: 4px solid var(--brand-red-coral);
+            color: var(--color-text-primary);
+            background-color: var(--color-surface-primary);
+            border-left: 4px solid var(--brand-primary);
             width: 100%;
             height: 41px;
             transform: translate3d(0, 0, 0);
@@ -205,8 +195,8 @@ $MIN_HEIGHT_FLOATING: calc(
             font-weight: bold;
             padding: 0 0.4rem;
             margin: 0 0.4rem;
-            background-color: var(--text-loss-danger);
-            color: var(--status-colored-background);
+            background-color: var(--color-text-danger);
+            color: var(--color-surface-primary);
             border-radius: 8px;
         }
         &--floating {
@@ -223,8 +213,6 @@ $MIN_HEIGHT_FLOATING: calc(
         align-items: flex-start;
         border-radius: 0 $BORDER_RADIUS $BORDER_RADIUS 0;
         position: relative;
-        background-color: var(--general-main-1);
-
         grid-area: form-content;
 
         &-side-note {
@@ -232,10 +220,10 @@ $MIN_HEIGHT_FLOATING: calc(
             margin-left: 2.4rem;
 
             &-item {
-                background-color: var(--general-section-1);
+                background-color: var(--color-surface-primary);
                 border-radius: 8px;
                 padding: 1.6rem 2.4rem;
-                color: var(--text-general);
+                color: var(--color-text-secondary);
                 font-size: var(--text-size-xxs);
                 line-height: 1.5;
                 margin-bottom: 2.4rem;
@@ -247,9 +235,16 @@ $MIN_HEIGHT_FLOATING: calc(
             height: 100%;
         }
         &--floating {
-            max-width: 952px;
-            min-width: 672px;
+            max-width: 106.2rem;
+            min-width: calc(
+                106.2rem - 25.6rem - 2.4rem
+            ); // 25.6rem is the width of the vertical tab. 2.4rem is the gap between tab and content
             margin-left: 2.4rem;
+
+            @include tablet-screen {
+                max-width: 100vw;
+                min-width: calc(100vw - 25.6rem - 2.4rem - 4.8rem);
+            }
         }
     }
 }

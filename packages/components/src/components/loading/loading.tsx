@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import Text from '../text/text';
+import LoadingDTraderV2 from './loading-dtrader-v2';
 
 export type TLoadingProps = React.HTMLProps<HTMLDivElement> & {
     is_fullscreen: boolean;
@@ -34,12 +35,14 @@ const Loading = ({ className, id, is_fullscreen = true, is_slow_loading, status,
             </div>
             {is_slow_loading &&
                 status?.map((text, inx) => (
-                    <Text as='h3' color='prominent' size='xs' align='center' key={inx}>
+                    <Text as='h3' color='primary' size='xs' align='center' key={inx}>
                         {text}
                     </Text>
                 ))}
         </div>
     );
 };
+
+Loading.DTraderV2 = LoadingDTraderV2;
 
 export default Loading;

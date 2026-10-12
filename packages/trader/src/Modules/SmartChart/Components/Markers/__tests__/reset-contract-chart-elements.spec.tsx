@@ -1,6 +1,8 @@
 import React from 'react';
+
+import { CONTRACT_TYPES, mockContractInfo } from '@deriv/shared';
 import { render, screen } from '@testing-library/react';
-import { mockContractInfo, CONTRACT_TYPES } from '@deriv/shared';
+
 import ResetContractChartElements from '../reset-contract-chart-elements';
 
 const reset_marker = 'Reset Marker';
@@ -20,7 +22,7 @@ describe('<ResetContractChartElements />', () => {
         mocked_props = {
             contract_info: mockContractInfo({
                 contract_type: CONTRACT_TYPES.RESET.CALL,
-                entry_spot: 2035.67,
+                entry_spot: '2035.67',
                 reset_time: 1701947743,
                 reset_barrier: '2030.28',
             }),

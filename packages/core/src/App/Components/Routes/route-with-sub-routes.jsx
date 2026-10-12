@@ -1,40 +1,24 @@
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import {
-    alternateLinkTagChange,
-    canonicalLinkTagChange,
-    redirectToLogin,
-    removeBranchName,
-    routes,
-    isEmptyObject,
-    default_title,
-} from '@deriv/shared';
-import { getLanguage } from '@deriv/translations';
-import Page404 from 'Modules/Page404';
+
+import { getBrandName, isEmptyObject, removeBranchName, routes } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
-import { useFeatureFlags } from '@deriv/hooks';
+
+import Page404 from 'Modules/Page404';
 
 const RouteWithSubRoutes = observer(route => {
-    const { common } = useStore();
+    const { client } = useStore();
+    const { is_logged_in, is_logging_in } = client;
 
-    const { is_next_account_enabled, is_next_cashier_enabled } = useFeatureFlags();
-    const { checkAppId } = common;
-    const validateRoute = pathname => {
-        if (pathname.startsWith('/cashier') && !pathname.includes('p2p') && !!route.routes) {
-            return route.path === pathname || !!route?.routes.find(({ path }) => pathname === path);
-        } else if (pathname.includes('p2p') && !!route.routes) {
-            const cashier_subroutes = route?.routes.find(({ path }) => path === '/cashier/p2p');
-            const p2p_subroutes =
-                pathname === '/cashier/p2p'
-                    ? routes.p2p_buy_sell
-                    : cashier_subroutes?.routes.find(({ path }) => pathname === path);
-
-            return route.path === pathname || !!p2p_subroutes;
-        } else if (pathname.includes(routes.account_v2) && !is_next_account_enabled) {
-            return false;
-        } else if (pathname.includes(routes.cashier_v2) && !is_next_cashier_enabled) {
-            return false;
+    const validateRoute = () => {
+        // Check if route requires authentication
+        if (route.protected) {
+            // If route is protected but user is not logged in and not logging in, deny access
+            if (!is_logged_in && !is_logging_in) {
+                return false;
+            }
         }
+
         return true;
     };
 
@@ -42,11 +26,6 @@ const RouteWithSubRoutes = observer(route => {
         let result = null;
         const pathname = removeBranchName(location.pathname).replace(/\/$/, '');
         const is_valid_route = validateRoute(pathname);
-
-        // check if by re-rendering content should Platform app_id  change or not,
-        if (is_valid_route) {
-            checkAppId();
-        }
 
         if (route.component === Redirect) {
             let to = route.to;
@@ -57,34 +36,29 @@ const RouteWithSubRoutes = observer(route => {
                 to = location.pathname.toLowerCase().replace(route.path, '');
             }
             result = <Redirect to={to} />;
-        } else if (is_valid_route && route.is_authenticated && !route.is_logged_in && !route.is_logging_in) {
-            if (window.localStorage.getItem('is_redirecting') === 'true') {
-                window.localStorage.removeItem('is_redirecting');
-                redirectToLogin(route.is_logged_in, getLanguage(), true, 3000);
-            } else {
-                redirectToLogin(route.is_logged_in, getLanguage());
-            }
         } else {
             const default_subroute = route.routes ? route.routes.find(r => r.default) : {};
             const has_default_subroute = !isEmptyObject(default_subroute);
 
+            let content;
+            if (is_valid_route) {
+                content = <route.component {...props} routes={route.routes} passthrough={route.passthrough} />;
+            } else if (route.protected) {
+                content = <Redirect to={routes.index} />;
+            } else {
+                content = <Page404 />;
+            }
+
             result = (
                 <React.Fragment>
                     {has_default_subroute && pathname === route.path && <Redirect to={default_subroute.path} />}
-                    {is_valid_route ? (
-                        <route.component {...props} routes={route.routes} passthrough={route.passthrough} />
-                    ) : (
-                        <Page404 />
-                    )}
+                    {content}
                 </React.Fragment>
             );
         }
 
         const title = route.getTitle?.() || '';
-        document.title = `ENova`;
-
-        alternateLinkTagChange();
-        canonicalLinkTagChange();
+        document.title = `${title} | ${getBrandName()}`;
 
         return result;
     };

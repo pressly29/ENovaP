@@ -1,11 +1,13 @@
-import classNames from 'classnames';
 import React from 'react';
-import { CSSTransition } from 'react-transition-group';
 import { NavLink } from 'react-router-dom';
-import Icon from '../../icon';
-import { TGetCardLables, TGetContractPath } from '../../types';
-import Text from '../../text';
+import { CSSTransition } from 'react-transition-group';
+import classNames from 'classnames';
+
+import { LegacySellExpiredIcon } from '@deriv/quill-icons';
+
 import Money from '../../money';
+import Text from '../../text';
+import { TGetCardLables, TGetContractPath } from '../../types';
 
 type TResultOverlayProps = {
     currency?: string;
@@ -14,9 +16,7 @@ type TResultOverlayProps = {
     getContractPath?: TGetContractPath;
     is_multiplier?: boolean;
     is_positions?: boolean;
-    is_unsupported?: boolean;
     is_visible: boolean;
-    onClick: () => void;
     onClickRemove?: (contract_id?: number) => void;
     payout_info: number;
     result: string;
@@ -34,7 +34,11 @@ export const ResultStatusIcon = ({ getCardLabels, is_contract_won }: TResultStat
             'dc-result__caption--lost': !is_contract_won,
         })}
     >
-        <Icon icon='IcPositionClosed' className='dc-result__icon' color={is_contract_won ? 'green' : 'red'} />
+        <LegacySellExpiredIcon
+            className='dc-result__icon'
+            iconSize='xs'
+            fill={is_contract_won ? 'var(--color-status-success)' : 'var(--color-status-danger)'}
+        />
         {getCardLabels().CLOSED}
     </span>
 );
@@ -45,21 +49,13 @@ const ResultOverlay = ({
     getCardLabels,
     getContractPath,
     is_positions,
-    is_unsupported,
     is_visible,
-    onClick,
     onClickRemove,
     payout_info,
     result,
 }: TResultOverlayProps) => {
-    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        if (is_unsupported) {
-            e.preventDefault();
-            onClick();
-        }
-    };
-
     const is_contract_won = result === 'won';
+    const nodeRef = React.useRef(null);
 
     return (
         <React.Fragment>
@@ -72,8 +68,10 @@ const ResultOverlay = ({
                     exit: 'dc-contract-card__result--exit',
                 }}
                 unmountOnExit
+                nodeRef={nodeRef}
             >
                 <div
+                    ref={nodeRef}
                     id={`dc_contract_card_${contract_id}_result`}
                     className={classNames('dc-contract-card__result', {
                         'dc-result__positions-overlay': is_positions,
@@ -91,11 +89,7 @@ const ResultOverlay = ({
                         />
                     )}
                     {getContractPath && (
-                        <NavLink
-                            className='dc-result__caption-wrapper'
-                            to={getContractPath(contract_id)}
-                            onClick={handleClick}
-                        />
+                        <NavLink className='dc-result__caption-wrapper' to={getContractPath(contract_id)} />
                     )}
                     <div className='dc-result__content'>
                         <ResultStatusIcon getCardLabels={getCardLabels} is_contract_won={is_contract_won} />
@@ -103,7 +97,7 @@ const ResultOverlay = ({
                             weight='bold'
                             size='s'
                             line_height='xxl'
-                            color={is_contract_won ? 'profit-success' : 'loss-danger'}
+                            color={is_contract_won ? 'var(--color-status-success)' : 'var(--color-status-danger)'}
                         >
                             <Money amount={payout_info} currency={currency} has_sign show_currency />
                         </Text>

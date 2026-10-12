@@ -6,10 +6,8 @@ import {
     isDesktop,
     isDigitContract,
     isMobile,
-    isMultiplierContract,
     isSmartTraderContract,
     isTicksContract,
-    isUserSold,
     isVanillaContract,
 } from '@deriv/shared';
 
@@ -75,27 +73,28 @@ export const createMarkerResetTime = contract_info => {
 
 // -------------------- Spots --------------------
 export const createMarkerSpotEntry = contract_info => {
-    if (!contract_info.entry_tick_time) return false;
+    const entry_spot_time = contract_info.entry_spot_time;
+    if (!entry_spot_time) return false;
 
-    const entry_tick = contract_info.entry_tick_display_value;
+    const entry_spot = contract_info.entry_spot;
     const spot_has_label = isDigitContract(contract_info.contract_type) || isTicksContract(contract_info.contract_type);
     const marker_type = MARKER_TYPES_CONFIG.SPOT_ENTRY.type;
     let component_props = {};
 
     if (spot_has_label) {
         component_props = {
-            spot_value: `${entry_tick}`,
-            spot_epoch: `${contract_info.entry_tick_time}`,
+            spot_value: `${entry_spot}`,
+            spot_epoch: `${entry_spot_time}`,
             spot_count: 1,
         };
     }
 
-    return createMarkerConfig(marker_type, contract_info.entry_tick_time, entry_tick, component_props);
+    return createMarkerConfig(marker_type, entry_spot_time, entry_spot, component_props);
 };
 
 export const createMarkerSpotExit = (contract_info, tick, idx) => {
-    if (!contract_info.exit_tick_time) return false;
-    const is_user_sold = isUserSold(contract_info);
+    const exit_spot_time = contract_info.exit_spot_time;
+    if (!exit_spot_time) return false;
     const is_ticks_contract = isTicksContract(contract_info.contract_type);
 
     let spot_count, align_label;
@@ -104,35 +103,27 @@ export const createMarkerSpotExit = (contract_info, tick, idx) => {
         align_label = tick.align_label;
     }
 
-    const exit_tick = contract_info.exit_tick_display_value;
-
-    const should_show_spot_exit = !is_user_sold || isMultiplierContract(contract_info.contract_type);
+    const exit_spot = contract_info.exit_spot;
 
     const should_show_spot_exit_2 = is_ticks_contract && idx + 1 !== contract_info.selected_tick;
-
     const should_show_profit_label = isVanillaContract(contract_info.contract_type) && isDesktop();
 
-    const marker_spot_type = should_show_spot_exit
-        ? should_show_spot_exit_2
-            ? MARKER_TYPES_CONFIG.SPOT_EXIT_2.type
-            : MARKER_TYPES_CONFIG.SPOT_EXIT.type
-        : MARKER_TYPES_CONFIG.SPOT_SELL.type;
+    const marker_spot_type = should_show_spot_exit_2
+        ? MARKER_TYPES_CONFIG.SPOT_EXIT_2.type
+        : MARKER_TYPES_CONFIG.SPOT_EXIT.type;
 
-    const component_props = should_show_spot_exit
-        ? {
-              spot_value: `${exit_tick}`,
-              spot_epoch: `${contract_info.exit_tick_time}`,
-              status: `${+contract_info.profit >= 0 ? 'won' : 'lost'}`,
-              align_label: should_show_profit_label ? 'middle' : align_label,
-              spot_count: should_show_spot_exit_2 ? contract_info.tick_stream.length : spot_count,
-              spot_profit:
-                  (should_show_profit_label &&
-                      `${formatMoney(contract_info.currency, contract_info.profit, true)} ${contract_info.currency}`) ||
-                  '',
-          }
-        : {};
+    const component_props = {
+        spot_value: `${exit_spot}`,
+        spot_epoch: `${exit_spot_time}`,
+        status: `${+contract_info.profit >= 0 ? 'won' : 'lost'}`,
+        align_label: should_show_profit_label ? 'middle' : align_label,
+        spot_count: should_show_spot_exit_2 ? contract_info.tick_stream.length : spot_count,
+        spot_profit: should_show_profit_label
+            ? `${formatMoney(contract_info.currency, contract_info.profit, true)} ${contract_info.currency}`
+            : '',
+    };
 
-    return createMarkerConfig(marker_spot_type, +contract_info.exit_tick_time, +exit_tick, component_props);
+    return createMarkerConfig(marker_spot_type, +exit_spot_time, +exit_spot, component_props);
 };
 
 export const createMarkerSpotMiddle = (contract_info, tick, idx) => {

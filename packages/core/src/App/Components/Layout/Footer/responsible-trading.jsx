@@ -1,11 +1,19 @@
 import React from 'react';
-import { Icon, Popover, StaticUrl } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { Popover, StaticUrl } from '@deriv/components';
+import { LegacyVerificationIcon } from '@deriv/quill-icons';
+import { useTranslations } from '@deriv-com/translations';
 
-export const ResponsibleTrading = () => (
-    <StaticUrl href='/responsible' className='footer__link'>
-        <Popover alignment='top' message={localize('Responsible trading')} zIndex={9999}>
-            <Icon icon='IcVerification' className='footer__icon ic-deriv__icon' />
-        </Popover>
-    </StaticUrl>
-);
+export const ResponsibleTrading = ({ showPopover }) => {
+    const { localize } = useTranslations();
+    return (
+        <StaticUrl href='/responsible' className='footer__link'>
+            {showPopover ? (
+                <Popover alignment='top' message={localize('Responsible trading')} zIndex={9999}>
+                    <LegacyVerificationIcon className='footer__icon ic-deriv__icon' iconSize='xs' />
+                </Popover>
+            ) : (
+                <LegacyVerificationIcon className='footer__icon ic-deriv__icon' iconSize='xs' />
+            )}
+        </StaticUrl>
+    );
+};

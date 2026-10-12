@@ -2,7 +2,7 @@ type TIsHighLow = {
     shortcode?: string;
     shortcode_info?: {
         category?: string;
-        underlying?: string;
+        underlying_symbol?: string;
         barrier_1?: string;
         multiplier?: string;
         start_time?: string;
@@ -11,7 +11,7 @@ type TIsHighLow = {
 
 type TInfoFromShortcode = Record<
     | 'category'
-    | 'underlying'
+    | 'underlying_symbol'
     | 'barrier_1'
     | 'multiplier'
     | 'start_time'
@@ -23,7 +23,7 @@ type TInfoFromShortcode = Record<
 
 // category_underlying_amount
 const base_pattern =
-    '^([A-Z]+)_((?:1HZ[0-9-V]+)|(?:(?:CRASH|BOOM)[0-9\\d]+[A-Z]?)|(?:cry_[A-Z]+)|(?:JD[0-9]+)|(?:OTC_[A-Z0-9]+)|R_[\\d]{2,3}|[A-Z]+)_([\\d.]+)';
+    '^([A-Z]+)_((?:1HZ[0-9-V]+)|(?:(?:CRASH|BOOM|STPRNG)[0-9\\d]+[A-Z]?)|(?:cry_[A-Z]+)|(?:JD[0-9]+)|(?:OTC_[A-Z0-9]+)|(?:RB[0-9]+)|R_[\\d]{2,3}|[A-Z]+)_([\\d.]+)';
 
 // category_underlying_amount_payouttick_growthrate_growthfrequency_ticksizebarrier_starttime
 const accumulators_regex = new RegExp(`${base_pattern}_(\\d+)_(\\d*\\.?\\d*)_(\\d+)_(\\d*\\.?\\d*)_(\\d+)`);
@@ -37,7 +37,7 @@ const options_regex = new RegExp(`${base_pattern}_([A-Z\\d]+)_([A-Z\\d]+)_?([A-Z
 export const extractInfoFromShortcode = (shortcode: string): TInfoFromShortcode => {
     const info_from_shortcode = {
         category: '',
-        underlying: '',
+        underlying_symbol: '',
         barrier_1: '',
         multiplier: '',
         start_time: '',
@@ -58,7 +58,7 @@ export const extractInfoFromShortcode = (shortcode: string): TInfoFromShortcode 
 
     if (extracted !== null) {
         info_from_shortcode.category = extracted[1].charAt(0).toUpperCase() + extracted[1].slice(1).toLowerCase();
-        info_from_shortcode.underlying = extracted[2];
+        info_from_shortcode.underlying_symbol = extracted[2];
 
         if (is_multipliers) {
             info_from_shortcode.multiplier = extracted[4];
@@ -85,9 +85,8 @@ export const isHighLow = ({ shortcode = '', shortcode_info }: TIsHighLow) => {
     return info_from_shortcode && info_from_shortcode.barrier_1 ? !/^S0P$/.test(info_from_shortcode.barrier_1) : false;
 };
 
-export const isForwardStarting = (shortcode: string, purchase_time?: number) => {
+export const getStartTime = (shortcode: string) => {
     const shortcode_info = extractInfoFromShortcode(shortcode);
     if (shortcode_info?.multiplier) return false;
-    const start_time: string = shortcode_info?.start_time || '';
-    return start_time && purchase_time && /f$/gi.test(start_time);
+    return shortcode_info?.start_time || '';
 };

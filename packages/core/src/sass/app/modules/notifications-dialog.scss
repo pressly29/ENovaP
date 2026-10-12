@@ -2,7 +2,7 @@
     /** @define notifications-toggle; weak */
     &-toggle {
         position: relative;
-        margin-right: 24px;
+        margin-right: 0.8rem;
 
         &__icon {
             width: 26px;
@@ -20,10 +20,10 @@
                 }
             }
             .color1-fill {
-                fill: var(--text-general);
+                fill: var(--color-text-secondary);
             }
             .color1-stroke {
-                stroke: var(--text-general);
+                stroke: var(--color-text-secondary);
             }
         }
         &__step {
@@ -45,28 +45,46 @@
     }
     /** @define notifications-dialog; weak */
     &-dialog {
-        position: absolute;
-        top: 48px;
-        left: calc(-50% - 10rem);
+        position: fixed;
         width: 264px;
         height: 525px;
-        background: var(--general-main-2);
+        background: var(--color-surface-primary);
         border-radius: $BORDER_RADIUS;
-        box-shadow: 0 4px 8px 2px var(--shadow-menu);
-        transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.25s linear;
+        box-shadow: 0 4px 8px 2px var(--color-shadow-medium);
+        transition:
+            transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+            opacity 0.25s linear;
         opacity: 0;
         transform: translate3d(0, -20px, 0);
+
+        @include desktop-screen {
+            top: 58px;
+            right: 2.8rem;
+        }
+        @include tablet-screen {
+            top: 48px;
+            right: 2.8rem;
+        }
+        @include mobile-screen {
+            position: relative;
+            right: unset;
+            width: 100%;
+            height: 100%;
+            box-shadow: none;
+            opacity: unset;
+            transform: none;
+        }
 
         &__header {
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border-normal);
+            border-bottom: 1px solid var(--color-surface-border);
 
             &-text {
                 margin: 1rem 0;
             }
-            @include mobile {
+            @include mobile-screen {
                 display: none;
             }
         }
@@ -76,17 +94,19 @@
             display: flex;
             justify-content: end;
             padding-left: 1.3rem;
-            background: var(--general-main-2);
-            box-shadow: 0 4px 8px 2px var(--shadow-menu);
-            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.25s linear;
+            background: var(--color-surface-primary);
+            box-shadow: 0 4px 8px 2px var(--color-shadow-medium);
+            transition:
+                transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+                opacity 0.25s linear;
             border-bottom-right-radius: 0.5rem;
             border-bottom-left-radius: 0.5rem;
         }
         &__separator {
-            border-bottom: 1px solid var(--general-section-1);
+            border-bottom: 1px solid var(--color-notification-info-border);
         }
         &__clear {
-            border: 1px solid var(--shadow-box);
+            border: 1px solid var(--color-notification-info-border);
             height: 2.4rem;
             width: auto;
             bottom: 0.6rem;
@@ -94,7 +114,7 @@
             padding: 0.7rem;
 
             &:hover {
-                background: var(--button-secondary-hover);
+                background: var(--color-button-secondary-hover);
             }
         }
         &__content {
@@ -111,7 +131,7 @@
                 position: sticky;
                 bottom: 0;
             }
-            @include mobile {
+            @include mobile-screen {
                 height: calc(100vh - 40px);
             }
         }
@@ -123,24 +143,6 @@
         &--exit {
             opacity: 0;
             transform: translate3d(0, -20px, 0);
-        }
-        @include mobile {
-            opacity: unset;
-            transform: none;
-            position: relative;
-            top: unset;
-            left: unset;
-            box-shadow: none;
-            height: 100%;
-            width: 100%;
-            background: var(--general-main-2);
-        }
-        &--pre-appstore {
-            left: calc(-50% - 18rem);
-
-            @include mobile {
-                left: calc(3% - 1rem);
-            }
         }
     }
 
@@ -167,7 +169,7 @@
             margin-bottom: 8px;
 
             .color1-fill {
-                fill: var(--text-less-prominent);
+                fill: var(--color-text-secondary);
             }
         }
         &__header {
@@ -188,15 +190,16 @@
             left: -3.2rem;
             width: calc(100% + 4rem);
             height: 1px;
-            background: var(--border-disabled);
+            background: var(--color-interactive-disabled);
         }
         &__cta-button {
             padding: 0.3rem 0.8rem;
             margin: 0.8rem 0 0.8rem auto;
-            height: 2.4rem;
+            height: auto;
             width: auto;
+            white-space: normal;
 
-            @include mobile {
+            @include mobile-screen {
                 margin: 0.8rem 0 1.6rem auto;
             }
         }
@@ -219,20 +222,20 @@
         }
         &__message {
             font-size: 1.2rem;
-            color: var(--text-prominent);
+            color: var(--color-text-primary);
             line-height: 1.5;
 
             a {
                 text-decoration: none;
                 font-weight: bold;
-                color: var(--text-prominent);
+                color: var(--color-text-primary);
             }
         }
         &__action {
             display: flex;
             justify-content: flex-end;
         }
-        @include mobile {
+        @include mobile-screen {
             display: flex;
             flex-direction: column;
 

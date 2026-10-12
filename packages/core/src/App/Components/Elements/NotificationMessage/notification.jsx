@@ -1,19 +1,46 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import { useHistory } from 'react-router-dom';
 import React from 'react';
 import { Button, LinearProgress, Text } from '@deriv/components';
-import { isEmptyObject, PlatformContext } from '@deriv/shared';
+import { isEmptyObject } from '@deriv/shared';
 import CloseButton from './close-button.jsx';
 import NotificationStatusIcons from './notification-status-icons.jsx';
 import NotificationBanner from './notification-banner.jsx';
 import { default_delay, types } from './constants';
 import NotificationPromo from './notification-promo.jsx';
 import { BinaryLink } from '../../Routes';
-import NotificationOrder from './notification-order.jsx';
 
 const Notification = ({ data, removeNotificationMessage }) => {
     const linear_progress_container_ref = React.useRef(null);
-    const { is_appstore } = React.useContext(PlatformContext);
+    const history = useHistory();
+
+    // Load Trustpilot script dynamically when notification type is 'trustpilot'
+    React.useEffect(() => {
+        if (data.type === 'trustpilot') {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js';
+            script.async = true;
+            script.onload = () => {
+                // Script has loaded, now we can initialize Trustpilot if needed
+                if (window.Trustpilot) {
+                    const trustpilot_element = document.querySelector('.trustpilot-widget');
+                    if (trustpilot_element) {
+                        window.Trustpilot.loadFromElement(trustpilot_element);
+                    }
+                }
+            };
+            document.body.appendChild(script);
+
+            // Cleanup function to remove script when component unmounts
+            return () => {
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            };
+        }
+    }, [data.type]);
 
     const destroy = is_closed_by_user => {
         removeNotificationMessage(data);
@@ -77,10 +104,6 @@ const Notification = ({ data, removeNotificationMessage }) => {
                     onClose={destroy}
                 />
             );
-        case 'p2p_completed_order':
-            return (
-                <NotificationOrder action={data.action} header={data.header} message={data.message} onClose={destroy} />
-            );
         default:
             return (
                 <div
@@ -118,7 +141,7 @@ const Notification = ({ data, removeNotificationMessage }) => {
                         <div className='notification__action'>
                             {!isEmptyObject(data.action) && (
                                 <React.Fragment>
-                                    {data.action.route ? (
+                                    {data.action.route && !data.action.onClick ? (
                                         <BinaryLink
                                             className={classNames(
                                                 'dc-btn',
@@ -136,9 +159,13 @@ const Notification = ({ data, removeNotificationMessage }) => {
                                         <Button
                                             className='notification__cta-button'
                                             onClick={() => {
-                                                if (data.timeout)
+                                                if (data.timeout) {
                                                     linear_progress_container_ref.current.removeTimeoutSession();
-                                                data.action.onClick({ is_appstore });
+                                                }
+                                                data.action.onClick();
+                                                if (data.action.route) {
+                                                    history.push(data.action.route);
+                                                }
                                             }}
                                             text={data.action.text}
                                             secondary
@@ -166,7 +193,7 @@ Notification.propTypes = {
         action: PropTypes.shape({
             onClick: PropTypes.func,
             route: PropTypes.string,
-            text: PropTypes.string,
+            text: PropTypes.oneOfType([PropTypes.node, PropTypes.string, PropTypes.object]),
         }),
         cta_btn: PropTypes.object,
         className: PropTypes.string,
@@ -198,7 +225,6 @@ Notification.propTypes = {
             'trustpilot',
             'announce',
             'promotions',
-            'p2p_completed_order',
         ]).isRequired,
     }),
     removeNotificationMessage: PropTypes.func,

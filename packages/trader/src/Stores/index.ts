@@ -1,12 +1,14 @@
 import { TCoreStores } from '@deriv/stores/types';
+
 import ModulesStore from './Modules';
+
+export { useTraderStore, TraderStoreProvider } from './useTraderStores';
 
 export default class RootStore {
     client: TCoreStores['client'];
     common: TCoreStores['common'];
     modules: ModulesStore;
     ui: TCoreStores['ui'];
-    gtm: TCoreStores['gtm'];
     notifications: TCoreStores['notifications'];
     contract_replay: TCoreStores['contract_replay'];
     contract_trade: TCoreStores['contract_trade'];
@@ -19,7 +21,6 @@ export default class RootStore {
         this.common = core_store.common;
         this.modules = new ModulesStore(this, core_store);
         this.ui = core_store.ui;
-        this.gtm = core_store.gtm;
         this.notifications = core_store.notifications;
         this.contract_replay = core_store.contract_replay;
         this.contract_trade = core_store.contract_trade;

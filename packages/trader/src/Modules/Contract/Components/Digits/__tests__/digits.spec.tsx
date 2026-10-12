@@ -1,15 +1,17 @@
 import React from 'react';
-import { screen, render } from '@testing-library/react';
+
+import { isDesktop, mockContractInfo, TRADE_TYPES } from '@deriv/shared';
+import { useDevice } from '@deriv-com/ui';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { isDesktop, isMobile, mockContractInfo, TRADE_TYPES } from '@deriv/shared';
+
 import Digits from '../digits';
 
 const tick_information_text = /Tick/i;
 const mocked_digit_spot = 'DigitSpot';
 const mocked_last_digit_prediction = 'LastDigitPrediction';
 
-jest.mock('App/Components/Animations', () => ({
-    ...jest.requireActual('App/Components/Animations'),
+jest.mock('../../Animations', () => ({
     Bounce: jest.fn(({ children }) => <div>{children}</div>),
     SlideIn: jest.fn(({ children, is_visible }) => (is_visible ? <div>{children}</div> : null)),
 }));
@@ -38,9 +40,12 @@ jest.mock('../../LastDigitPrediction', () => ({
 }));
 jest.mock('@deriv/shared', () => ({
     ...jest.requireActual('@deriv/shared'),
-    isDesktop: jest.fn(() => true),
-    isMobile: jest.fn(() => false),
     useIsMounted: jest.fn(() => () => true),
+}));
+
+jest.mock('@deriv-com/ui', () => ({
+    ...jest.requireActual('@deriv-com/ui'),
+    useDevice: jest.fn(() => ({ isMobile: false, isDesktop: true })),
 }));
 
 describe('<Digits />', () => {
@@ -81,7 +86,7 @@ describe('<Digits />', () => {
         };
     });
 
-    it('should render <LastDigitPrediction /> with tooltip with text for desktop if is_trade_page === true', () => {
+    it('should render <LastDigitPrediction /> with tooltip with text for desktop if is_trade_page === true', async () => {
         render(<Digits {...mocked_props} />);
 
         expect(screen.getByText(mocked_last_digit_prediction)).toBeInTheDocument();
@@ -89,7 +94,7 @@ describe('<Digits />', () => {
         const popover = screen.getByTestId('dt_popover_wrapper');
         expect(popover).toBeInTheDocument();
 
-        userEvent.hover(popover);
+        await userEvent.hover(popover);
         expect(
             screen.getByText('Last digit stats for latest 1000 ticks for Volatility 100 (1s) Index')
         ).toBeInTheDocument();
@@ -109,24 +114,22 @@ describe('<Digits />', () => {
         expect(screen.queryByTestId('dt_popover_wrapper')).not.toBeInTheDocument();
     });
     it('should render tick information text, <DigitSpot/> and <LastDigitPrediction /> for mobile if is_trade_page === true', () => {
-        (isMobile as jest.Mock).mockReturnValue(true);
-        (isDesktop as jest.Mock).mockReturnValue(false);
+        (useDevice as jest.Mock).mockReturnValue({ isMobile: true });
         render(<Digits {...mocked_props} />);
 
         expect(screen.getByText(tick_information_text)).toBeInTheDocument();
         expect(screen.getByText(mocked_digit_spot)).toBeInTheDocument();
         expect(screen.getByText(mocked_last_digit_prediction)).toBeInTheDocument();
     });
-    it('onLastDigitSpot function call should set new properties in <DigitSpot />', () => {
-        (isMobile as jest.Mock).mockReturnValue(true);
-        (isDesktop as jest.Mock).mockReturnValue(false);
+    it('onLastDigitSpot function call should set new properties in <DigitSpot />', async () => {
+        (useDevice as jest.Mock).mockReturnValue({ isMobile: true });
         render(<Digits {...mocked_props} />);
 
         expect(screen.getByText('Spot:')).toBeInTheDocument();
         expect(screen.queryByText('Selected winning')).not.toBeInTheDocument();
         expect(screen.queryByText('Won')).not.toBeInTheDocument();
 
-        userEvent.click(screen.getByText('Set spot'));
+        await userEvent.click(screen.getByText('Set spot'));
 
         expect(screen.getByText('Spot:2361.35')).toBeInTheDocument();
         expect(screen.getByText('Selected winning')).toBeInTheDocument();

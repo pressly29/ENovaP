@@ -1,5 +1,7 @@
 import React from 'react';
-import { screen, render } from '@testing-library/react';
+
+import { render, screen } from '@testing-library/react';
+
 import LastDigitPrediction from '../last-digit-prediction';
 
 jest.mock('../digit-display', () => jest.fn(() => <div>mockedDigitDisplay</div>));
@@ -24,7 +26,7 @@ const mocked_props = {
     selected_digit: 1,
     tick: {
         pip_size: 2,
-        ask: 102.23,
+        quote: 102.23,
     },
 };
 describe('<LastDigitPrediction />', () => {

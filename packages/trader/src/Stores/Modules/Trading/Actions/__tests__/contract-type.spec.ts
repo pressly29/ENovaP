@@ -1,7 +1,8 @@
-import { mockStore } from '@deriv/stores';
-import { onChangeContractType, onChangeContractTypeList } from '../contract-type';
-import { ContractType } from '../../Helpers/contract-type';
 import { TRADE_TYPES } from '@deriv/shared';
+import { mockStore } from '@deriv/stores';
+
+import { ContractType } from '../../Helpers/contract-type';
+import { onChangeContractType, onChangeContractTypeList } from '../contract-type';
 
 jest.mock('@deriv/shared', () => {
     const barrier_intraday = '+0.000';
@@ -29,7 +30,6 @@ jest.mock('@deriv/shared', () => {
     };
     const vanilla_contracts_for_data = {
         ...common_contracts_for_data,
-        barrier_category: 'euro_non_atm',
         barriers: 1,
         contract_category: 'vanilla',
         contract_category_display: 'Vanilla Options',
@@ -44,7 +44,6 @@ jest.mock('@deriv/shared', () => {
                         available: [
                             {
                                 ...common_contracts_for_data,
-                                barrier_category: 'american',
                                 barriers: 2,
                                 contract_category: 'accumulator',
                                 contract_category_display: 'Accumulator',
@@ -230,7 +229,7 @@ describe('onChangeContractType', () => {
             expiry_type: 'duration',
             form_components: ['duration', 'amount', 'duration', 'strike', 'amount', 'trade_type_tabs'],
             trade_types: {
-                VANILLALONGCALL: 'Vanilla Long Call',
+                VANILLALONGCALL: 'VANILLALONGCALL',
             },
         });
     });
@@ -247,7 +246,7 @@ describe('onChangeContractType', () => {
             expiry_type: null,
             form_components: ['amount', 'take_profit', 'accumulator', 'accu_info_display'],
             trade_types: {
-                ACCU: 'Accumulator Up',
+                ACCU: 'ACCU',
             },
         });
     });

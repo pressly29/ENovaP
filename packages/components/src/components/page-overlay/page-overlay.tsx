@@ -1,13 +1,15 @@
-import classNames from 'classnames';
 import React, { MouseEventHandler } from 'react';
 import ReactDOM from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
-import Icon from '../icon/icon';
+import classNames from 'classnames';
+
+import { LegacyArrowLeft2pxIcon, LegacyClose2pxIcon } from '@deriv/quill-icons';
 
 type TPageOverlay = {
     header?: React.ReactNode;
     id?: string;
     is_from_app?: boolean;
+    is_from_derivp2p?: boolean;
     is_open?: boolean;
     onClickClose?: (event: MouseEvent) => void;
     portal_id?: string;
@@ -29,6 +31,17 @@ const PageOverlay = ({
     onReturn,
 }: React.PropsWithChildren<TPageOverlay>) => {
     const page_overlay_ref = React.useRef<HTMLDivElement>(null);
+    const nodeRef = React.useRef(null);
+
+    const RedirectionComponent = () => (
+        <div
+            data-testid='dt_page_overlay_header_close'
+            className='dc-page-overlay__header-close'
+            onClick={(onClickClose as unknown as MouseEventHandler<HTMLDivElement>) || window.history.back}
+        >
+            <LegacyClose2pxIcon iconSize='xs' fill='var(--color-text-primary)' />
+        </div>
+    );
 
     const el_page_overlay = (
         <div
@@ -39,26 +52,23 @@ const PageOverlay = ({
             })}
         >
             {header && (
-                <div className={classNames('dc-page-overlay__header', { 'dc-page-app__header ': is_from_app })}>
+                <div
+                    className={classNames('dc-page-overlay__header', {
+                        'dc-page-app__header': is_from_app,
+                    })}
+                >
                     <div className='dc-page-overlay__header-wrapper'>
                         <div className={classNames('dc-page-overlay__header-title', header_classname)}>
                             {has_return_icon && (
-                                <Icon icon='IcArrowLeftBold' onClick={onReturn} className='dc-modal-header__icon' />
+                                <LegacyArrowLeft2pxIcon
+                                    onClick={onReturn}
+                                    className='dc-modal-header__icon'
+                                    fill='var(--color-text-primary)'
+                                />
                             )}
                             {header}
                         </div>
-                        {!is_from_app && (
-                            <div
-                                data-testid='dt_page_overlay_header_close'
-                                className='dc-page-overlay__header-close'
-                                onClick={
-                                    (onClickClose as unknown as MouseEventHandler<HTMLDivElement>) ||
-                                    window.history.back
-                                }
-                            >
-                                <Icon icon='IcCross' />
-                            </div>
-                        )}
+                        {!is_from_app && <RedirectionComponent />}
                     </div>
                 </div>
             )}
@@ -79,8 +89,9 @@ const PageOverlay = ({
                     exit: 'dc-page-overlay--exit',
                 }}
                 unmountOnExit
+                nodeRef={nodeRef}
             >
-                {el_page_overlay}
+                <div ref={nodeRef}>{el_page_overlay}</div>
             </CSSTransition>,
             document.getElementById(portal_id) as HTMLElement
         );

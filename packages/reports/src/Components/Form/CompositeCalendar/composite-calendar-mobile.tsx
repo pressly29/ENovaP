@@ -1,8 +1,11 @@
-import classNames from 'classnames';
 import React from 'react';
-import { Button, DatePicker, Icon, InputField, MobileDialog, Text } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import classNames from 'classnames';
+
+import { Button, DatePicker, InputField, MobileDialog, Text } from '@deriv/components';
+import { LegacyCalendar1pxIcon } from '@deriv/quill-icons';
 import { toMoment } from '@deriv/shared';
+import { useTranslations } from '@deriv-com/translations';
+
 import { TInputDateRange } from 'Types';
 
 type TDatePickerOnChangeParams = Parameters<React.ComponentProps<typeof DatePicker>['onChange']>[0];
@@ -33,7 +36,7 @@ export const RadioButton = ({ id, className, selected_value, value, label, onCha
             />
             <Text
                 as='p'
-                color='prominent'
+                color='primary'
                 size='xs'
                 line_height='unset'
                 weight={selected_value === value ? 'bold' : 'normal'}
@@ -68,6 +71,7 @@ const CompositeCalendarMobile = React.memo(
         from,
         to,
     }: TCompositeCalendarMobile) => {
+        const { localize } = useTranslations();
         const date_range = input_date_range || duration_list?.find(range => range.value === 'all_time');
 
         const [from_date, setFrom] = React.useState(from ? toMoment(from).format('YYYY-MM-DD') : undefined);
@@ -184,7 +188,13 @@ const CompositeCalendarMobile = React.memo(
                         id='dt_calendar_input'
                         current_focus={current_focus ?? ''}
                         is_read_only={true}
-                        icon={() => <Icon icon='IcCalendarDatefrom' className='inline-icon' />}
+                        icon={() => (
+                            <LegacyCalendar1pxIcon
+                                className='inline-icon'
+                                iconSize='xs'
+                                fill='var(--color-text-primary)'
+                            />
+                        )}
                         onClick={openDialog}
                         setCurrentFocus={setCurrentFocus}
                         value={applied_date_range?.label ?? ''}

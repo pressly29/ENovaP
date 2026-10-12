@@ -1,13 +1,7 @@
 User-agent: *
-# Allow indexing of the production site
-Allow: /
-
-# Allow other important sections for SEO
-Allow: /trader
-Allow: /wallets
-Allow: /appstore
-Allow: /tradershub
-Allow: /cfd
-
-# Point crawlers to the sitemap for faster discovery
-Sitemap: https://evpnova.com/sitemap.xml
+Disallow: */appstore/*
+Disallow: */cashier/*
+Disallow: */p2p/*
+Disallow: */reports/*
+Disallow: */account/*
+Disallow: */endpoint*

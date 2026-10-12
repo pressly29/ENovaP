@@ -1,56 +1,70 @@
-import { website_name } from '../config/app-config';
-import { getAppId } from '../config/config';
-import { CookieStorage, isStorageSupported, LocalStore } from '../storage/storage';
-import { getStaticUrl } from '../url';
-import { deriv_urls } from '../url/constants';
+import { getAuthBaseUrl, getOAuthAppId, getOAuthClientId, getOAuthRedirectUri, getSignupUrl } from '../brand';
 
-export const redirectToLogin = (is_logged_in: boolean, language: string, has_params = true, redirect_delay = 0) => {
-    if (!is_logged_in && isStorageSupported(sessionStorage)) {
-        const l = window.location;
-        const redirect_url = has_params ? window.location.href : `${l.protocol}//${l.host}${l.pathname}`;
-        sessionStorage.setItem('redirect_url', redirect_url);
-        setTimeout(() => {
-            const new_href = loginUrl({ language });
-            window.location.href = new_href;
-        }, redirect_delay);
-    }
+// ---------------------------------------------------------------------------
+// PKCE helpers (duplicated here to avoid circular dependency with core)
+// ---------------------------------------------------------------------------
+
+const generateCodeVerifier = (): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
 };
 
-type TRedirectToSignUp = {
-    is_appstore?: boolean;
-    is_deriv_crypto?: boolean;
+const generateCodeChallenge = async (verifier: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
 };
 
-export const redirectToSignUp = ({ is_appstore }: TRedirectToSignUp = {}) => {
-    window.open(getStaticUrl('/signup/', { is_appstore }));
+const PKCE_VERIFIER_KEY = 'oauth_code_verifier';
+const PKCE_EXPIRY_KEY = 'oauth_code_verifier_timestamp';
+
+const storePKCEVerifier = (verifier: string): void => {
+    sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+    sessionStorage.setItem(PKCE_EXPIRY_KEY, String(Date.now()));
 };
 
-type TLoginUrl = {
-    language: string;
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Redirects to the OAuth2 authorize endpoint using PKCE.
+ * Uses window.location.replace() so the authorize URL does not appear
+ * in browser history (prevents back-button returning to a broken state).
+ */
+export const redirectToLogin = async (_language?: string): Promise<void> => {
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
+    storePKCEVerifier(verifier);
+
+    const csrf_token = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+    sessionStorage.setItem('oauth_csrf_token', csrf_token);
+
+    const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: getOAuthClientId(),
+        redirect_uri: getOAuthRedirectUri(),
+        scope: 'trade',
+        state: csrf_token,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+    });
+    const oauth_app_id = getOAuthAppId();
+    if (oauth_app_id) params.set('app_id', oauth_app_id);
+
+    const auth_url = `${getAuthBaseUrl()}/oauth2/auth?${params}`;
+    window.location.replace(auth_url);
 };
 
-type CookieStorageCtor = new (cookie_name: string, cookie_domain?: string) => { get: (key: string) => string | null };
-
-export const loginUrl = ({ language }: TLoginUrl) => {
-    const server_url = LocalStore.get('config.server_url');
-    const CookieStorageClass = CookieStorage as unknown as CookieStorageCtor;
-    const signup_device_cookie = new CookieStorageClass('signup_device');
-    const signup_device = signup_device_cookie.get('signup_device');
-    const date_first_contact_cookie = new CookieStorageClass('date_first_contact');
-    const date_first_contact = date_first_contact_cookie.get('date_first_contact');
-    const marketing_queries = `${signup_device ? `&signup_device=${encodeURIComponent(signup_device)}` : ''}${
-        date_first_contact ? `&date_first_contact=${encodeURIComponent(date_first_contact)}` : ''
-    }`;
-    if (server_url && /qa/.test(server_url)) {
-        return `https://${server_url}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
-    }
-
-    // Route through Netlify Function to append affiliate params server-side (no client secrets)
-    const fn_params = new URLSearchParams();
-    fn_params.set('type', 'login');
-    fn_params.set('lang', language);
-    fn_params.set('brand', website_name.toLowerCase());
-    if (signup_device) fn_params.set('signup_device', signup_device);
-    if (date_first_contact) fn_params.set('date_first_contact', date_first_contact);
-    return `/.netlify/functions/enova-auth?${fn_params.toString()}`;
+export const redirectToSignUp = (_language?: string): void => {
+    const signup_url = getSignupUrl();
+    if (signup_url) window.open(signup_url, '_blank', 'noopener,noreferrer');
 };

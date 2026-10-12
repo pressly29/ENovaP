@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import Field from '../field/field';
 import Text from '../text/text';
-import Icon from '../icon/icon';
+import { LegacyChevronDown1pxIcon } from '@deriv/quill-icons';
 
 type TSelectNative = {
     className?: string;
@@ -13,8 +13,9 @@ type TSelectNative = {
     label?: string;
     placeholder?: string;
     should_show_empty_option?: boolean;
-    suffix_icon?: string;
+    suffix_icon?: React.ReactElement;
     data_testid?: string;
+    is_country_code_dropdown?: boolean;
     hide_selected_value?: boolean;
     hide_top_placeholder?: boolean;
     value?: string | number;
@@ -70,7 +71,7 @@ const SelectNativeOptions = ({ list_items, should_hide_disabled_options, use_tex
                 {group_names.map(option => (
                     <optgroup key={option} label={option}>
                         {dropdown_items[option].map((value: TListItem) => (
-                            <option key={value.value} value={use_text ? value.text : value.value}>
+                            <option key={value.id || value.value} value={use_text ? value.text : value.value}>
                                 {value.nativepicker_text || value.text}
                             </option>
                         ))}
@@ -101,6 +102,7 @@ const SelectNative = ({
     label,
     list_items,
     placeholder,
+    is_country_code_dropdown,
     should_hide_disabled_options = true,
     should_show_empty_option = true,
     suffix_icon,
@@ -150,9 +152,17 @@ const SelectNative = ({
                         {label}
                     </div>
                     {!suffix_icon ? (
-                        <Icon icon='IcChevronDown' className='dc-select-native__arrow' />
+                        <LegacyChevronDown1pxIcon
+                            className='dc-select-native__arrow'
+                            iconSize='xs'
+                            fill='var(--color-text-primary)'
+                        />
                     ) : (
-                        <Icon className='dc-select-native__suffix-icon' icon={suffix_icon} />
+                        React.cloneElement(suffix_icon, {
+                            className: 'dc-select-native__suffix-icon',
+                            iconSize: 'xs',
+                            fill: 'var(--color-text-primary)',
+                        })
                     )}
                     <select
                         className='dc-select-native__picker'
@@ -176,7 +186,7 @@ const SelectNative = ({
                                 <SelectNativeOptions
                                     list_items={list_items}
                                     should_hide_disabled_options={should_hide_disabled_options}
-                                    use_text={use_text}
+                                    use_text={use_text && !is_country_code_dropdown}
                                 />
                             </React.Fragment>
                         ) : (

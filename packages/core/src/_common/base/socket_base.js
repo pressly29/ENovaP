@@ -1,11 +1,5 @@
 const DerivAPIBasic = require('@deriv/deriv-api/dist/DerivAPIBasic');
-const getAppId = require('@deriv/shared').getAppId;
-const getSocketURL = require('@deriv/shared').getSocketURL;
-const cloneObject = require('@deriv/shared').cloneObject;
-const getPropertyValue = require('@deriv/shared').getPropertyValue;
-const State = require('@deriv/shared').State;
-const { getLanguage } = require('@deriv/translations');
-const website_name = require('@deriv/shared').website_name;
+const { getAccountType, cloneObject, State, getApiV4BaseUrl } = require('@deriv/shared');
 const SocketCache = require('./socket_cache');
 const APIMiddleware = require('./api_middleware');
 
@@ -18,10 +12,29 @@ const BinarySocketBase = (() => {
     let deriv_api, binary_socket, client_store;
 
     let config = {};
-    let wrong_app_id = 0;
     let is_disconnect_called = false;
     let is_connected_before = false;
     let is_switching_socket = false;
+    let reconnect_handlers = []; // Array to store multiple reconnection handlers
+    let reconnect_attempt_count = 0; // Track number of reconnect attempts
+
+    // v4: WS URL is set by client-store after fetching an OTP from the REST API.
+    // null means unauthenticated — fall back to public endpoint built from brand.config.json.
+    // Evaluated lazily (not at module load time) so window.location is available.
+    const getPublicWSUrl = () => {
+        const base = getApiV4BaseUrl(); // e.g. "https://api.derivws.com"
+        return `${base.replace(/^https?:\/\//, 'wss://')}/trading/v1/options/ws/public`;
+    };
+    let configured_ws_url = null;
+
+    const setWSUrl = url => {
+        configured_ws_url = url;
+        // Switching to an authenticated URL — treat the next onOpen as an initial connection
+        // so setIsAuthorize(false) is called correctly regardless of prior public socket state.
+        if (url) is_connected_before = false;
+    };
+
+    const getWSUrl = () => configured_ws_url;
 
     const availability = {
         is_up: true,
@@ -29,11 +42,11 @@ const BinarySocketBase = (() => {
         is_down: false,
     };
 
-    const getSocketUrl = (language, is_mock_server = false) => {
+    const getSocketUrl = (is_mock_server = false) => {
         if (is_mock_server) {
             return 'ws://127.0.0.1:42069';
         }
-        return `wss://${getSocketURL()}/websockets/v3?app_id=${getAppId()}&l=${language}&brand=${website_name.toLowerCase()}`;
+        return configured_ws_url ?? getPublicWSUrl();
     };
 
     const isReady = () => hasReadyState(1);
@@ -43,13 +56,24 @@ const BinarySocketBase = (() => {
     const blockRequest = value => deriv_api?.blockRequest(value);
 
     const close = () => {
-        binary_socket.close();
+        if (binary_socket) binary_socket.close();
     };
 
-    const closeAndOpenNewConnection = (language = getLanguage(), session_id = '') => {
-        close();
-        is_switching_socket = true;
-        openNewConnection(language, session_id);
+    const closeAndOpenNewConnection = () => {
+        if (binary_socket) {
+            close();
+            is_switching_socket = true;
+        }
+        openNewConnection();
+    };
+
+    const handleAccountTypeChange = new_account_type => {
+        const current_account_type = getAccountType();
+
+        if (current_account_type !== new_account_type) {
+            localStorage.setItem('account_type', new_account_type);
+            closeAndOpenNewConnection();
+        }
     };
 
     const hasReadyState = (...states) => binary_socket && states.some(s => binary_socket.readyState === s);
@@ -71,41 +95,72 @@ const BinarySocketBase = (() => {
               };
     };
 
-    const openNewConnection = (language = getLanguage()) => {
+    const openNewConnection = () => {
         const mock_server_config = getMockServerConfig();
         const session_id = mock_server_config?.session_id || '';
-
-        if (wrong_app_id === getAppId()) return;
 
         if (!is_switching_socket) config.wsEvent('init');
 
         if (isClose()) {
             is_disconnect_called = false;
-            binary_socket = new WebSocket(getSocketUrl(language, session_id));
+            binary_socket = new WebSocket(getSocketUrl(session_id));
+
+            // Add error event listener for connection failures
+            binary_socket.addEventListener('error', error_event => {
+                // eslint-disable-next-line no-console
+                console.error('WebSocket error:', error_event);
+
+                // Increment reconnect attempt counter
+                reconnect_attempt_count++;
+
+                // Throw error after 3 reconnect attempts
+                if (reconnect_attempt_count >= 3 && typeof config.onConnectionError === 'function') {
+                    config.onConnectionError(error_event);
+                    reconnect_attempt_count = 0; // Reset counter after throwing error
+                }
+            });
 
             deriv_api = new DerivAPIBasic({
                 connection: binary_socket,
                 storage: SocketCache,
-                middleware: new APIMiddleware(config, session_id),
+                middleware: new APIMiddleware(config),
             });
         }
 
         deriv_api.onOpen().subscribe(() => {
             config.wsEvent('open');
 
-            wait('website_status');
+            // Reset reconnect attempt counter on successful connection
+            reconnect_attempt_count = 0;
 
-            if (client_store.is_logged_in) {
-                const authorize_token = client_store.getToken();
-                deriv_api.authorize(authorize_token);
+            // v4: auth is embedded in the OTP WS URL — no separate authorize message.
+            // Balance subscription serves as auth confirmation (handled in socket-general.js).
+            const is_authenticated = configured_ws_url && configured_ws_url !== getPublicWSUrl();
+
+            if (is_authenticated) {
+                // Only reset authorization state on initial connection, not on reconnection
+                // On reconnection, user is still logged in and is_authorize should remain true
+                // This allows stores' reaction() to work correctly on reconnection
+                if (client_store && !is_connected_before) {
+                    client_store.setIsAuthorize(false);
+                }
+
+                // Subscribe to balance immediately - this also confirms authorization
+                subscribeBalance();
+
+                // Call all reconnection handlers on reconnection (same timing as old system)
+                // Subscriptions will be queued by deriv-api until authorization completes
+                if (is_connected_before && reconnect_handlers.length > 0) {
+                    reconnect_handlers.forEach(handler => {
+                        if (typeof handler === 'function') {
+                            handler();
+                        }
+                    });
+                }
             }
 
             if (typeof config.onOpen === 'function') {
                 config.onOpen(isReady());
-            }
-
-            if (typeof config.onReconnect === 'function' && is_connected_before) {
-                config.onReconnect();
             }
 
             if (!is_connected_before) {
@@ -119,10 +174,6 @@ const BinarySocketBase = (() => {
 
             config.wsEvent('message');
 
-            if (getPropertyValue(response, ['error', 'code']) === 'InvalidAppID') {
-                wrong_app_id = getAppId();
-            }
-
             if (typeof config.onMessage === 'function') {
                 config.onMessage(response);
             }
@@ -135,7 +186,7 @@ const BinarySocketBase = (() => {
                 is_switching_socket = false;
             }
 
-            if (wrong_app_id !== getAppId() && typeof config.onDisconnect === 'function' && !is_disconnect_called) {
+            if (typeof config.onDisconnect === 'function' && !is_disconnect_called) {
                 config.onDisconnect();
                 is_disconnect_called = true;
             }
@@ -162,11 +213,7 @@ const BinarySocketBase = (() => {
 
     const subscribe = (request, cb) => deriv_api.subscribe(request).subscribe(cb, cb); // Delegate error handling to the callback
 
-    const balanceAll = () => deriv_api.send({ balance: 1, account: 'all' });
-
-    const subscribeBalanceAll = cb => subscribe({ balance: 1, account: 'all' }, cb);
-
-    const subscribeBalanceActiveAccount = (cb, account) => subscribe({ balance: 1, account }, cb);
+    const subscribeBalance = cb => subscribe({ balance: 1 }, cb);
 
     const subscribeProposal = (req, cb) => subscribe({ proposal: 1, ...req }, cb);
 
@@ -178,8 +225,6 @@ const BinarySocketBase = (() => {
     const subscribeTicksHistory = (request_object, cb) => subscribe(request_object, cb);
 
     const subscribeTransaction = cb => subscribe({ transaction: 1 }, cb);
-
-    const subscribeWebsiteStatus = cb => subscribe({ website_status: 1 }, cb);
 
     const getTicksHistory = request_object => deriv_api.send(request_object);
 
@@ -200,10 +245,7 @@ const BinarySocketBase = (() => {
 
     const sell = (contract_id, bid_price) => deriv_api.send({ sell: contract_id, price: bid_price });
 
-    const cashier = (action, parameters = {}) => deriv_api.send({ cashier: action, ...parameters });
-
-    const cancelCryptoTransaction = transaction_id =>
-        deriv_api.send({ cashier_withdrawal_cancel: 1, id: transaction_id });
+    // Cashier functionality has been removed
 
     const newAccountVirtual = (verification_code, client_password, residence, device_data) =>
         deriv_api.send({
@@ -246,8 +288,6 @@ const BinarySocketBase = (() => {
 
     const statement = (limit, offset, other_properties) =>
         deriv_api.send({ statement: 1, description: 1, limit, offset, ...other_properties });
-
-    const verifyEmail = (email, type, payload = {}) => deriv_api.send({ verify_email: email, type, ...payload });
 
     const tradingPlatformPasswordChange = payload =>
         deriv_api.send({
@@ -297,16 +337,7 @@ const BinarySocketBase = (() => {
             verification_code,
         });
 
-    const cryptoWithdraw = ({ address, amount, verification_code, dry_run = 0 }) =>
-        deriv_api.send({
-            cashier: 'withdraw',
-            provider: 'crypto',
-            type: 'api',
-            address,
-            amount,
-            verification_code,
-            dry_run,
-        });
+    // Crypto withdraw functionality has been removed
 
     const cryptoConfig = () =>
         deriv_api.send({
@@ -339,8 +370,6 @@ const BinarySocketBase = (() => {
 
     const forgetStream = id => deriv_api.forget(id);
 
-    const tncApproval = () => deriv_api.send({ tnc_approval: '1' });
-
     const contractUpdate = (contract_id, limit_order) =>
         deriv_api.send({
             contract_update: 1,
@@ -362,18 +391,10 @@ const BinarySocketBase = (() => {
             limit,
         });
 
-    // subscribe method export for P2P use only
-    // so that subscribe remains private
-    const p2pSubscribe = (request, cb) => subscribe(request, cb);
+    // P2P functionality has been removed
     const accountStatistics = () => deriv_api.send({ account_statistics: 1 });
 
     const tradingServers = platform => deriv_api.send({ platform, trading_servers: 1 });
-
-    const tradingPlatformAccountsList = platform =>
-        deriv_api.send({
-            trading_platform_accounts: 1,
-            platform,
-        });
 
     const tradingPlatformNewAccount = values =>
         deriv_api.send({
@@ -381,17 +402,19 @@ const BinarySocketBase = (() => {
             ...values,
         });
 
-    const triggerMt5DryRun = ({ email, password }) =>
+    const triggerMt5DryRun = ({ email }) =>
         deriv_api.send({
             account_type: 'financial',
             dry_run: 1,
             email,
             leverage: 100,
-            mainPassword: password,
+            mainPassword: 'Test1234',
             mt5_account_type: 'financial_stp',
             mt5_new_account: 1,
             name: 'test real labuan financial stp',
         });
+
+    const getPhoneSettings = () => deriv_api.send({ phone_settings: 1 });
 
     const getServiceToken = (platform, server) => {
         const temp_service = platform;
@@ -427,10 +450,22 @@ const BinarySocketBase = (() => {
             config.onDisconnect = onDisconnect;
         },
         setOnReconnect: onReconnect => {
-            config.onReconnect = onReconnect;
+            // Add handler to array if it's not already there
+            if (typeof onReconnect === 'function' && !reconnect_handlers.includes(onReconnect)) {
+                reconnect_handlers.push(onReconnect);
+            }
         },
-        removeOnReconnect: () => {
-            delete config.onReconnect;
+        removeOnReconnect: onReconnect => {
+            // If a specific handler is provided, remove only that one
+            if (typeof onReconnect === 'function') {
+                const index = reconnect_handlers.indexOf(onReconnect);
+                if (index > -1) {
+                    reconnect_handlers.splice(index, 1);
+                }
+            } else {
+                // If no handler provided, clear all handlers (backward compatibility)
+                reconnect_handlers = [];
+            }
         },
         removeOnDisconnect: () => {
             delete config.onDisconnect;
@@ -441,11 +476,8 @@ const BinarySocketBase = (() => {
         buy,
         buyAndSubscribe,
         sell,
-        cashier,
-        cancelCryptoTransaction,
         cancelContract,
         close,
-        cryptoWithdraw,
         cryptoConfig,
         contractUpdate,
         contractUpdateHistory,
@@ -455,10 +487,9 @@ const BinarySocketBase = (() => {
         newAccountVirtual,
         newAccountReal,
         newAccountRealMaltaInvest,
-        p2pSubscribe,
+        getPhoneSettings,
         profitTable,
         statement,
-        verifyEmail,
         getTicksHistory,
         tradingPlatformPasswordChange,
         tradingPlatformPasswordReset,
@@ -472,27 +503,26 @@ const BinarySocketBase = (() => {
         paymentAgentWithdraw,
         paymentAgentTransfer,
         setAccountCurrency,
-        balanceAll,
         setAvailability,
-        subscribeBalanceAll,
-        subscribeBalanceActiveAccount,
+        subscribeBalance,
         subscribeProposal,
         subscribeProposalOpenContract,
         subscribeTicks,
         subscribeTicksHistory,
         subscribeTransaction,
-        subscribeWebsiteStatus,
-        tncApproval,
         transferBetweenAccounts,
         fetchLoginHistory,
         closeAndOpenNewConnection,
+        handleAccountTypeChange,
         accountStatistics,
         tradingServers,
-        tradingPlatformAccountsList,
         tradingPlatformNewAccount,
         triggerMt5DryRun,
         getServiceToken,
         changeEmail,
+        setWSUrl,
+        getWSUrl,
+        getPublicWSUrl,
     };
 })();
 
@@ -527,7 +557,17 @@ const proxyForAuthorize = obj =>
             if (target[field] && typeof target[field] !== 'function') {
                 return proxyForAuthorize(target[field]);
             }
-            return (...args) => BinarySocketBase?.wait('authorize').then(() => target[field](...args));
+            return (...args) => {
+                // Wait for balance response instead of authorize (balance serves as auth confirmation).
+                // In v4 the OTP URL embeds auth — balance confirms the session is live.
+                // Access configured_ws_url via the IIFE-exposed getter rather than direct closure reference.
+                const current_ws_url = BinarySocketBase.getWSUrl?.();
+                if (current_ws_url && current_ws_url !== BinarySocketBase.getPublicWSUrl?.()) {
+                    return BinarySocketBase?.wait('balance')?.then(() => target[field](...args));
+                }
+                // Not authenticated — execute without waiting
+                return target[field](...args);
+            };
         },
     });
 

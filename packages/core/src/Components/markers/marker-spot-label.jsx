@@ -1,17 +1,19 @@
-import classNames from 'classnames';
-import { observer } from 'mobx-react';
-import PropTypes from 'prop-types';
 import React from 'react';
-import { Icon, Text } from '@deriv/components';
+import classNames from 'classnames';
+import { observer } from 'mobx-react-lite';
+import PropTypes from 'prop-types';
+
+import { Text } from '@deriv/components';
+import { StandaloneClockThreeRegularIcon } from '@deriv/quill-icons';
 import { addComma, toMoment } from '@deriv/shared';
+import { Localize } from '@deriv-com/translations';
 
 import MarkerSpot from './marker-spot.jsx';
-import { localize } from '@deriv/translations';
 
 const MarkerSpotLabel = ({
-    align_label,
+    align_label = 'top',
     has_hover_toggle,
-    is_value_hidden,
+    is_value_hidden = false,
     spot_className,
     spot_count,
     spot_epoch,
@@ -20,7 +22,6 @@ const MarkerSpotLabel = ({
     status,
 }) => {
     const [show_label, setShowLabel] = React.useState(!has_hover_toggle);
-
     const handleHoverToggle = () => {
         setShowLabel(!show_label);
     };
@@ -51,13 +52,12 @@ const MarkerSpotLabel = ({
                         >
                             {spot_epoch && (
                                 <div className='chart-spot-label__time-container'>
-                                    <Icon
-                                        icon='IcClockOutline'
-                                        height={10}
+                                    <StandaloneClockThreeRegularIcon
                                         width={10}
+                                        height={10}
                                         className='chart-spot-label__time-icon'
                                     />
-                                    <Text as='p' color='prominent' size='xxxs'>
+                                    <Text as='p' color='primary' size='xxxs'>
                                         {toMoment(+spot_epoch).format('HH:mm:ss')}
                                     </Text>
                                 </div>
@@ -90,7 +90,7 @@ const MarkerSpotLabel = ({
                         })}
                     >
                         <Text as='p' size='xxs'>
-                            {localize('Total profit/loss:')}
+                            <Localize i18n_default_text='Total profit/loss:' />
                         </Text>
                         <Text as='p' size='xs'>{`${parseFloat(spot_profit) > 0 ? '+' : ''}${spot_profit}`}</Text>
                     </div>
@@ -98,11 +98,6 @@ const MarkerSpotLabel = ({
             )}
         </React.Fragment>
     );
-};
-
-MarkerSpotLabel.defaultProps = {
-    align_label: 'top',
-    is_value_hidden: false,
 };
 
 MarkerSpotLabel.propTypes = {

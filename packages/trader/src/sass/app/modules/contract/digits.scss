@@ -9,6 +9,12 @@
     .bottom-widgets {
         left: -3.5em;
     }
+
+    @include tablet-screen {
+        .bottom-widgets {
+            left: 0;
+        }
+    }
 }
 
 /** @define digits; weak */
@@ -58,7 +64,7 @@
             transform: scale(1.25);
 
             .digits__pie-container:before {
-                box-shadow: 0px 1px 18px var(--text-profit-success);
+                box-shadow: 0px 1px 18px var(--color-text-success);
             }
         }
         &--loss {
@@ -68,10 +74,10 @@
             .digits__pie-container:before {
                 top: -2px;
                 left: -2px;
-                box-shadow: 0px 1px 18px var(--text-loss-danger);
-                border: 3px solid var(--text-loss-danger);
+                box-shadow: 0px 1px 18px var(--color-text-danger);
+                border: 3px solid var(--color-text-danger);
 
-                @include mobile {
+                @include mobile-screen {
                     top: -1px;
                     left: -3px;
                 }
@@ -81,11 +87,11 @@
             .digits__digit-display {
                 &-value,
                 &-percentage {
-                    color: $color-white;
+                    color: var(--brand-white);
                 }
             }
             .progress__bg {
-                fill: $color-blue-2;
+                fill: var(--brand-info)-2;
             }
         }
         &--is-selectable {
@@ -97,11 +103,11 @@
                 .digits__digit-display {
                     &-value,
                     &-percentage {
-                        color: $color-white;
+                        color: var(--brand-white);
                     }
                 }
                 .progress__bg {
-                    fill: $color-blue-2;
+                    fill: var(--brand-info)-2;
                 }
             }
         }
@@ -110,7 +116,7 @@
             position: absolute;
             transform: scale(0.9);
             top: 4px;
-            color: var(--text-prominent);
+            color: var(--color-text-primary);
 
             &--no-stats {
                 transform: scale(1) translateY(5px);
@@ -132,7 +138,7 @@
             position: absolute;
             font-size: 0.65em;
             font-weight: 400;
-            color: var(--text-general);
+            color: var(--color-text-secondary);
 
             @include mobile {
                 top: 25px;
@@ -145,25 +151,27 @@
             @include typeface(--paragraph-center-bold-black);
             width: 40px;
             height: 40px;
-            background-color: var(--general-main-1);
-            color: var(--text-prominent);
+            background-color: var(--color-surface-primary);
+            color: var(--color-text-primary);
             margin-bottom: 0.5em;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background-color 0.2s ease-out, transform 0.1s ease-out;
+            transition:
+                background-color 0.2s ease-out,
+                transform 0.1s ease-out;
 
             &--selected {
-                background-color: var(--general-main-2);
+                background-color: var(--color-surface-primary);
             }
             &--win {
-                background-color: var(--text-profit-success);
-                color: var(--text-prominent);
+                background-color: var(--color-text-success);
+                color: var(--color-text-primary);
 
                 .digits__digit-display-value,
                 .digits__digit-display-percentage {
-                    color: $color-white;
+                    color: var(--brand-white);
                 }
             }
             &--blink {
@@ -174,12 +182,12 @@
             }
             &--loss {
                 border: none !important;
-                background-color: var(--text-loss-danger);
-                color: var(--text-prominent);
+                background-color: var(--color-text-danger);
+                color: var(--color-text-primary);
 
                 .digits__digit-display-value,
                 .digits__digit-display-percentage {
-                    color: $color-white;
+                    color: var(--brand-white);
                 }
             }
             @include mobile {
@@ -205,22 +213,22 @@
                 padding: 0 4px;
                 margin-left: 1px;
                 border-radius: 50%;
-                border: 1px solid $color-blue;
-                color: var(--text-prominent);
-                background: var(--general-main-2);
+                border: 1px solid var(--brand-info);
+                color: var(--color-text-primary);
+                background: var(--color-surface-primary);
 
                 &--selected-win {
-                    color: var(--text-profit-success);
+                    color: var(--color-text-success);
                 }
                 &--win {
-                    color: var(--text-colored-background);
-                    border-color: var(--text-profit-success);
-                    background: var(--text-profit-success);
+                    color: var(--color-surface-primary);
+                    border-color: var(--color-text-success);
+                    background: var(--color-text-success);
                 }
                 &--loss {
-                    color: var(--text-colored-background);
-                    border-color: var(--text-loss-danger);
-                    background: var(--text-loss-danger);
+                    color: var(--color-surface-primary);
+                    border-color: var(--color-text-danger);
+                    background: var(--color-text-danger);
                 }
             }
             @include mobile {
@@ -229,7 +237,7 @@
                 top: 1.6rem;
                 left: 0;
                 right: 0;
-                margin-top: 4.8rem;
+                margin-top: 6rem;
                 pointer-events: none;
 
                 &-value,
@@ -281,14 +289,14 @@
 
         &:before {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             top: 1px;
             left: 1px;
             content: '';
 
-            @include mobile {
+            @include mobile-screen {
                 top: -4px;
                 left: -2px;
                 width: 48px;
@@ -298,11 +306,11 @@
         &--selected:before {
             top: -2px;
             left: -2px;
-            width: 42px;
-            height: 42px;
-            border: 2px solid var(--text-profit-success);
+            width: 46px;
+            height: 46px;
+            border: 2px solid var(--color-text-success);
 
-            @include mobile {
+            @include mobile-screen {
                 top: 0;
                 left: -2px;
                 width: 48px;
@@ -317,22 +325,22 @@
 
         /* postcss-bem-linter: ignore */
         .progress__bg {
-            stroke: var(--general-disabled);
+            stroke: var(--color-interactive-disabled);
         }
         /* postcss-bem-linter: ignore */
         .progress__value {
-            stroke: var(--text-less-prominent);
+            stroke: var(--color-text-secondary);
 
             /* postcss-bem-linter: ignore */
             &--is-max {
-                stroke: var(--text-profit-success);
+                stroke: var(--color-text-success);
             }
             /* postcss-bem-linter: ignore */
             &--is-min {
-                stroke: var(--text-loss-danger);
+                stroke: var(--color-text-danger);
             }
         }
-        @include mobile {
+        @include mobile-screen {
             width: 48px;
             height: 48px;
             margin-top: 0.2rem;
@@ -344,7 +352,7 @@
         padding: 0 12px;
         transition: transform 0.25s ease;
 
-        @include mobile {
+        @include mobile-screen {
             left: -2px;
         }
     }
@@ -363,7 +371,9 @@
             width: 5px;
             height: 5px;
             position: absolute;
-            transition: transform 0.5s ease, opacity 0.5s linear 0.5s;
+            transition:
+                transform 0.5s ease,
+                opacity 0.5s linear 0.5s;
         }
         &--explode {
             opacity: 1;
@@ -400,16 +410,16 @@
     }
     &__icon {
         &-color {
-            fill: var(--brand-orange);
+            fill: var(--brand-warning);
         }
         &--win .digits__icon-color {
-            fill: var(--text-profit-success);
+            fill: var(--color-text-success);
         }
         &--loss .digits__icon-color {
-            fill: var(--text-loss-danger);
+            fill: var(--color-text-danger);
         }
     }
-    @include mobile {
+    @include mobile-screen {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         grid-gap: 2.4rem 1.6rem;
@@ -441,7 +451,7 @@
         }
         &__tooltip-text {
             font-size: 1.2rem;
-            color: var(--text-general);
+            color: var(--color-text-secondary);
             line-height: 18px;
             text-align: center;
         }
@@ -449,7 +459,7 @@
             margin: auto;
         }
     }
-    @include mobile {
+    @include mobile-screen {
         @at-root .popup-root #{$self}__toast-info {
             top: 10.5rem;
         }
@@ -458,7 +468,7 @@
 
 @keyframes blinking {
     50% {
-        background-color: var(--general-main-1);
-        color: var(--text-general);
+        background-color: var(--color-surface-primary);
+        color: var(--color-text-secondary);
     }
 }

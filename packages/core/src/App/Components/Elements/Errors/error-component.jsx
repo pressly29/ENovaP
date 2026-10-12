@@ -1,9 +1,10 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
+import PropTypes from 'prop-types';
+
 import { PageErrorContainer } from '@deriv/components';
 import { routes } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { useTranslations } from '@deriv-com/translations';
 
 const ErrorComponent = ({
     header,
@@ -12,11 +13,12 @@ const ErrorComponent = ({
     redirectOnClick = null,
     should_clear_error_on_click,
     setError,
-    redirect_to = routes.trade,
+    redirect_to = routes.index,
     should_show_refresh = true,
     should_redirect = true,
 }) => {
     const history = useHistory();
+    const { localize } = useTranslations();
 
     React.useEffect(() => {
         if (!history) return undefined;

@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+
+import { useDevice } from '@deriv-com/ui';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Popover from '../popover';
-import Icon from '../../icon';
+
 import { MAX_MOBILE_WIDTH } from '../../../hooks';
+import Popover from '../popover';
 
 const blue_info_icon = 'IcInfoBlue';
 const children = 'Children';
@@ -23,48 +25,69 @@ const default_mocked_props = {
     onBubbleOpen: jest.fn(),
 } as React.ComponentProps<typeof Popover>;
 
-jest.mock('../../icon', () =>
-    jest.fn((props: React.ComponentProps<typeof Icon>) => <div data-testid='mocked_icon'>{props.icon}</div>)
-);
+jest.mock('@deriv-com/ui', () => ({
+    ...jest.requireActual('@deriv-com/ui'),
+    useDevice: jest.fn(() => ({ isDesktop: true })),
+}));
+
+jest.mock('@deriv/quill-icons', () => ({
+    LegacyInformationIcon: () => <div>{blue_info_icon}</div>,
+    LegacyInfo1pxIcon: () => <div>{target_info_icon}</div>,
+    LabelPairedQuestionCaptionBoldIcon: () => <div>IcUnknown</div>,
+    StandaloneCircleFillIcon: () => <div>IcCircle</div>,
+}));
 
 describe('<Popover/>', () => {
     const mockPopover = (mocked_props = default_mocked_props) => {
         return <Popover {...mocked_props}>{children}</Popover>;
     };
-    it('should render an info icon, display tooltip on hover/click, hide only after unfocusing in desktop', () => {
+    it('should render an info icon, display tooltip on hover/click, hide only after unfocusing in desktop', async () => {
         render(mockPopover());
         const info_icon = screen.getByText(target_info_icon);
         expect(info_icon).toBeInTheDocument();
         expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
-        userEvent.hover(info_icon);
+
+        await userEvent.hover(info_icon);
+        await waitFor(() => {
+            expect(screen.getByText(blue_info_icon)).toBeInTheDocument();
+            expect(screen.getByText(tooltip_message)).toBeInTheDocument();
+        });
+
+        await userEvent.click(info_icon);
         expect(screen.getByText(blue_info_icon)).toBeInTheDocument();
         expect(screen.getByText(tooltip_message)).toBeInTheDocument();
-        userEvent.click(info_icon);
-        expect(screen.getByText(blue_info_icon)).toBeInTheDocument();
-        expect(screen.getByText(tooltip_message)).toBeInTheDocument();
-        userEvent.unhover(info_icon);
-        expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
-        expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
+
+        await userEvent.unhover(info_icon);
+        await waitFor(() => {
+            expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
+            expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
+        });
     });
-    it('should render a question icon, display tooltip upon tap & hide it upon the second tap on mobile', () => {
-        window.innerWidth = MAX_MOBILE_WIDTH;
+    it('should render a question icon, display tooltip upon tap & hide it upon the second tap on mobile', async () => {
+        (useDevice as jest.Mock).mockReturnValue({ isDesktop: false });
         render(mockPopover({ ...default_mocked_props, icon: 'question' }));
         const unknown_icon = screen.getByText('IcUnknown');
         expect(unknown_icon).toBeInTheDocument();
         expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
-        userEvent.click(unknown_icon);
-        expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
-        expect(screen.getByText(tooltip_message)).toBeInTheDocument();
-        userEvent.click(unknown_icon);
-        expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
+
+        await userEvent.click(unknown_icon);
+        await waitFor(() => {
+            expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
+            expect(screen.getByText(tooltip_message)).toBeInTheDocument();
+        });
+
+        await userEvent.click(unknown_icon);
+        await waitFor(() => {
+            expect(screen.queryByText(tooltip_message)).not.toBeInTheDocument();
+        });
     });
-    it('should render controlled popover with open tooltip when is_open === true & should call onClick when target is clicked', () => {
+    it('should render controlled popover with open tooltip when is_open === true & should call onClick when target is clicked', async () => {
         const onClick = jest.fn();
         render(mockPopover({ ...default_mocked_props, icon: 'dot', is_open: true, onClick }));
         const circle_icon = screen.getByText('IcCircle');
         expect(circle_icon).toBeInTheDocument();
         expect(screen.getByText(tooltip_message)).toBeInTheDocument();
-        userEvent.click(circle_icon);
+        await userEvent.click(circle_icon);
         expect(onClick).toBeCalled();
     });
     it('should render a counter instead of an icon when counter is provided & icon === counter', () => {
@@ -88,18 +111,21 @@ describe('<Popover/>', () => {
         expect(screen.getByText(target_info_icon)).toBeInTheDocument();
         expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
     });
-    it('should not open tooltip when message is undefined', () => {
+    it('should not open tooltip when message is undefined', async () => {
         render(mockPopover({ ...default_mocked_props, message: undefined }));
 
         const info_icon = screen.getByText(target_info_icon);
         expect(info_icon).toBeInTheDocument();
         const message = screen.queryByText(tooltip_message);
         expect(message).not.toBeInTheDocument();
-        userEvent.hover(info_icon);
-        expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
-        expect(message).not.toBeInTheDocument();
+
+        await userEvent.hover(info_icon);
+        await waitFor(() => {
+            expect(screen.queryByText(blue_info_icon)).not.toBeInTheDocument();
+            expect(message).not.toBeInTheDocument();
+        });
     });
-    it('should call onBubbleOpen when bubble is hovered & onBubbleClose when bubble is unhovered in controlled popover', () => {
+    it('should call onBubbleOpen when bubble is hovered & onBubbleClose when bubble is unhovered in controlled popover', async () => {
         const onBubbleClose = jest.fn();
         const onBubbleOpen = jest.fn();
         render(
@@ -112,24 +138,40 @@ describe('<Popover/>', () => {
             })
         );
         const message = screen.getByText(tooltip_message);
-        userEvent.hover(message);
-        expect(onBubbleOpen).toBeCalled();
-        userEvent.unhover(message);
-        expect(onBubbleClose).toBeCalled();
+
+        await userEvent.hover(message);
+        await waitFor(() => {
+            expect(onBubbleOpen).toBeCalled();
+        });
+
+        await userEvent.unhover(message);
+        await waitFor(() => {
+            expect(onBubbleClose).toBeCalled();
+        });
     });
-    it('should call onBubbleOpen when bubble is focused & onBubbleClose when bubble is unfocused in uncontrolled popover in mobile', () => {
+    it('should call onBubbleOpen when bubble is focused & onBubbleClose when bubble is unfocused in uncontrolled popover in mobile', async () => {
         window.innerWidth = MAX_MOBILE_WIDTH;
         const onBubbleClose = jest.fn();
         const onBubbleOpen = jest.fn();
         render(mockPopover({ ...default_mocked_props, onBubbleClose, onBubbleOpen }));
         const info_icon = screen.getByText(target_info_icon);
-        userEvent.click(info_icon);
+
+        await userEvent.click(info_icon);
+        await waitFor(() => {
+            const message = screen.getByText(tooltip_message);
+            expect(message).toBeInTheDocument();
+        });
+
         const message = screen.getByText(tooltip_message);
-        expect(message).toBeInTheDocument();
-        userEvent.click(message);
-        expect(onBubbleOpen).toBeCalled();
-        userEvent.unhover(message);
-        expect(onBubbleClose).toBeCalled();
+        await userEvent.hover(message);
+        await waitFor(() => {
+            expect(onBubbleOpen).toBeCalled();
+        });
+
+        await userEvent.unhover(message);
+        await waitFor(() => {
+            expect(onBubbleClose).toBeCalled();
+        });
     });
     it('should render relative container when relative_render === true', () => {
         render(mockPopover({ ...default_mocked_props, relative_render: true, is_open: true }));

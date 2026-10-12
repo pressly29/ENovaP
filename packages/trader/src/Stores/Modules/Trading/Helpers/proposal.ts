@@ -1,4 +1,4 @@
-import { PriceProposalResponse, Proposal } from '@deriv/api-types';
+import { TPriceProposalResponse, TSocketError } from '@deriv/api';
 import {
     convertToUnix,
     getDecimalPlaces,
@@ -6,10 +6,14 @@ import {
     getPropertyValue,
     isAccumulatorContract,
     isTurbosContract,
+    mapErrorMessage,
     toMoment,
     TRADE_TYPES,
 } from '@deriv/shared';
-import { TError, TTradeStore } from 'Types';
+
+import { TTradeStore } from 'Types';
+
+import { isRiseFallContractType } from './allow-equals';
 
 type TObjContractBasis = {
     text: string;
@@ -36,6 +40,29 @@ type TObjExpiry = {
     date_expiry?: number;
 };
 
+type TValidationParams =
+    | {
+          validation_params?: {
+              payout?: {
+                  max: string;
+              };
+              max_payout?: string;
+              max_ticks?: number;
+              stake?: {
+                  max: string;
+                  min: string;
+              };
+              take_profit: {
+                  max: string;
+                  min: string;
+              };
+              stop_loss: { max: string; min: string };
+          };
+      }
+    | undefined;
+
+export type ExpandedProposal = NonNullable<TPriceProposalResponse['proposal']> & TValidationParams;
+
 const isVisible = (elem: HTMLElement) => !(!elem || (elem.offsetWidth === 0 && elem.offsetHeight === 0));
 
 const map_error_field: { [key: string]: string } = {
@@ -44,7 +71,7 @@ const map_error_field: { [key: string]: string } = {
     date_expiry: 'expiry_date',
 };
 
-export const getProposalErrorField = (response: PriceProposalResponse) => {
+export const getProposalErrorField = (response: TPriceProposalResponse) => {
     const error_field: string = getPropertyValue(response, ['error', 'details', 'field']);
     if (!error_field) {
         return null;
@@ -56,13 +83,14 @@ export const getProposalErrorField = (response: PriceProposalResponse) => {
 
 export const getProposalInfo = (
     store: TTradeStore,
-    response: PriceProposalResponse & TError,
-    obj_prev_contract_basis: TObjContractBasis
+    response: TPriceProposalResponse & { error?: TSocketError<'proposal'>['error'] }
 ) => {
-    const proposal = response.proposal || ({} as Proposal);
+    const proposal: ExpandedProposal = response.proposal || ({} as ExpandedProposal);
     const profit = (proposal.payout || 0) - (proposal.ask_price || 0);
     const returns = (profit * 100) / (proposal.ask_price || 1);
-    const stake = proposal.display_value;
+    // display_value property has been removed from the API
+    // Using ask_price as fallback since display_value is no longer provided
+    const stake = proposal.ask_price ? proposal.ask_price.toString() : '';
     const basis_list = store.basis_list;
 
     const contract_basis: TObjContractBasis | undefined =
@@ -72,7 +100,7 @@ export const getProposalInfo = (
 
     const is_stake = contract_basis?.value === 'stake';
 
-    const price = is_stake ? stake : (proposal[contract_basis?.value as keyof Proposal] as string | number);
+    const price = is_stake ? stake : (proposal[contract_basis?.value as keyof ExpandedProposal] as string | number);
 
     const obj_contract_basis = {
         text: contract_basis?.text || '',
@@ -96,13 +124,16 @@ export const getProposalInfo = (
         error_code: response?.error?.code,
         error_field: response?.error?.details?.field,
         limit_order: proposal.limit_order,
-        message: proposal.longcode || response?.error?.message,
+        // TODO: decide on longcode for accumulator and multiplier
+        // message: proposal.longcode || mapErrorMessage(response?.error || {}),
+        message: mapErrorMessage(response?.error || {}),
         obj_contract_basis,
         payout: proposal.payout,
         profit: profit.toFixed(getDecimalPlaces(store.currency)),
         returns: `${returns.toFixed(2)}%`,
         stake,
         spot: proposal.spot,
+        validation_params: proposal?.validation_params,
         ...accumulators_details,
     };
 };
@@ -143,7 +174,7 @@ const setProposalAccumulator = (store: TTradeStore, obj_accumulator: TObjAccum) 
     }
 };
 
-const createProposalRequestForContract = (store: TTradeStore, type_of_contract: string) => {
+export const createProposalRequestForContract = (store: TTradeStore, type_of_contract: string) => {
     const obj_accumulator: TObjAccum = {};
     const obj_expiry: TObjExpiry = {};
     const obj_multiplier: TObjMultiplier = {};
@@ -153,6 +184,32 @@ const createProposalRequestForContract = (store: TTradeStore, type_of_contract: 
         const expiry_date = toMoment(store.expiry_date);
         obj_expiry.date_expiry = convertToUnix(expiry_date.unix(), store.expiry_time);
     }
+
+    // TODO: Fix mobile duration param intermittently showing invalid duration error
+    const getDurationParams = () => {
+        // ACCUMULATOR and MULTIPLIER contracts don't use duration parameters
+        if (store.contract_type === TRADE_TYPES.ACCUMULATOR || store.contract_type === TRADE_TYPES.MULTIPLIER) {
+            return {};
+        }
+
+        if (store.expiry_type === 'duration') {
+            // Ensure we have valid duration and duration_unit values
+            const duration = parseInt(store.duration.toString());
+            const duration_unit = store.duration_unit;
+
+            return {
+                duration,
+                duration_unit,
+            };
+        }
+
+        // For endtime, ensure we have a valid expiry_date
+        if (store.expiry_type === 'endtime' && obj_expiry.date_expiry) {
+            return obj_expiry;
+        }
+
+        return {};
+    };
 
     if (store.contract_type === TRADE_TYPES.MULTIPLIER) {
         setProposalMultiplier(store, obj_multiplier);
@@ -173,19 +230,23 @@ const createProposalRequestForContract = (store: TTradeStore, type_of_contract: 
         basis: store.basis,
         contract_type: type_of_contract,
         currency: store.currency,
-        symbol: store.symbol,
+        underlying_symbol: store.symbol,
         ...(store.start_date && store.start_time && { date_start: convertToUnix(store.start_date, store.start_time) }),
-        ...(store.expiry_type === 'duration'
-            ? {
-                  duration: parseInt(store.duration.toString()),
-                  duration_unit: store.duration_unit,
-              }
-            : obj_expiry),
+        ...getDurationParams(),
         ...((store.barrier_count > 0 || store.form_components.indexOf('last_digit') !== -1) &&
-            !isAccumulatorContract(type_of_contract) && {
-                barrier: store.barrier_1 || store.last_digit,
+            !isAccumulatorContract(type_of_contract) &&
+            !isTurbosContract(type_of_contract) &&
+            !isRiseFallContractType(type_of_contract) && {
+                barrier: store.barrier || store.barrier_1 || store.last_digit,
             }),
-        ...(store.barrier_count === 2 && !isAccumulatorContract(type_of_contract) && { barrier2: store.barrier_2 }),
+        ...(store.barrier_count === 2 &&
+            !isAccumulatorContract(type_of_contract) &&
+            !isRiseFallContractType(type_of_contract) && {
+                barrier2: store.barrier_2,
+            }),
+        ...(isTurbosContract(type_of_contract) && {
+            payout_per_point: store.payout_per_point || store.last_digit,
+        }),
         limit_order,
         ...obj_accumulator,
         ...obj_multiplier,

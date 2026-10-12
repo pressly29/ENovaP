@@ -1,4 +1,4 @@
-import { getPropertyValue, deepFreeze } from '../object';
+import { deepFreeze, getPropertyValue } from '../object';
 
 export type TCurrenciesConfig = {
     [key: string]: {
@@ -22,7 +22,7 @@ export type TCurrenciesConfig = {
     };
 };
 
-let currencies_config: TCurrenciesConfig = {};
+const currencies_config: TCurrenciesConfig = {};
 
 const fiat_currencies_display_order = ['USD', 'EUR', 'GBP', 'AUD'];
 const crypto_currencies_display_order = [
@@ -40,40 +40,14 @@ const crypto_currencies_display_order = [
     'TUSD',
     'USDC',
     'USDK',
+    'XRP',
 ];
-
-export const reorderCurrencies = <T extends { value: string; type: string; name: string }>(
-    list: Array<T>,
-    type = 'fiat'
-) => {
-    const new_order = type === 'fiat' ? fiat_currencies_display_order : crypto_currencies_display_order;
-
-    return list.sort((a, b) => {
-        if (new_order.indexOf(a.value) < new_order.indexOf(b.value)) {
-            return -1;
-        }
-        if (new_order.indexOf(a.value) > new_order.indexOf(b.value)) {
-            return 1;
-        }
-        return 0;
-    });
-};
 
 export const AMOUNT_MAX_LENGTH = 10;
 
-export const CURRENCY_TYPE = {
-    CRYPTO: 'crypto',
-    FIAT: 'fiat',
-} as const;
-
-export const getRoundedNumber = (number: number, currency: string) => {
-    return Number(Number(number).toFixed(getDecimalPlaces(currency)));
-};
-
-export const getFormattedText = (number: number, currency: string) => {
-    return `${addComma(number, getDecimalPlaces(currency), isCryptocurrency(currency))} ${currency}`;
-};
-
+/**
+ * @deprecated Please use 'FormatUtils.formatMoney' from '@deriv-com/utils' instead of this.
+ */
 export const formatMoney = (
     currency_value: string,
     amount: number | string,
@@ -129,16 +103,13 @@ export const getDecimalPlaces = (currency = '') =>
         ? getPropertyValue(currencies_config, [currency, 'fractional_digits'])
         : calcDecimalPlaces(currency);
 
-export const setCurrencies = (website_status: { currencies_config: TCurrenciesConfig }) => {
-    currencies_config = website_status.currencies_config;
-};
-
-// (currency in crypto_config) is a back-up in case website_status doesn't include the currency config, in some cases where it's disabled
+// Uses crypto_config as fallback for currency detection
 export const isCryptocurrency = (currency: string) => {
     return /crypto/i.test(getPropertyValue(currencies_config, [currency, 'type'])) || currency in CryptoConfig.get();
 };
 
 export const CryptoConfig = (() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let crypto_config: any;
 
     // TODO: [use-shared-i18n] - Use translate function shared among apps or pass in translated names externally.
@@ -272,6 +243,11 @@ export const CryptoConfig = (() => {
                 pa_min_withdrawal: 10,
                 fractional_digits: 2,
             },
+            XRP: {
+                display_code: 'XRP',
+                name: 'Ripple',
+                fractional_digits: 6,
+            },
             // USB: {
             //     display_code: 'USB',
             //     name: 'Binary Coin',
@@ -292,28 +268,11 @@ export const CryptoConfig = (() => {
     };
 })();
 
-export const getMinWithdrawal = (currency: string) => {
-    return isCryptocurrency(currency) ? getPropertyValue(CryptoConfig.get(), [currency, 'min_withdrawal']) || 0.002 : 1;
-};
-
-export const getTransferFee = (currency_from: string, currency_to: string) => {
-    const transfer_fee = getPropertyValue(currencies_config, [
-        currency_from,
-        'transfer_between_accounts',
-        'fees',
-        currency_to,
-    ]);
-    return `${typeof transfer_fee === 'undefined' ? '1' : transfer_fee}%`;
-};
-
 export const getCurrencyDisplayCode = (currency = '') => {
     // eslint-disable-next-line
     if (currency !== 'eUSDT' && currency !== 'tUSDT') currency = currency.toUpperCase();
     return getPropertyValue(CryptoConfig.get(), [currency, 'display_code']) || currency;
 };
-
-export const getCurrencyName = (currency = '') =>
-    currency === 'USDT' ? 'Tether Omni' : getPropertyValue(currencies_config, [currency, 'name']) || '';
 
 export const getMinPayout = (currency: string) => {
     return getPropertyValue(currencies_config, [currency, 'stake_default']);
@@ -321,10 +280,4 @@ export const getMinPayout = (currency: string) => {
 
 export const getCurrencies = () => {
     return currencies_config;
-};
-
-export type TAccount = {
-    account_type: 'real' | 'demo';
-    balance: number;
-    currency: string;
 };

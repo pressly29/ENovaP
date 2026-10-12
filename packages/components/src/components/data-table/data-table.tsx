@@ -99,6 +99,7 @@ const DataTable = ({
 
     const rowRenderer = ({ style, index, key, parent }: TRowRenderer) => {
         const item = data_source?.[index];
+        const { action_type, shortcode, purchase_time, transaction_time } = item || {};
         const contract_id = (item?.contract_id || item?.id) as string;
         let action: TTableRowItem | undefined, row_key;
         if (item) {

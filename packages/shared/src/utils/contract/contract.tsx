@@ -1,8 +1,11 @@
-import moment from 'moment';
 import React from 'react';
-import { Localize } from '@deriv/translations';
+import moment from 'moment';
+
+import { Localize } from '@deriv-com/translations';
+
 import { unique } from '../object';
 import { capitalizeFirstLetter } from '../string/string_util';
+
 import { TContractInfo, TContractStore, TDigitsInfo, TLimitOrder, TTickItem } from './contract-types';
 
 type TGetAccuBarriersDTraderTimeout = (params: {
@@ -28,6 +31,12 @@ export const ANIMATION_CORRECTION_TIME = 200;
 export const DELAY_TIME_1S_SYMBOL = 500;
 // generation_interval will be provided via API later to help us distinguish between 1-second and 2-second symbols
 export const symbols_2s = ['R_10', 'R_25', 'R_50', 'R_75', 'R_100'];
+
+export const CONTRACT_STORAGE_VALUES = {
+    MULTIPLIERS: 'multipliers',
+    ACCUMULATORS: 'accumulators',
+    OPTIONS: 'options',
+};
 
 export const CONTRACT_TYPES = {
     ACCUMULATOR: 'ACCU',
@@ -99,15 +108,29 @@ export const TRADE_TYPES = {
         FX: 'vanilla_fx',
     },
 } as const;
+export const getContractStatus = (contract_info: TContractInfo) => {
+    const exit_spot_time = contract_info.exit_spot_time;
+    const { contract_type, profit, status } = contract_info;
 
-export const getContractStatus = ({ contract_type, exit_tick_time, profit, status }: TContractInfo) => {
-    const closed_contract_status = profit && profit < 0 && exit_tick_time ? 'lost' : 'won';
-    return isAccumulatorContract(contract_type)
-        ? (status === 'open' && !exit_tick_time && 'open') || closed_contract_status
-        : status;
+    const closed_contract_status = profit && Number(profit) < 0 && exit_spot_time ? 'lost' : 'won';
+    const is_accumulator = isAccumulatorContract(contract_type);
+
+    let result;
+    if (is_accumulator) {
+        result = (status === 'open' && !exit_spot_time && 'open') || closed_contract_status;
+    } else {
+        result = status;
+    }
+
+    return result;
 };
 
-export const getFinalPrice = (contract_info: TContractInfo) => contract_info.sell_price || contract_info.bid_price;
+export const getFinalPrice = (contract_info: TContractInfo) => {
+    if (contract_info.sell_price && contract_info.sell_price !== '0') {
+        return contract_info.sell_price;
+    }
+    return contract_info.bid_price;
+};
 
 export const getIndicativePrice = (contract_info: TContractInfo) =>
     getFinalPrice(contract_info) && isEnded(contract_info)
@@ -119,23 +142,42 @@ export const getCancellationPrice = (contract_info: TContractInfo) => {
     return cancellation_price;
 };
 
-export const isEnded = (contract_info: TContractInfo) =>
+export const isEnded = (contract_info?: TContractInfo) =>
     !!(
-        (contract_info.status && contract_info.status !== 'open') ||
-        contract_info.is_expired ||
-        contract_info.is_settleable
+        (contract_info?.status && contract_info.status !== 'open') ||
+        contract_info?.is_expired ||
+        contract_info?.is_settleable ||
+        contract_info?.exit_spot_time
     );
 
-export const isOpen = (contract_info: TContractInfo) => getContractStatus(contract_info) === 'open';
+export const isOpen = (contract_info: TContractInfo) => {
+    const contract_status = getContractStatus(contract_info);
+    const result = contract_status === 'open' && !isEnded(contract_info);
 
-export const isUserSold = (contract_info: TContractInfo) => contract_info.status === 'sold';
+    return result;
+};
 
-export const isValidToCancel = (contract_info: TContractInfo) => !!contract_info.is_valid_to_cancel;
+export const isUserSold = (contract_info?: TContractInfo) => {
+    // Check both status field and is_sold property for comprehensive detection
+    // Handle type coercion: is_sold can be 0/1 (number), "0"/"1" (string), or boolean
+    const statusSold = contract_info?.status === 'sold';
+    const isSoldProperty = contract_info?.is_sold;
+    // Use type-safe comparison to handle all possible truthy values for is_sold
+    const isSoldTrue = Boolean(
+        isSoldProperty && (isSoldProperty === 1 || isSoldProperty === true || String(isSoldProperty) === '1')
+    );
 
-export const isValidToSell = (contract_info: TContractInfo) =>
-    !isEnded(contract_info) && !isUserSold(contract_info) && !!contract_info.is_valid_to_sell;
+    const result = statusSold || isSoldTrue;
 
-export const hasContractEntered = (contract_info: TContractInfo) => !!contract_info.entry_spot;
+    return result;
+};
+
+export const isValidToCancel = (contract_info?: TContractInfo) => !!contract_info?.is_valid_to_cancel;
+
+export const isValidToSell = (contract_info?: TContractInfo) =>
+    !isEnded(contract_info) && !isUserSold(contract_info) && !!contract_info?.is_valid_to_sell;
+
+export const hasContractEntered = (contract_info?: TContractInfo) => !!contract_info?.entry_spot;
 
 export const hasBarrier = (contract_type = '') => /VANILLA|TURBOS|HIGH_LOW|TOUCH/i.test(contract_type);
 
@@ -149,6 +191,10 @@ export const isAccumulatorContractOpen = (contract_info: TContractInfo = {}) => 
 
 export const isMultiplierContract = (contract_type = '') => /MULT/i.test(contract_type);
 
+export const isRiseFallContract = (contract_type = '') => /RISE_FALL/i.test(contract_type);
+
+export const isHigherLowerContract = (contract_type = '') => /HIGHER|LOWER/i.test(contract_type);
+
 export const isTouchContract = (contract_type: string) => /TOUCH/i.test(contract_type);
 
 export const isTurbosContract = (contract_type = '') => /TURBOS/i.test(contract_type);
@@ -156,7 +202,7 @@ export const isTurbosContract = (contract_type = '') => /TURBOS/i.test(contract_
 export const isVanillaContract = (contract_type = '') => /VANILLA/i.test(contract_type);
 
 export const isVanillaFxContract = (contract_type = '', symbol = '') =>
-    isVanillaContract(contract_type) && VANILLA_FX_SYMBOLS.includes(symbol as typeof VANILLA_FX_SYMBOLS[number]);
+    isVanillaContract(contract_type) && VANILLA_FX_SYMBOLS.includes(symbol as (typeof VANILLA_FX_SYMBOLS)[number]);
 
 export const isSmartTraderContract = (contract_type = '') =>
     /RUN|EXPIRY|RANGE|UPORDOWN|ASIAN|RESET|TICK|LB/i.test(contract_type);
@@ -202,7 +248,7 @@ export const getCurrentTick = (contract_info: TContractInfo) => {
     const current_tick =
         isDigitContract(contract_info.contract_type) || isAsiansContract(contract_info.contract_type)
             ? tick_stream.length
-            : tick_stream.length - 1;
+            : (contract_info.tick_passed ?? tick_stream.length - 1);
     return !current_tick || current_tick < 0 ? 0 : current_tick;
 };
 
@@ -272,6 +318,10 @@ export const getTimePercentage = (server_time: moment.Moment, start_time: number
         percentage = 100;
     }
 
+    if (isNaN(percentage)) {
+        percentage = 0;
+    }
+
     return Math.round(percentage);
 };
 
@@ -315,9 +365,9 @@ export const getContractSubtype = (type = '') =>
 export const getLocalizedTurbosSubtype = (contract_type = '') => {
     if (!isTurbosContract(contract_type)) return '';
     return getContractSubtype(contract_type) === 'Long' ? (
-        <Localize i18n_default_text='Long' />
+        <Localize i18n_default_text='Up' />
     ) : (
-        <Localize i18n_default_text='Short' />
+        <Localize i18n_default_text='Down' />
     );
 };
 

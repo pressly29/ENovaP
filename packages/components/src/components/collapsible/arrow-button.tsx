@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
-import Icon from '../icon';
+import { LegacyChevronUp1pxIcon, LegacyChevronDown1pxIcon } from '@deriv/quill-icons';
 import Text from '../text';
 
 type TIconArrowWithTitle = {
@@ -19,15 +19,15 @@ type TArrowButton = {
 };
 
 const IconArrow = ({ className }: { className?: string }) => (
-    <Icon width={30} height={9} icon='IcChevronUp' className={className} />
+    <LegacyChevronUp1pxIcon width={30} height={9} className={className} fill='var(--color-text-primary)' />
 );
 
 const IconArrowWithTitle = ({ title, ...props }: TIconArrowWithTitle) => (
     <React.Fragment>
-        <Text size='xs' weight='bold' color='prominent' className='dc-collapsible__title'>
+        <Text size='xs' weight='bold' color='primary' className='dc-collapsible__title'>
             {title}
         </Text>
-        <Icon icon='IcChevronDown' {...props} />
+        <LegacyChevronDown1pxIcon {...props} fill='var(--color-text-primary)' />
     </React.Fragment>
 );
 

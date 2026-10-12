@@ -1,11 +1,11 @@
-import { isEmptyObject, getPropertyValue, TRADE_TYPES } from '@deriv/shared';
+import { getPropertyValue, isEmptyObject, TRADE_TYPES } from '@deriv/shared';
+
 import { ContractType } from 'Stores/Modules/Trading/Helpers/contract-type';
 import { TTradeStore } from 'Types';
 
 type THasDurationForCallPutEqual = {
     contract_type_list: TTradeStore['contract_types_list'];
     duration_unit: TTradeStore['duration_unit'];
-    contract_start_type: string;
 };
 
 export const hasCallPutEqual = (contract_type_list: THasDurationForCallPutEqual['contract_type_list']) => {
@@ -19,10 +19,9 @@ export const hasCallPutEqual = (contract_type_list: THasDurationForCallPutEqual[
 
 export const hasDurationForCallPutEqual = (
     contract_type_list: THasDurationForCallPutEqual['contract_type_list'],
-    duration_unit: THasDurationForCallPutEqual['duration_unit'],
-    contract_start_type: THasDurationForCallPutEqual['contract_start_type']
+    duration_unit: THasDurationForCallPutEqual['duration_unit']
 ) => {
-    if (!contract_type_list || !duration_unit || !contract_start_type) return false;
+    if (!contract_type_list || !duration_unit) return false;
 
     const contract_list = Object.keys(contract_type_list || {}).reduce<string[]>((key, list) => {
         const item: THasDurationForCallPutEqual['contract_type_list']['Ups & Downs'] = contract_type_list[list];
@@ -30,13 +29,7 @@ export const hasDurationForCallPutEqual = (
     }, []);
 
     const contract_duration_list = contract_list.map(list => ({
-        [list]: getPropertyValue(ContractType.getFullContractTypes(), [
-            list,
-            'config',
-            'durations',
-            'units_display',
-            contract_start_type,
-        ]),
+        [list]: getPropertyValue(ContractType.getFullContractTypes(), [list, 'config', 'durations', 'units_display']),
     }));
 
     // Check whether rise fall equal is exists and has the current store duration unit
@@ -51,3 +44,9 @@ export const hasDurationForCallPutEqual = (
 };
 
 export const isRiseFallEqual = (contract_type: string) => /^(rise_fall|rise_fall_equal)$/.test(contract_type);
+
+export const isRiseFallContractType = (contract_type: string): boolean => {
+    // Check for API contract types used in proposal requests (CALL, PUT, CALLE, PUTE)
+    const apiRiseFallTypes = ['CALL', 'PUT', 'CALLE', 'PUTE'];
+    return apiRiseFallTypes.includes(contract_type);
+};

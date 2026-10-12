@@ -1,11 +1,10 @@
-@import '../icon/icon.scss';
-
 .dc-popover {
     &__wrapper {
         position: relative;
     }
     &__container {
         position: absolute;
+        /*rtl:ignore*/
         left: 0;
         top: 0;
         width: 280px;
@@ -15,22 +14,8 @@
         }
     }
     &__target {
-        &__icon .info {
-            @extend .dc-icon--secondary;
-
-            &:hover {
-                @extend .dc-icon;
-            }
-        }
-        &__icon--disabled .info {
-            @extend .dc-icon--disabled;
-
-            &:hover {
-                @extend .dc-icon--disabled;
-            }
-        }
         &__icon .counter {
-            color: var(--brand-red-coral);
+            color: var(--brand-primary);
             font-size: 10px;
             font-weight: bold;
             line-height: 1.4em;
@@ -40,7 +25,7 @@
         }
     }
     &__bubble {
-        @include typeface(--small-center-normal-active, none);
+        @include typeface(--small-center-normal-primary, none);
         cursor: help;
         position: relative;
         padding: 0.8rem;
@@ -48,8 +33,8 @@
         border-radius: 4px;
         display: flex;
         flex-direction: row;
-        background: var(--general-active);
-        color: var(--text-prominent);
+        background: var(--color-interactive-active);
+        color: var(--color-text-primary);
         z-index: 1;
 
         &__icon {
@@ -59,9 +44,11 @@
         }
         &__text {
             flex-grow: 2;
+            direction: ltr;
         }
         &--error {
-            background-color: var(--status-danger);
+            direction: ltr;
+            background-color: var(--color-status-danger);
         }
     }
     &__trade-params {

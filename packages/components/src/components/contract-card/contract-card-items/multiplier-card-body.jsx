@@ -8,7 +8,6 @@ import {
     getTotalProfit,
     isValidToCancel,
     isValidToSell,
-    shouldShowCancellation,
 } from '@deriv/shared';
 import ContractCardItem from './contract-card-item';
 import ToggleCardDialog from './toggle-card-dialog';
@@ -28,22 +27,14 @@ const MultiplierCardBody = ({
     toggleCancellationWarning,
     ...toggle_card_dialog_props
 }) => {
-    const { buy_price, bid_price, limit_order, underlying } = contract_info;
+    const { buy_price, bid_price, limit_order } = contract_info;
     const { take_profit, stop_loss } = getLimitOrderAmount(contract_update || limit_order);
     const cancellation_price = getCancellationPrice(contract_info);
     const is_valid_to_cancel = isValidToCancel(contract_info);
     const is_valid_to_sell = isValidToSell(contract_info);
     const total_profit = getTotalProfit(contract_info);
-    const {
-        CONTRACT_COST,
-        CONTRACT_VALUE,
-        DEAL_CANCEL_FEE,
-        NOT_AVAILABLE,
-        STAKE,
-        STOP_LOSS,
-        TAKE_PROFIT,
-        TOTAL_PROFIT_LOSS,
-    } = getCardLabels();
+    const { CONTRACT_COST, CONTRACT_VALUE, DEAL_CANCEL_FEE, STAKE, STOP_LOSS, TAKE_PROFIT, TOTAL_PROFIT_LOSS } =
+        getCardLabels();
 
     return (
         <React.Fragment>
@@ -53,6 +44,7 @@ const MultiplierCardBody = ({
                     'dc-contract-card-items-wrapper': !is_mobile,
                     'dc-contract-card-items-wrapper--has-progress-slider': has_progress_slider && !is_sold,
                 })}
+                data-testid='dt_multiplier_card_body'
             >
                 <ContractCardItem header={CONTRACT_COST} className='dc-contract-card__stake'>
                     <Money amount={buy_price - cancellation_price} currency={currency} />
@@ -70,13 +62,16 @@ const MultiplierCardBody = ({
                         <ArrowIndicator className='dc-contract-card__indicative--movement' value={total_profit} />
                     )}
                 </ContractCardItem>
-                <ContractCardItem header={DEAL_CANCEL_FEE} className='dc-contract-card__deal-cancel-fee'>
+                <ContractCardItem
+                    header={DEAL_CANCEL_FEE}
+                    className={classNames('dc-contract-card__deal-cancel-fee', {
+                        'dc-contract-card__deal-cancel-fee__disabled': !cancellation_price,
+                    })}
+                >
                     {cancellation_price ? (
                         <Money amount={cancellation_price} currency={currency} />
                     ) : (
-                        <React.Fragment>
-                            {shouldShowCancellation(underlying) ? <strong>-</strong> : NOT_AVAILABLE}
-                        </React.Fragment>
+                        <React.Fragment>-</React.Fragment>
                     )}
                 </ContractCardItem>
                 <ContractCardItem header={STAKE} className='dc-contract-card__buy-price'>
@@ -103,8 +98,8 @@ const MultiplierCardBody = ({
                         <ToggleCardDialog
                             contract_id={contract_info.contract_id}
                             getCardLabels={getCardLabels}
-                            is_valid_to_cancel={is_valid_to_cancel}
-                            should_show_cancellation_warning={should_show_cancellation_warning}
+                            is_risk_management_edition_disabled={is_valid_to_cancel}
+                            should_show_warning={should_show_cancellation_warning}
                             toggleCancellationWarning={toggleCancellationWarning}
                             {...toggle_card_dialog_props}
                         />

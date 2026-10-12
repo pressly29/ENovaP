@@ -1,5 +1,6 @@
-import { processTradeParams } from '../process';
 import { mockStore } from '@deriv/stores';
+
+import { processTradeParams } from '../process';
 
 jest.mock('@deriv/shared', () => ({
     ...jest.requireActual('@deriv/shared'),
@@ -21,5 +22,6 @@ describe('processTradeParams', () => {
         await processTradeParams(trade_store, new_state);
         expect(trade_store.updateStore).toHaveBeenCalled();
         expect(trade_store.is_trade_enabled).toBe(true);
+        expect(trade_store.is_trade_enabled_v2).toBe(true);
     });
 });

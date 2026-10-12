@@ -1,11 +1,10 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { toMoment } from '../date';
 
 type TContract = {
     max_contract_duration: string;
     min_contract_duration: string;
     expiry_type: string;
-    start_type: string;
 };
 
 type TMaxMin = {
@@ -19,11 +18,8 @@ type TUnit = {
 };
 
 export type TDurations = {
-    min_max: {
-        spot: Partial<Record<'tick' | 'intraday' | 'daily', TMaxMin>>;
-        forward: Partial<Record<'intraday', TMaxMin>>;
-    };
-    units_display: Partial<Record<'spot' | 'forward', TUnit[]>>;
+    min_max: Partial<Record<'tick' | 'intraday' | 'daily', TMaxMin>>;
+    units_display: TUnit[];
 };
 
 type TDurationMinMax = {
@@ -43,25 +39,24 @@ const getDurationMaps = () => ({
 
 export const buildDurationConfig = (
     contract: TContract,
-    durations: TDurations = { min_max: { spot: {}, forward: {} }, units_display: {} }
+    durations: TDurations = { min_max: {}, units_display: [] }
 ) => {
     type TDurationMaps = keyof typeof duration_maps;
-    durations.units_display[contract.start_type as keyof typeof durations.units_display] =
-        durations.units_display[contract.start_type as keyof typeof durations.units_display] || [];
 
-    const duration_min_max = durations.min_max[contract.start_type as keyof typeof durations.min_max];
+    // Initialize units_display if not already set
+    durations.units_display = durations.units_display || [];
+
     const obj_min = getDurationFromString(contract.min_contract_duration);
     const obj_max = getDurationFromString(contract.max_contract_duration);
 
-    durations.min_max[contract.start_type as keyof typeof durations.min_max][
-        contract.expiry_type as keyof typeof duration_min_max
-    ] = {
+    // Set min/max values directly without spot/forward nesting
+    durations.min_max[contract.expiry_type as keyof typeof durations.min_max] = {
         min: convertDurationUnit(obj_min.duration, obj_min.unit, 's') || 0,
         max: convertDurationUnit(obj_max.duration, obj_max.unit, 's') || 0,
     };
 
     const arr_units: string[] = [];
-    durations?.units_display?.[contract.start_type as keyof typeof durations.units_display]?.forEach?.(obj => {
+    durations.units_display.forEach(obj => {
         arr_units.push(obj.value);
     });
 
@@ -84,7 +79,7 @@ export const buildDurationConfig = (
         });
     }
 
-    durations.units_display[contract.start_type as keyof typeof durations.units_display] = arr_units
+    durations.units_display = arr_units
         .sort((a, b) => (duration_maps[a as TDurationMaps].order > duration_maps[b as TDurationMaps].order ? 1 : -1))
         .reduce((o, c) => [...o, { text: duration_maps[c as TDurationMaps].display, value: c }], [] as TUnit[]);
     return durations;
@@ -116,22 +111,31 @@ const getDurationFromString = (duration_string: string) => {
 };
 
 // TODO will change this after the global stores types get ready
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getExpiryType = (store: any) => {
     const { duration_unit, expiry_date, expiry_type, duration_units_list } = store;
     const server_time = store.root_store.common.server_time;
 
     const duration_is_day = expiry_type === 'duration' && duration_unit === 'd';
-    const expiry_is_after_today =
-        expiry_type === 'endtime' &&
-        ((toMoment(expiry_date) as unknown as moment.Moment).isAfter(
-            toMoment(server_time) as unknown as moment.MomentInput,
-            'day'
-        ) ||
-            !hasIntradayDurationUnit(duration_units_list));
+    const duration_is_endtime = expiry_type === 'endtime';
 
-    let contract_expiry_type = 'daily';
-    if (!duration_is_day && !expiry_is_after_today) {
-        contract_expiry_type = duration_unit === 't' ? 'tick' : 'intraday';
+    const expiry_is_after_today =
+        expiry_type === 'endtime' && toMoment(expiry_date).isAfter(toMoment(server_time), 'day');
+
+    const expiry_is_today = expiry_type === 'endtime' && toMoment(expiry_date).isSame(toMoment(server_time), 'day');
+
+    let contract_expiry_type = '';
+
+    if (duration_is_day) {
+        contract_expiry_type = 'daily';
+    } else if (expiry_is_after_today || (duration_is_endtime && !hasIntradayDurationUnit(duration_units_list))) {
+        contract_expiry_type = 'daily';
+    } else if (expiry_is_today && hasIntradayDurationUnit(duration_units_list)) {
+        contract_expiry_type = 'intraday';
+    } else if (duration_unit === 't') {
+        contract_expiry_type = 'tick';
+    } else if (duration_unit === 'm' || duration_unit === 'h' || duration_unit === 's') {
+        contract_expiry_type = 'intraday';
     }
 
     return contract_expiry_type;

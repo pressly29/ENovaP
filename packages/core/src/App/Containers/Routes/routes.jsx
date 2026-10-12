@@ -1,26 +1,27 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { withRouter } from 'react-router';
-import Loadable from 'react-loadable';
+import PropTypes from 'prop-types';
+
 import { UILoader } from '@deriv/components';
 import { urlForLanguage } from '@deriv/shared';
-import { getLanguage } from '@deriv/translations';
-import BinaryRoutes from 'App/Components/Routes';
 import { observer, useStore } from '@deriv/stores';
+import { useTranslations } from '@deriv-com/translations';
 
-const Error = Loadable({
-    loader: () => import(/* webpackChunkName: "error-component" */ 'App/Components/Elements/Errors'),
-    loading: UILoader,
-    render(loaded, props) {
-        const Component = loaded.default;
-        return <Component {...props} />;
-    },
-});
+import BinaryRoutes from 'App/Components/Routes';
+
+const ErrorLazy = React.lazy(() => import(/* webpackChunkName: "error-component" */ 'App/Components/Elements/Errors'));
+
+const Error = props => (
+    <React.Suspense fallback={<UILoader />}>
+        <ErrorLazy {...props} />
+    </React.Suspense>
+);
 
 const Routes = observer(({ history, location, passthrough }) => {
     const { client, common } = useStore();
     const { is_logged_in, is_logging_in } = client;
     const { error, has_error, setAppRouterHistory, addRouteHistoryItem, setInitialRouteHistoryItem } = common;
+    const { currentLang } = useTranslations();
     const initial_route = React.useRef(null);
     const unlisten_to_change = React.useRef(null);
 
@@ -47,7 +48,7 @@ const Routes = observer(({ history, location, passthrough }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const lang = getLanguage();
+    const lang = currentLang;
     const lang_regex = /[?&]lang=/;
     const has_lang = lang_regex.test(location.search);
 

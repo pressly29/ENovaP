@@ -3,7 +3,7 @@
     "compilerOptions": {
         "paths": {
             "_common/*": ["src/_common/*"],
-            "App/*": ["src/App/*"],
+            "AppV2/*": ["src/AppV2/*"],
             "Assets/*": ["src/Assets/*"],
             "Constants/*": ["src/Constants/*"],
             "Fonts/*": ["src/public/fonts/*"],
@@ -17,20 +17,15 @@
             "Utils/*": ["src/Utils/*"],
             "@deriv/*": ["../*/src"]
         },
+        "useDefineForClassFields": true,
         "outDir": "./dist",
-        "baseUrl": "./"
+        "baseUrl": "./",
+        "types": ["jest", "@testing-library/jest-dom", "node"]
     },
-        "include": [
-            "src",
-            "./index.d.ts",
-            "../../globals.d.ts",
-            "../../utils.d.ts"
-        ],
-        "exclude": [
-            "src/**/__tests__/**",
-            "src/**/*.spec.ts",
-            "src/**/*.spec.tsx",
-            "src/**/*.test.ts",
-            "src/**/*.test.tsx"
-        ]
+    "include": [
+      "src",
+      "./index.d.ts",
+      "../../globals.d.ts",
+      "../../utils.d.ts"
+    ]
 }

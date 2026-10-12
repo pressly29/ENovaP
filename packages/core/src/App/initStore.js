@@ -1,5 +1,7 @@
 import { configure } from 'mobx';
+
 import NetworkMonitor from 'Services/network-monitor';
+
 import RootStore from 'Stores';
 
 configure({ enforceActions: 'observed' });
@@ -25,29 +27,34 @@ const setStorageEvents = root_store => {
                     window.location.reload();
                 }
                 break;
+            // Cross-tab logout sentinel: logout.js writes this key on logout
+            case 'logout_event':
+                if (evt.newValue) {
+                    root_store.client.logout();
+                }
+                break;
             // no default
         }
     });
 };
 
-const initStore = notification_messages => {
-    // Check Endpoint from URL need to be done before initializing store to avoid
-    // race condition with setting up user session from URL
+const initStore = async notification_messages => {
     const url_query_string = window.location.search;
     const url_params = new URLSearchParams(url_query_string);
+
     if (url_params.get('action') === 'signup') {
-        // If a user comes from the signup process,
-        // we need to give him a clean setup
+        // If a user comes from the signup process, give them a clean setup
         const server_url = localStorage.getItem('config.server_url');
-        const app_id = localStorage.getItem('config.app_id');
-
         localStorage.clear();
-
         if (server_url) localStorage.setItem('config.server_url', server_url);
-        if (app_id) localStorage.setItem('config.app_id', app_id);
     }
 
     const root_store = new RootStore();
+
+    // Set up global store reference for debugging
+    if (typeof window !== 'undefined') {
+        window.__deriv_store = root_store;
+    }
 
     setStorageEvents(root_store);
 

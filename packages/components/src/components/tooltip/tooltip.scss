@@ -1,8 +1,9 @@
+/*rtl:begin:ignore*/
 .dc-tooltip {
     text-decoration: none;
     font-size: inherit;
-    color: var(--text-prominent);
-    @include tooltipColor(var(--status-default));
+    color: var(--color-text-primary);
+    @include tooltipColor(var(--color-status-neutral));
 
     &__balloon-icon {
         position: absolute;
@@ -21,7 +22,7 @@
     &[data-tooltip] {
         cursor: initial;
         display: block;
-        @include convertTooltipColor(var(--status-default));
+        @include convertTooltipColor(var(--color-status-neutral));
 
         &:hover:after,
         &:hover:before {
@@ -42,7 +43,7 @@
             transform-origin: top;
         }
         &:before {
-            @include typeface(--small-left-normal-active, none);
+            @include typeface(--small-left-normal-white, none);
             line-height: 1.5;
             text-decoration: none;
             letter-spacing: normal;
@@ -90,6 +91,7 @@
                 transform: translate(1em, -50%);
             }
             &:before {
+                /*rtl:ignore*/
                 margin-right: 1em;
             }
             &:hover:after,
@@ -121,7 +123,7 @@
         }
     }
     &--error[data-tooltip] {
-        @include convertTooltipColor(var(--status-danger));
+        @include convertTooltipColor(var(--color-status-danger));
 
         &,
         &[data-tooltip-pos='left'] {
@@ -138,7 +140,7 @@
         }
     }
     &--error-secondary[data-tooltip] {
-        @include convertTooltipColor(var(--status-danger));
+        @include convertTooltipColor(var(--color-status-danger));
 
         &,
         &[data-tooltip-pos='left'] {
@@ -153,3 +155,5 @@
         }
     }
 }
+
+/*rtl:end:ignore*/

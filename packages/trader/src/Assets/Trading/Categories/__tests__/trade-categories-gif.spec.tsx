@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+
 import { TRADE_TYPES } from '@deriv/shared';
+import { render, screen } from '@testing-library/react';
 
 describe('<TradeCategoriesGIF />', () => {
     afterEach(() => {
@@ -64,11 +65,11 @@ describe('<TradeCategoriesGIF />', () => {
                 });
         });
     });
-    it('expect ImageEvenOdd to be rendered when trade category is TRADE_TYPES.EVEN_ODD', async () => {
+    it('expect Even/Odd video to be rendered when trade category is TRADE_TYPES.EVEN_ODD', async () => {
         jest.isolateModules(() => {
-            jest.doMock('Assets/SvgComponents/trade_explanations/img-even-odd.svg', () => ({
+            jest.doMock('../contract-type-description-video', () => ({
                 __esModule: true,
-                default: jest.fn(() => 'ImageEvenOdd'),
+                default: jest.fn(() => 'Even/Odd video'),
             }));
 
             import('../trade-categories-gif')
@@ -79,7 +80,7 @@ describe('<TradeCategoriesGIF />', () => {
                             selected_contract_type={TRADE_TYPES.EVEN_ODD}
                         />
                     );
-                    expect(screen.getByText(/imageevenodd/i)).toBeInTheDocument();
+                    expect(screen.getByText(/even\/odd video/i)).toBeInTheDocument();
                 })
                 .catch(error => {
                     throw new Error(error);
@@ -215,11 +216,11 @@ describe('<TradeCategoriesGIF />', () => {
                 });
         });
     });
-    it('expect ImageMatchDiff to be rendered when trade category is TRADE_TYPES.MATCH_DIFF', async () => {
+    it('expect Matches/Differs video to be rendered when trade category is TRADE_TYPES.MATCH_DIFF', async () => {
         jest.isolateModules(() => {
-            jest.doMock('Assets/SvgComponents/trade_explanations/img-match-diff.svg', () => ({
+            jest.doMock('../contract-type-description-video', () => ({
                 __esModule: true,
-                default: jest.fn(() => 'ImageMatchDiff'),
+                default: jest.fn(() => 'Matches/Differs video'),
             }));
 
             import('../trade-categories-gif')
@@ -230,18 +231,18 @@ describe('<TradeCategoriesGIF />', () => {
                             selected_contract_type={TRADE_TYPES.MATCH_DIFF}
                         />
                     );
-                    expect(screen.getByText(/imagematchdiff/i)).toBeInTheDocument();
+                    expect(screen.getByText(/matches\/differs video/i)).toBeInTheDocument();
                 })
                 .catch(error => {
                     throw new Error(error);
                 });
         });
     });
-    it('expect ImageMultiplier to be rendered when trade category is TRADE_TYPES.MULTIPLIER', async () => {
+    it('expect VideoMultiplier to be rendered when trade category is TRADE_TYPES.MULTIPLIER', async () => {
         jest.isolateModules(() => {
-            jest.doMock('Assets/SvgComponents/trade_explanations/img-multiplier.svg', () => ({
+            jest.doMock('../contract-type-description-video', () => ({
                 __esModule: true,
-                default: jest.fn(() => 'ImageMultiplier'),
+                default: jest.fn(() => 'VideoMultiplier'),
             }));
 
             import('../trade-categories-gif')
@@ -252,18 +253,18 @@ describe('<TradeCategoriesGIF />', () => {
                             selected_contract_type={TRADE_TYPES.MULTIPLIER}
                         />
                     );
-                    expect(screen.getByText(/imagemultiplier/i)).toBeInTheDocument();
+                    expect(screen.getByText(/videomultiplier/i)).toBeInTheDocument();
                 })
                 .catch(error => {
                     throw new Error(error);
                 });
         });
     });
-    it('expect ImageOverUnder to be rendered when trade category is TRADE_TYPES.OVER_UNDER', async () => {
+    it('expect OverUnder video to be rendered when trade category is TRADE_TYPES.OVER_UNDER', async () => {
         jest.isolateModules(() => {
-            jest.doMock('Assets/SvgComponents/trade_explanations/img-over-under.svg', () => ({
+            jest.doMock('../contract-type-description-video', () => ({
                 __esModule: true,
-                default: jest.fn(() => 'ImageOverUnder'),
+                default: jest.fn(() => 'Over/Under video'),
             }));
 
             import('../trade-categories-gif')
@@ -274,7 +275,7 @@ describe('<TradeCategoriesGIF />', () => {
                             selected_contract_type={TRADE_TYPES.OVER_UNDER}
                         />
                     );
-                    expect(screen.getByText(/imageoverunder/i)).toBeInTheDocument();
+                    expect(screen.getByText(/over\/under video/i)).toBeInTheDocument();
                 })
                 .catch(error => {
                     throw new Error(error);

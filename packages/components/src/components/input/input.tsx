@@ -27,7 +27,6 @@ export type TInputProps = {
     max_characters?: number;
     maxLength?: number;
     name?: string;
-    onBlur?: React.FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>;
     onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
     onMouseDown?: React.MouseEventHandler<HTMLInputElement | HTMLTextAreaElement>;
     onMouseUp?: React.MouseEventHandler<HTMLInputElement | HTMLTextAreaElement>;
@@ -44,8 +43,8 @@ export type TInputProps = {
         React.ComponentType extends 'textarea'
             ? HTMLTextAreaElement
             : React.ComponentType extends 'input'
-            ? HTMLInputElement
-            : never
+              ? HTMLInputElement
+              : never
     >;
     required?: boolean;
     trailing_icon?: React.ReactElement | null;
@@ -133,6 +132,8 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                         {leading_icon &&
                             React.cloneElement(leading_icon, {
                                 className: classNames('dc-input__leading-icon', leading_icon.props.className),
+                                iconSize: leading_icon.props.iconSize || 'xs',
+                                fill: leading_icon.props.fill || 'var(--color-text-primary)',
                             })}
                         {props.type === 'textarea' ? (
                             <textarea
@@ -157,7 +158,6 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                                     'dc-input__field--placeholder-visible': !label && placeholder,
                                 })}
                                 onFocus={props.onFocus}
-                                onBlur={props.onBlur}
                                 onChange={props.onChange}
                                 onKeyDown={props.onKeyDown}
                                 onMouseDown={props.onMouseDown}
@@ -174,6 +174,8 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                         {trailing_icon &&
                             React.cloneElement(trailing_icon, {
                                 className: classNames('dc-input__trailing-icon', trailing_icon.props.className),
+                                iconSize: trailing_icon.props.iconSize || 'xs',
+                                fill: trailing_icon.props.fill || 'var(--color-text-primary)',
                             })}
                         {label && (
                             <label className={classNames('dc-input__label', label_className)} htmlFor={props.id}>
@@ -188,7 +190,7 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                                 {warn && <Field className={classNameWarn} message={warn} type='warn' />}
                                 {!error && hint && !is_relative_hint && (
                                     <div className='dc-input__hint'>
-                                        <Text as='p' color='less-prominent' size='xxs' className={classNameHint}>
+                                        <Text as='p' color='secondary' size='xxs' className={classNameHint}>
                                             {hint}
                                         </Text>
                                     </div>
@@ -206,14 +208,14 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                         {warn && <Field className={classNameWarn} message={warn} type='warn' />}
                         {!error && hint && (
                             <div className='dc-input__hint dc-input__hint--relative'>
-                                <Text color='less-prominent' line-height='m' size='xxs'>
+                                <Text color='secondary' line-height='m' size='xxs'>
                                     {hint}
                                 </Text>
                             </div>
                         )}
                         {has_character_counter && (
                             <div className='dc-input__counter'>
-                                <Text color='less-prominent' line-height='m' size='xxs'>
+                                <Text color='secondary' line-height='m' size='xxs'>
                                     {counter}
                                     {max_characters ? `/${max_characters}` : ''}
                                 </Text>
@@ -223,7 +225,7 @@ const Input = React.forwardRef<HTMLInputElement & HTMLTextAreaElement, TInputPro
                 )}
                 {bottom_label && !error && (
                     <div className='dc-input__bottom-label'>
-                        <Text size='xs' color='less-prominent'>
+                        <Text size='xs' color='secondary'>
                             {bottom_label}
                         </Text>
                     </div>

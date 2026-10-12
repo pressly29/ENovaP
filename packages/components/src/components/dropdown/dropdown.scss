@@ -2,11 +2,12 @@
     &__label {
         position: absolute;
         font-size: var(--text-size-xs);
+        inset-inline-start: 0;
         transform: translate(0.5rem, -1rem) scale(0.75);
         z-index: 2;
-        color: var(--text-prominent);
+        color: var(--color-text-primary);
         padding: 0 4px;
-        background-color: var(--fill-normal);
+        background-color: var(--color-surface-primary);
         pointer-events: none;
         transition: 0.25s ease all;
 
@@ -21,11 +22,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--fill-normal);
-        border: 1px solid var(--border-normal);
+        background: var(--color-surface-primary);
+        border: 1px solid var(--color-surface-border);
+
+        @include mobile-or-tablet-screen {
+            height: 4rem;
+        }
         &:hover {
             outline: 0;
-            border-color: var(--border-hover);
+            border-color: var(--color-interactive-hover);
         }
         &:active,
         &:focus {
@@ -70,7 +75,7 @@
         &--duration {
             margin-top: 1rem;
             .dc-dropdown__display-text {
-                color: var(--text-general) !important;
+                color: var(--color-text-secondary) !important;
                 padding: 0 !important;
             }
         }
@@ -78,7 +83,7 @@
             justify-content: unset;
         }
         &--no-border {
-            border-color: var(--fill-normal);
+            border-color: var(--color-surface-border);
         }
         &-placeholder {
             position: absolute;
@@ -91,7 +96,7 @@
 
             &-text {
                 padding: 0 4px;
-                background: var(--fill-normal);
+                background: var(--color-surface-primary);
             }
             &--is-left-text {
                 justify-content: flex-start;
@@ -103,7 +108,7 @@
                     white-space: nowrap;
 
                     .dc-dropdown__display-placeholder-text {
-                        color: var(--text-general) !important;
+                        color: var(--color-text-secondary) !important;
                     }
                 }
             }
@@ -158,20 +163,20 @@
         border-radius: $BORDER_RADIUS;
 
         .dc-dropdown__select-arrow {
-            color: var(--text-general);
+            color: var(--color-text-secondary);
         }
     }
     &--error {
         margin-bottom: -1.8rem;
 
         & .dc-dropdown__display {
-            border-color: var(--brand-red-coral) !important;
+            border-color: var(--brand-primary) !important;
         }
         & .dc-dropdown__label {
-            color: var(--brand-red-coral) !important;
+            color: var(--brand-primary) !important;
         }
         & .dc-dropdown__display-placeholder-text {
-            color: var(--brand-red-coral) !important;
+            color: var(--brand-primary) !important;
         }
     }
     &__list {
@@ -180,7 +185,9 @@
         height: 0;
         width: 100%;
         position: absolute;
-        transition: transform 0.25s ease, opacity 0.25s linear;
+        transition:
+            transform 0.25s ease,
+            opacity 0.25s linear;
         user-select: none;
         opacity: 0;
         transform: scale(1, 0);
@@ -204,6 +211,7 @@
 
             &--enter,
             &--exit {
+                /*rtl:ignore*/
                 transform: scale(1, 1) translate3d(2em, 0, 0px);
                 opacity: 0;
             }
@@ -236,13 +244,15 @@
             }
         }
         .dc-dropdown__select-arrow {
+            /*rtl:ignore*/
             left: 0.6em;
+            /*rtl:ignore*/
             right: unset;
         }
     }
     &--show {
         .dc-dropdown__display {
-            border: 1px solid var(--border-active);
+            border: 1px solid var(--color-interactive-active);
         }
         & > .dc-dropdown__select-arrow {
             transform: rotate(-180deg);
@@ -256,10 +266,10 @@
         pointer-events: none;
 
         .dc-dropdown__display {
-            border: 1px solid var(--general-disabled);
+            border: 1px solid var(--color-interactive-disabled);
 
             &-text {
-                color: var(--text-less-prominent);
+                color: var(--color-text-secondary);
             }
         }
     }
@@ -270,7 +280,8 @@
         width: 100%;
 
         &:not(.cfd-personal-details-modal__form *):not(.trade-container__multiplier-dropdown):not(
-                .dc-dropdown--left):not(.contract-type-info__dropdown) {
+                .dc-dropdown--left
+            ):not(.contract-type-info__dropdown) {
             margin-top: unset;
         }
 
@@ -282,7 +293,7 @@
 
             .dc-dropdown__display-placeholder {
                 &-text {
-                    color: var(--text-less-prominent);
+                    color: var(--color-text-secondary);
                 }
                 &-text-limit-fit {
                     white-space: nowrap;
@@ -313,4 +324,10 @@
 .suffix-icon {
     position: absolute;
     left: 20px;
+    transition: transform 0.2s ease;
+    transform: rotate(0deg);
+
+    &--flip {
+        transform: rotate(-180deg);
+    }
 }

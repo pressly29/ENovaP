@@ -2,50 +2,38 @@ const path = require('path');
 const stylelintFormatter = require('stylelint-formatter-pretty');
 const { transformContentUrlBase } = require('./helpers');
 const { GitRevisionPlugin } = require('git-revision-webpack-plugin');
+// [AI]
+const brandConfig = require('../../../brand.config.json');
+// [/AI]
 
 const gitRevisionPlugin = new GitRevisionPlugin();
 
 const copyConfig = base => {
     const patterns = [
         {
-            from: path.resolve(__dirname, '../node_modules/@deriv/bot-web-ui/dist/bot/css/'),
-            to: 'bot/css/',
-        },
-        {
-            from: path.resolve(__dirname, '../node_modules/@deriv/bot-web-ui/dist/bot/media/'),
-            to: 'media',
-            noErrorOnMissing: true,
-        },
-        {
-            from: path.resolve(__dirname, '../node_modules/@deriv/bot-web-ui/dist/bot/js/'),
-            to: 'bot/js/',
-        },
-        {
-            from: path.resolve(__dirname, '../../../node_modules/@deriv/deriv-charts/dist'),
+            from: path.resolve(__dirname, '../../../node_modules/@deriv-com/smartcharts-champion/dist'),
             to: 'js/smartcharts/',
+            globOptions: {
+                ignore: ['**/NOTICES'],
+            },
         },
         {
-            from: path.resolve(__dirname, '../../../node_modules/@deriv/deriv-charts/dist/chart/assets'),
+            from: path.resolve(__dirname, '../../../node_modules/@deriv-com/smartcharts-champion/dist/assets'),
             to: 'assets',
+            globOptions: {
+                ignore: ['**/NOTICES'],
+            },
         },
         {
-            from: path.resolve(__dirname, '../../../node_modules/@deriv/deriv-charts/dist/chart/assets'),
-            to: 'contract/assets',
-        },
-        {
-            from: path.resolve(__dirname, '../../../node_modules/@deriv/deriv-charts/dist/chart/assets'),
-            to: 'bot/assets',
-        },
-        {
-            from: path.resolve(__dirname, '../node_modules/@deriv/trader/dist/trader'),
+            from: path.resolve(__dirname, '../../../node_modules/@deriv/trader/dist/trader'),
             to: 'trader',
         },
         {
-            from: path.resolve(__dirname, '../node_modules/@deriv/reports/dist/reports/js/'),
+            from: path.resolve(__dirname, '../../../node_modules/@deriv/reports/dist/reports/js/'),
             to: 'reports/js',
         },
         {
-            from: path.resolve(__dirname, '../node_modules/@deriv/reports/dist/reports/css/'),
+            from: path.resolve(__dirname, '../../../node_modules/@deriv/reports/dist/reports/css/'),
             to: 'reports/css',
         },
         { from: path.resolve(__dirname, '../scripts/CNAME'), to: 'CNAME', toType: 'file', noErrorOnMissing: true },
@@ -70,23 +58,9 @@ const copyConfig = base => {
             toType: 'file',
         },
         { from: path.resolve(__dirname, '../src/root_files/custom404.html'), to: 'custom404.html', toType: 'file' },
-        // Netlify SPA routing: rewrite all routes to index.html
         {
-            from: path.resolve(__dirname, '../src/root_files/_redirects'),
-            to: '_redirects',
-            toType: 'file',
-            noErrorOnMissing: true,
-        },
-        // Ensure Netlify uses our custom 404 page
-        {
-            from: path.resolve(__dirname, '../src/root_files/custom404.html'),
-            to: '404.html',
-            toType: 'file',
-            noErrorOnMissing: true,
-        },
-        {
-            from: path.resolve(__dirname, '../src/root_files/localstorage-sync.html'),
-            to: 'localstorage-sync.html',
+            from: path.resolve(__dirname, '../src/root_files/front-channel.html'),
+            to: 'front-channel.html',
             toType: 'file',
         },
         { from: path.resolve(__dirname, '../src/root_files/robots.txt'), to: 'robots.txt', toType: 'file' },
@@ -104,26 +78,43 @@ const copyConfig = base => {
         {
             from: path.resolve(__dirname, '../src/public/videos/'),
             to: 'public/videos',
+            globOptions: {
+                ignore: ['**/*.mp4', '**/*.webm'],
+            },
         },
-        // { from: path.resolve(__dirname, '../src/public/images/common/og_image.gif'), to: 'images/common/og_image.gif' }, // Once the design for og_image is ready, bring this back.
+        {
+            from: path.resolve(__dirname, '../src/public/images/common/callback_loader.gif'),
+            to: 'public/images/common/callback_loader.gif',
+        },
         {
             from: path.resolve(__dirname, '../src/public/images/common/logos/platform_logos/'),
             to: 'public/images/common/logos/platform_logos/',
-        },
-        { from: path.resolve(__dirname, '../src/public/images/app/header/'), to: 'public/images/app/header/' },
-        {
-            from: path.resolve(__dirname, '../node_modules/@deriv/components/lib/icon/sprites'),
-            to: 'public/sprites',
-            toType: 'dir',
         },
         {
             from: path.resolve(__dirname, '../src/templates/app/manifest.json'),
             to: 'manifest.json',
             toType: 'file',
             transform(content, transform_path) {
-                return transformContentUrlBase(content, transform_path, base);
+                // [AI]
+                const manifest = JSON.parse(transformContentUrlBase(content, transform_path, base).toString());
+                manifest.name = brandConfig.brand_name;
+                manifest.short_name = brandConfig.brand_name;
+                manifest.description = brandConfig.platform.description || '';
+                if (brandConfig.colors?.primary) {
+                    manifest.theme_color = brandConfig.colors.primary;
+                    manifest.background_color = brandConfig.colors.primary;
+                }
+                return JSON.stringify(manifest, null, 4);
+                // [/AI]
             },
         },
+        // [AI]
+        {
+            from: path.resolve(__dirname, '../../../assets/brand'),
+            to: 'brand',
+            noErrorOnMissing: false,
+        },
+        // [/AI]
     ];
 
     return {
@@ -138,8 +129,47 @@ const generateSWConfig = () => ({
     cleanupOutdatedCaches: true,
     exclude: [/\**/],
     runtimeCaching: [
+        // Google Fonts stylesheets - long cache
         {
-            urlPattern: /public\/(images|sprites)\/(?!.*favicons).*$/,
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+                cacheName: 'google-fonts-stylesheets',
+                expiration: {
+                    maxEntries: 20,
+                    maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+            },
+        },
+        // Google Fonts webfonts - long cache
+        {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+                cacheName: 'google-fonts-webfonts',
+                cacheableResponse: {
+                    statuses: [0, 200],
+                },
+                expiration: {
+                    maxEntries: 30,
+                    maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+            },
+        },
+        // CDN resources (fonts, libraries) - try network first with timeout
+        {
+            urlPattern: /^https:\/\/(cdn\.jsdelivr\.net)\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+                cacheName: 'cdn-resources',
+                expiration: {
+                    maxEntries: 20,
+                    maxAgeSeconds: 60 * 60 * 24, // 1 day
+                },
+            },
+        },
+        {
+            urlPattern: /public\/images\/(?!.*favicons).*$/,
             handler: 'CacheFirst',
             options: {
                 cacheName: 'assets',
@@ -185,7 +215,7 @@ const generateSWConfig = () => ({
             },
         },
         {
-            urlPattern: /(account|appstore|bot|cashier|cfd|trader|reports)\//,
+            urlPattern: /(trader|reports)\//,
             handler: 'CacheFirst',
             options: {
                 cacheName: 'packages-files',
@@ -202,6 +232,18 @@ const generateSWConfig = () => ({
 const htmlOutputConfig = is_release => ({
     template: 'index.html',
     filename: 'index.html',
+    // [AI]
+    templateParameters: {
+        brand_name: brandConfig.brand_name,
+        platform_name: brandConfig.platform.name,
+        platform_description: brandConfig.platform.description || '',
+        canonical_url: `https://${brandConfig.brand_hostname.production}`,
+        theme_color: brandConfig.colors?.primary || '#000000',
+        api_core_url: `https://${brandConfig.api_core.production}`,
+        api_url: `https://${brandConfig.api.production}`,
+        auth_url: brandConfig.auth.production,
+    },
+    // [/AI]
     meta: is_release
         ? {
               versionMetaTAG: {

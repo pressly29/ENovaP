@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
 import { Router } from 'react-router-dom';
-import Contract from '../contract';
-import TraderProviders from '../../../../trader-providers';
 import { createMemoryHistory } from 'history';
+
+import { render, screen } from '@testing-library/react';
+
+import TraderProviders from '../../../../trader-providers';
+import Contract from '../contract';
 
 jest.mock('react-router', () => ({
     ...jest.requireActual('react-router'),
@@ -22,6 +24,7 @@ const defaultProps = {
     match: { params: { contract_id: '123' } },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockContract = ({ store, props }: { store: any; props: any }) => {
     const history = createMemoryHistory();
     history.push('/contract/123');
@@ -42,8 +45,8 @@ describe('<Contract>', () => {
             error_message: '',
             error_code: '',
             removeErrorMessage: jest.fn(),
-            removeAccountSwitcherListener: jest.fn(),
-            setAccountSwitcherListener: jest.fn(),
+            onMount: jest.fn(),
+            onUnmount: jest.fn(),
         },
     };
 

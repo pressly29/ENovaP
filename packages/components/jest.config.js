@@ -3,8 +3,9 @@ const baseConfigForPackages = require('../../jest.config.base');
 module.exports = {
     ...baseConfigForPackages,
     moduleNameMapper: {
-        '\\.s(c|a)ss$': '<rootDir>/../../__mocks__/styleMock.js',
-        '^.+\\.svg$': '<rootDir>/../../__mocks__/styleMock.js',
+        ...baseConfigForPackages.moduleNameMapper,
+        '@deriv-com/ui': '<rootDir>/../../__mocks__/deriv-com.ui.mock.js',
+        '\\.(webp|jpg|jpeg|png|gif|svg)$': '<rootDir>/../../__mocks__/fileMock.js',
     },
-    modulePathIgnorePatterns: ['/icon/', '/.out/'],
+    modulePathIgnorePatterns: ['/.out/'],
 };

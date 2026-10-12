@@ -1,9 +1,12 @@
-import { filterByContractType } from 'App/Components/Elements/PositionsDrawer/helpers/positions-helper';
 import React from 'react';
+
+import { TRADE_TYPES } from '@deriv/shared';
 import { useStore } from '@deriv/stores';
+
+import { filterByContractType } from 'Modules/Contract/Components/ContractAudit/positions-helper';
+
 import AccumulatorsProfitLossTooltip from './accumulators-profit-loss-tooltip';
 import ChartMarker from './marker';
-import { TRADE_TYPES } from '@deriv/shared';
 
 type TPortfolioStore = ReturnType<typeof useStore>['portfolio'];
 
@@ -26,12 +29,13 @@ const AccumulatorsChartElements = ({
     symbol,
     is_mobile,
 }: TAccumulatorsChartElements) => {
-    const accumulators_positions = all_positions.filter(
-        ({ contract_info }) =>
-            contract_info &&
-            symbol === contract_info.underlying &&
-            filterByContractType(contract_info, TRADE_TYPES.ACCUMULATOR)
-    );
+    const accumulators_positions = all_positions.filter(({ contract_info }) => {
+        if (!contract_info) return false;
+
+        const contract_underlying = contract_info.underlying_symbol;
+
+        return symbol === contract_underlying && filterByContractType(contract_info, TRADE_TYPES.ACCUMULATOR);
+    });
 
     return (
         <React.Fragment>

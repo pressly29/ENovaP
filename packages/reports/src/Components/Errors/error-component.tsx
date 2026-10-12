@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { Dialog, PageErrorContainer } from '@deriv/components';
 import { routes } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { useTranslations } from '@deriv-com/translations';
+
 import { TErrorComponent } from 'Types';
 
 const ErrorComponent = ({
@@ -12,6 +14,7 @@ const ErrorComponent = ({
     redirectOnClick,
     should_show_refresh = true,
 }: Partial<TErrorComponent>) => {
+    const { localize } = useTranslations();
     const refresh_message = should_show_refresh ? localize('Please refresh this page to continue.') : '';
 
     if (is_dialog) {
@@ -23,7 +26,7 @@ const ErrorComponent = ({
                 onConfirm={redirectOnClick || (() => location.reload())}
                 has_close_icon={false}
             >
-                {message || localize('Sorry, an error occured while processing your request.')}
+                {message || localize('Sorry, an error occurred while processing your request.')}
             </Dialog>
         );
     }
@@ -31,7 +34,7 @@ const ErrorComponent = ({
         <PageErrorContainer
             error_header={header ?? ''}
             error_messages={message ? [message, refresh_message] : []}
-            redirect_urls={[routes.trade]}
+            redirect_urls={[routes.index]}
             redirect_labels={[redirect_label || localize('Refresh')]}
             buttonOnClick={redirectOnClick || (() => location.reload())}
         />

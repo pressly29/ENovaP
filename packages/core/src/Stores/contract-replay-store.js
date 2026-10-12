@@ -1,10 +1,11 @@
-import { action, observable, makeObservable, override } from 'mobx';
-import { routes, isEmptyObject, isForwardStarting, WS, contractCancelled, contractSold } from '@deriv/shared';
+import { action, makeObservable, observable, override, when } from 'mobx';
+
 import { Money } from '@deriv/components';
-import { Analytics } from '@deriv-com/analytics';
-import { localize } from '@deriv/translations';
-import ContractStore from './contract-store';
+import { contractCancelled, contractSold, isEmptyObject, WS } from '@deriv/shared';
+import { localize } from '@deriv-com/translations';
+
 import BaseStore from './base-store';
+import ContractStore from './contract-store';
 
 export default class ContractReplayStore extends BaseStore {
     chart_state = '';
@@ -17,7 +18,6 @@ export default class ContractReplayStore extends BaseStore {
     error_code = '';
     is_chart_loading = true;
     is_chart_scaling = false;
-    is_forward_starting = false;
     // ---- chart props
     margin;
 
@@ -56,9 +56,10 @@ export default class ContractReplayStore extends BaseStore {
     };
 
     subscribeProposalOpenContract = () => {
-        WS.wait('authorize').then(() => {
-            this.handleSubscribeProposalOpenContract(this.contract_id, this.populateConfig);
-        });
+        when(
+            () => this.root_store.client.is_logged_in && this.root_store.client.current_account?.loginid,
+            () => this.handleSubscribeProposalOpenContract(this.contract_id, this.populateConfig)
+        );
     };
 
     constructor(root_store) {
@@ -75,7 +76,6 @@ export default class ContractReplayStore extends BaseStore {
             error_code: observable,
             is_chart_loading: observable,
             is_chart_scaling: observable,
-            is_forward_starting: observable,
             margin: observable,
             contract_id: observable,
             contract_info: observable.ref,
@@ -118,13 +118,17 @@ export default class ContractReplayStore extends BaseStore {
         this.chart_state = '';
         this.root_store.ui.toggleHistoryTab(false);
         WS.removeOnReconnect();
+
+        this.root_store.contract_trade.clearAccumulatorBarriersData(true, true);
     }
 
     populateConfig(response) {
-        if (!this.switch_account_listener) return;
-
         if ('error' in response) {
             const { code, message } = response.error;
+            if (this.root_store.common.is_language_changing && code === 'AuthorizationRequired') {
+                return;
+            }
+
             this.has_error = true;
             this.is_chart_loading = false;
             this.error_message = message;
@@ -140,16 +144,12 @@ export default class ContractReplayStore extends BaseStore {
             this.is_chart_loading = false;
             return;
         }
-        if (+response.proposal_open_contract.contract_id !== this.contract_id) return;
+        if (+response.proposal_open_contract.contract_id !== this.contract_id) {
+            return;
+        }
 
         this.contract_info = response.proposal_open_contract;
         this.contract_update = response.proposal_open_contract.limit_order;
-
-        const is_forward_starting =
-            !!this.contract_info.is_forward_starting ||
-            isForwardStarting(this.contract_info.shortcode, this.contract_info.purchase_time);
-
-        this.is_forward_starting = is_forward_starting;
 
         // update the contract_store here passing contract_info
         this.contract_store.populateConfig(this.contract_info);
@@ -225,10 +225,14 @@ export default class ContractReplayStore extends BaseStore {
         if (contract_id) {
             WS.cancelContract(contract_id).then(response => {
                 if (response.error) {
-                    this.root_store.common.setServicesError({
-                        type: response.msg_type,
-                        ...response.error,
-                    });
+                    this.root_store.common.setServicesError(
+                        {
+                            type: response.msg_type,
+                            ...response.error,
+                        },
+                        // Temporary switching off old snackbar for DTrader-V2
+                        this.root_store.ui.is_mobile // V2 for mobile, V1 for desktop
+                    );
                 } else {
                     this.root_store.notifications.addNotificationMessage(contractCancelled());
                 }
@@ -248,10 +252,14 @@ export default class ContractReplayStore extends BaseStore {
         if (response.error) {
             // If unable to sell due to error, give error via pop up if not in contract mode
             this.is_sell_requested = false;
-            this.root_store.common.setServicesError({
-                type: response.msg_type,
-                ...response.error,
-            });
+            this.root_store.common.setServicesError(
+                {
+                    type: response.msg_type,
+                    ...response.error,
+                },
+                // Temporary switching off old snackbar for DTrader-V2
+                this.root_store.ui.is_mobile // V2 for mobile, V1 for desktop
+            );
         } else if (!response.error && response.sell) {
             this.is_sell_requested = false;
             // update contract store sell info after sell
@@ -259,15 +267,14 @@ export default class ContractReplayStore extends BaseStore {
                 sell_price: response.sell.sold_for,
                 transaction_id: response.sell.transaction_id,
             };
+
+            // Clear accumulator barriers data when contract is sold from contract details
+            // This prevents stale barriers from being displayed when navigating back to trade page
+            this.root_store.contract_trade.clearAccumulatorBarriersData(false, true);
+
             this.root_store.notifications.addNotificationMessage(
                 contractSold(this.root_store.client.currency, response.sell.sold_for, Money)
             );
-
-            Analytics.trackEvent('ce_reports_form', {
-                action: 'close_contract',
-                form_name: 'default',
-                subform_name: 'contract_details_form',
-            });
         }
     }
 
@@ -283,24 +290,5 @@ export default class ContractReplayStore extends BaseStore {
         this.has_error = false;
     }
 
-    setAccountSwitcherListener = (contract_id, history) => {
-        this.onSwitchAccount(() => this.accountSwitcherListener(contract_id, history));
-    };
-
-    accountSwitcherListener = (contract_id, history) => {
-        // if contract had an error on the previous account
-        // try fetching it again for the new account
-        // in case it belongs to this account
-        if (this.has_error) {
-            this.removeErrorMessage();
-            this.onMount(contract_id);
-        } else if (!this.root_store.common.is_language_changing) {
-            history.push(routes.reports);
-        }
-        return Promise.resolve();
-    };
-
-    removeAccountSwitcherListener = () => {
-        this.disposeSwitchAccount();
-    };
+    // Removed account switching methods - not needed for trading-only app
 }

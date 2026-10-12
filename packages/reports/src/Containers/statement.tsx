@@ -1,32 +1,32 @@
 import React from 'react';
-import { withRouter } from 'react-router-dom';
-import { DesktopWrapper, MobileWrapper, DataList, DataTable, Text, Clipboard, usePrevious } from '@deriv/components';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
+
+import { Clipboard, DataList, DataTable, Text } from '@deriv/components';
+import { TSource } from '@deriv/components/src/components/data-table/table-row';
+import { TRow } from '@deriv/components/src/components/types/common.types';
 import {
     capitalizeFirstLetter,
     extractInfoFromShortcode,
-    formatDate,
     getContractPath,
-    getSupportedContracts,
     getUnsupportedContracts,
-    isForwardStarting,
+    initMoment,
 } from '@deriv/shared';
-import { localize, Localize } from '@deriv/translations';
-import { Analytics } from '@deriv-com/analytics';
-import { ReportsTableRowLoader } from '../Components/Elements/ContentLoader';
-import { getStatementTableColumnsTemplate } from '../Constants/data-table-constants';
-import PlaceholderComponent from '../Components/placeholder-component';
-import AccountStatistics from '../Components/account-statistics';
-import FilterComponent from '../Components/filter-component';
-import { ReportsMeta } from '../Components/reports-meta';
-import EmptyTradeHistoryMessage from '../Components/empty-trade-history-message';
 import { observer, useStore } from '@deriv/stores';
+import { Localize, useTranslations } from '@deriv-com/translations';
+import { useDevice } from '@deriv-com/ui';
+
 import { useReportsStore } from 'Stores/useReportsStores';
-import { TSupportedContractType, TUnsupportedContractType } from 'Types';
-import { TSource } from '@deriv/components/src/components/data-table/data-table';
-import { TRow } from '@deriv/components/src/components/types/common.types';
+import { TUnsupportedContractType } from 'Types';
+
+import { ReportsTableRowLoader } from '../Components/Elements/ContentLoader';
+import EmptyTradeHistoryMessage from '../Components/empty-trade-history-message';
+import FilterComponent from '../Components/filter-component';
+import PlaceholderComponent from '../Components/placeholder-component';
+import { ReportsMeta } from '../Components/reports-meta';
+import { getStatementTableColumnsTemplate } from '../Constants/data-table-constants';
 
 type TGetStatementTableColumnsTemplate = ReturnType<typeof getStatementTableColumnsTemplate>;
-type TColIndex = 'icon' | 'refid' | 'currency' | 'date' | 'action_type' | 'amount' | 'balance';
+type TColIndex = 'icon' | 'refid' | 'currency' | 'transaction_time' | 'action_type' | 'amount' | 'balance';
 
 type TAction =
     | {
@@ -35,8 +35,8 @@ type TAction =
       }
     | string;
 
-type TStatement = {
-    component_icon: string;
+type TStatement = RouteComponentProps & {
+    component_icon: React.ReactElement;
 };
 
 type TDetailsComponent = {
@@ -81,56 +81,65 @@ const DetailsComponent = ({ message = '', action_type = '' }: TDetailsComponent)
     );
 };
 
-type TGetRowAction = TDataList['getRowAction'] | React.ComponentProps<typeof DataTable>['getRowAction'];
-
-const getRowAction: TGetRowAction = (row_obj: TSource | TRow) => {
+export const getRowAction = (row_obj: TSource | TRow): TAction => {
     let action: TAction = {};
-    if (row_obj.id && ['buy', 'sell'].includes(row_obj.action_type)) {
-        const contract_type = extractInfoFromShortcode(row_obj.shortcode)?.category?.toUpperCase();
-        action =
-            getSupportedContracts()[contract_type as TSupportedContractType] &&
-            !isForwardStarting(row_obj.shortcode, row_obj.purchase_time || row_obj.transaction_time)
-                ? getContractPath(row_obj.id)
-                : {
-                      message: '',
-                      component: (
-                          <Localize
-                              i18n_default_text="The {{trade_type_name}} contract details aren't currently available. We're working on making them available soon."
-                              values={{
-                                  trade_type_name:
-                                      getUnsupportedContracts()[contract_type as TUnsupportedContractType]?.name,
-                              }}
-                          />
-                      ),
-                  };
-    } else if (row_obj.action_type === 'withdrawal') {
-        if (row_obj.withdrawal_details && row_obj.longcode) {
+    const { action_type, desc, id, longcode, shortcode, withdrawal_details } = row_obj;
+    if (id && ['buy', 'sell'].includes(action_type)) {
+        const contract_type = extractInfoFromShortcode(shortcode)?.category?.toUpperCase();
+        const unsupportedContractConfig = getUnsupportedContracts()[contract_type as TUnsupportedContractType];
+        action = unsupportedContractConfig
+            ? {
+                  message: '',
+                  component: (
+                      <Localize
+                          i18n_default_text="The {{trade_type_name}} contract details aren't currently available. We're working on making them available soon."
+                          values={{
+                              trade_type_name: unsupportedContractConfig?.name,
+                          }}
+                      />
+                  ),
+              }
+            : getContractPath(id);
+    } else if (action_type === 'withdrawal') {
+        // For withdrawal: show details only if withdrawal_details or longcode exists
+        if ((withdrawal_details && longcode) || desc) {
             action = {
-                message: `${row_obj.withdrawal_details} ${row_obj.longcode}`,
+                message: withdrawal_details && longcode ? `${withdrawal_details} ${longcode}` : desc,
             };
         } else {
-            action = {
-                message: row_obj.desc,
-            };
+            // No details available, make row non-clickable
+            return { disabled: true } as any;
         }
-    } else if (row_obj.desc && ['deposit', 'transfer', 'adjustment', 'hold', 'release'].includes(row_obj.action_type)) {
+    } else if (action_type === 'deposit') {
+        // For deposit: show details only if desc/longcode exists
+        if (desc || longcode) {
+            action = {
+                message: desc || longcode,
+            };
+        } else {
+            // No details available, make row non-clickable
+            return { disabled: true } as any;
+        }
+    } else if (desc && ['transfer', 'adjustment', 'hold', 'release'].includes(action_type)) {
         action = {
-            message: row_obj.desc,
+            message: desc,
         };
     }
 
     // add typeof check because action can be object or string
     if (typeof action === 'object' && action?.message) {
-        action.component = <DetailsComponent message={action.message} action_type={row_obj.action_type} />;
+        action.component = <DetailsComponent message={action.message} action_type={action_type} />;
     }
 
     return action;
 };
 
 const Statement = observer(({ component_icon }: TStatement) => {
-    const { client } = useStore();
+    const { localize } = useTranslations();
+    const { client, common } = useStore();
+    const { current_language } = common;
     const { statement } = useReportsStore();
-    const { currency, standpoint, is_switching, is_virtual } = client;
+    const { currency, is_virtual } = client;
     const {
         action_type,
         data,
@@ -144,59 +153,32 @@ const Statement = observer(({ component_icon }: TStatement) => {
         onMount,
         onUnmount,
     } = statement;
-    const is_mx_mlt = standpoint.iom || standpoint.malta;
-    const prev_action_type = usePrevious(action_type);
-    const prev_date_from = usePrevious(date_from);
-    const prev_date_to = usePrevious(date_to);
+    const { isMobile } = useDevice();
+
+    React.useEffect(() => {
+        initMoment(current_language);
+    }, [current_language]);
 
     React.useEffect(() => {
         onMount();
-        Analytics.trackEvent('ce_reports_form', {
-            action: 'choose_report_type',
-            form_name: 'default',
-            subform_name: 'statement_form',
-            transaction_type_filter: action_type,
-            start_date_filter: formatDate(date_from, 'DD/MM/YYYY', false),
-            end_date_filter: formatDate(date_to, 'DD/MM/YYYY', false),
-        });
+
         return () => {
             onUnmount();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    React.useEffect(() => {
-        if (prev_action_type) {
-            Analytics.trackEvent('ce_reports_form', {
-                action: 'filter_transaction_type',
-                form_name: 'default',
-                subform_name: 'statement_form',
-                transaction_type_filter: action_type,
-            });
-        }
-    }, [action_type]);
-
-    React.useEffect(() => {
-        if (prev_date_from !== undefined && prev_date_to !== undefined) {
-            Analytics.trackEvent('ce_reports_form', {
-                action: 'filter_dates',
-                form_name: 'default',
-                subform_name: 'statement_form',
-                start_date_filter: formatDate(date_from, 'DD/MM/YYYY', false),
-                end_date_filter: formatDate(date_to, 'DD/MM/YYYY', false),
-            });
-        }
-    }, [date_to, date_from]);
-
     if (error) return <p>{error}</p>;
 
-    const columns: TGetStatementTableColumnsTemplate = getStatementTableColumnsTemplate(currency);
-    const columns_map = columns.reduce((map, item) => {
-        map[item.col_index as TColIndex] = item;
-        return map;
-    }, {} as Record<TColIndex, typeof columns[number]>);
+    const columns: TGetStatementTableColumnsTemplate = getStatementTableColumnsTemplate(currency, !isMobile);
+    const columns_map = columns.reduce(
+        (map, item) => {
+            map[item.col_index as TColIndex] = item;
+            return map;
+        },
+        {} as Record<TColIndex, (typeof columns)[number]>
+    );
 
-    // TODO: Export type instead of any from 'DataList' component when it migrates to tsx
     const mobileRowRenderer = ({
         row,
         passthrough,
@@ -223,7 +205,7 @@ const Statement = observer(({ component_icon }: TStatement) => {
                 />
             </div>
             <div className='data-list__row'>
-                <DataList.Cell row={row} column={columns_map.date as TDataListCell['column']} />
+                <DataList.Cell row={row} column={columns_map.transaction_time as TDataListCell['column']} />
                 <DataList.Cell
                     className='data-list__row-cell--amount'
                     row={row}
@@ -235,68 +217,63 @@ const Statement = observer(({ component_icon }: TStatement) => {
             </div>
         </React.Fragment>
     );
-    // TODO: Uncomment and update this when DTrader 2.0 development starts:
-    // if (useFeatureFlags().is_dtrader_v2_enabled) return <Text size='l'>I am Statement for DTrader 2.0.</Text>;
+
     return (
         <React.Fragment>
             <ReportsMeta
-                className={is_mx_mlt ? undefined : 'reports__meta--statement'}
+                className='reports__meta--statement'
                 filter_component={<FilterComponent />}
                 is_statement
-                optional_component={!is_switching && is_mx_mlt && <AccountStatistics />}
+                // key param is needed to force rerendering of the ReportsMeta component on language change
+                key={current_language}
             />
-            {is_switching ? (
-                <PlaceholderComponent is_loading />
-            ) : (
-                <React.Fragment>
-                    {data?.length === 0 || is_empty ? (
-                        <PlaceholderComponent
-                            is_loading={is_loading}
-                            has_selected_date={has_selected_date}
-                            is_empty={is_empty}
-                            empty_message_component={EmptyTradeHistoryMessage}
-                            component_icon={component_icon}
-                            localized_message={localize('You have no transactions yet.')}
-                            localized_period_message={localize(
-                                "You've made no transactions of this type during this period."
-                            )}
-                        />
-                    ) : (
-                        <div className='reports__content'>
-                            <DesktopWrapper>
-                                <DataTable
-                                    className='statement'
-                                    columns={columns}
-                                    content_loader={ReportsTableRowLoader}
-                                    data_source={data}
-                                    getRowAction={getRowAction}
-                                    onScroll={handleScroll}
-                                    passthrough={{
-                                        isTopUp: (item: { action?: string }) => is_virtual && item.action === 'Deposit',
-                                    }}
-                                >
-                                    <PlaceholderComponent is_loading={is_loading} />
-                                </DataTable>
-                            </DesktopWrapper>
-                            <MobileWrapper>
-                                <DataList
-                                    className='statement'
-                                    data_source={data}
-                                    getRowAction={getRowAction}
-                                    onScroll={handleScroll}
-                                    rowRenderer={mobileRowRenderer}
-                                    row_gap={8}
-                                    passthrough={{
-                                        isTopUp: (item: { action?: string }) => is_virtual && item.action === 'Deposit',
-                                    }}
-                                >
-                                    <PlaceholderComponent is_loading={is_loading} />
-                                </DataList>
-                            </MobileWrapper>
-                        </div>
-                    )}
-                </React.Fragment>
-            )}
+            <React.Fragment>
+                {data?.length === 0 || is_empty ? (
+                    <PlaceholderComponent
+                        is_loading={is_loading}
+                        has_selected_date={has_selected_date}
+                        is_empty={is_empty}
+                        empty_message_component={EmptyTradeHistoryMessage}
+                        component_icon={component_icon}
+                        localized_message={localize('You have no transactions yet.')}
+                        localized_period_message={localize(
+                            "You've made no transactions of this type during this period."
+                        )}
+                    />
+                ) : (
+                    <div className='reports__content'>
+                        {!isMobile ? (
+                            <DataTable
+                                className='statement'
+                                columns={columns}
+                                content_loader={ReportsTableRowLoader}
+                                data_source={data}
+                                getRowAction={getRowAction}
+                                onScroll={handleScroll}
+                                passthrough={{
+                                    isTopUp: (item: { action?: string }) => is_virtual && item.action === 'Deposit',
+                                }}
+                            >
+                                <PlaceholderComponent is_loading={is_loading} />
+                            </DataTable>
+                        ) : (
+                            <DataList
+                                className='statement'
+                                data_source={data}
+                                getRowAction={getRowAction}
+                                onScroll={handleScroll}
+                                rowRenderer={mobileRowRenderer}
+                                row_gap={8}
+                                passthrough={{
+                                    isTopUp: (item: { action?: string }) => is_virtual && item.action === 'Deposit',
+                                }}
+                            >
+                                <PlaceholderComponent is_loading={is_loading} />
+                            </DataList>
+                        )}
+                    </div>
+                )}
+            </React.Fragment>
         </React.Fragment>
     );
 });

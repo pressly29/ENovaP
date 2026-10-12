@@ -12,6 +12,7 @@ import { getSupportedContracts, getUnsupportedContracts } from '@deriv/shared';
 
 export type TPassthrough = {
     root_store: TCoreStores;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     WS: Record<string, any>;
 };
 
@@ -26,7 +27,7 @@ export type TRoute = {
     component: React.ComponentType | typeof Redirect;
     is_authenticated?: boolean;
     getTitle: () => string;
-    icon_component?: string;
+    icon_component?: React.ReactElement;
     routes?: TRoute[];
     default?: boolean;
     to?: string;
@@ -73,10 +74,12 @@ export type TColIndex =
 
 export type TCellContentProps = {
     cell_value: TKeys;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     passthrough: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     row_obj: any;
     is_footer: boolean;
-    is_turbos: boolean;
+    is_turbos?: boolean;
     is_vanilla: boolean;
 };
 
@@ -96,7 +99,9 @@ export type TColumnTemplateType = {
     refid?: string;
     date?: string;
     balance?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     item?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     map?: any;
 };
 

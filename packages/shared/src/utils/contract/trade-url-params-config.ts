@@ -1,15 +1,17 @@
-import { ActiveSymbols } from '@deriv/api-types';
+import { TActiveSymbolsResponse } from '@deriv/api';
+
 import { TTextValueStrings, TTradeTypesCategories } from '../constants/contract';
+import { routes } from '../routes';
 
 type TGetTradeURLParamsArgs = {
-    active_symbols?: ActiveSymbols;
+    active_symbols?: NonNullable<TActiveSymbolsResponse['active_symbols']>;
     contract_types_list?: TTradeTypesCategories;
 };
 
 type TTradeUrlParams = {
     contractType?: string;
     chartType?: string;
-    granularity?: number;
+    granularity?: number | null;
     symbol?: string;
 };
 
@@ -61,13 +63,16 @@ export const getTradeURLParams = ({ active_symbols = [], contract_types_list = {
         const validInterval = tradeURLParamsConfig.interval.find(item => item.text === interval);
         const validChartType = tradeURLParamsConfig.chartType.find(item => item.text === chart_type);
         const chartTypeParam = Number(validInterval?.value) === 0 ? 'line' : validChartType?.value;
-        const isSymbolValid = active_symbols.some(item => item.symbol === symbol);
+        const isSymbolValid = active_symbols.some(item => item.underlying_symbol === symbol);
         const contractList = Object.keys(contract_types_list).reduce<string[]>((acc, key) => {
             const categories: TTradeTypesCategories['Ups & Downs']['categories'] =
                 contract_types_list[key]?.categories || [];
             return [...acc, ...categories.map(contract => (contract as TTextValueStrings).value)];
         }, []);
-        const isTradeTypeValid = contractList.includes(trade_type ?? '');
+
+        const isTradeTypeValid =
+            (contractList.length === 0 && trade_type !== '') ||
+            (contractList.length > 0 && contractList.includes(trade_type ?? ''));
 
         if (validInterval) result.granularity = Number(validInterval.value);
         if (validChartType) result.chartType = chartTypeParam;
@@ -92,7 +97,7 @@ export const setTradeURLParams = ({ contractType, symbol, chartType, granularity
         );
     symbol && searchParams.set(TRADE_URL_PARAMS.SYMBOL, symbol);
     contractType && searchParams.set(TRADE_URL_PARAMS.TRADE_TYPE, contractType);
-    if (searchParams.toString()) {
+    if (searchParams.toString() && window.location.pathname === routes.index) {
         const newQuery = `${window.location.pathname}?${searchParams.toString()}`;
         window.history.replaceState({}, document.title, newQuery);
     }
