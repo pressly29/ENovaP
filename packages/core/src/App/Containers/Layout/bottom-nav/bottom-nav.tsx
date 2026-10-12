@@ -44,7 +44,7 @@ const BottomNav = observer(({ className }: BottomNavProps) => {
                 icon: <StandaloneChartAreaRegularIcon iconSize='sm' fill='var(--color-text-primary)' />,
                 activeIcon: <StandaloneChartAreaFillIcon iconSize='sm' />,
                 label: <Localize i18n_default_text='Trade' />,
-                path: routes.index,
+                path: routes.trader,
             },
             ...(is_logged_in
                 ? [

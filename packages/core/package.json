@@ -87,13 +87,13 @@
         "workbox-webpack-plugin": "^6.0.2"
     },
     "dependencies": {
-        "core-js": "^3.47.0",
         "@deriv-com/quill-tokens": "2.0.4",
         "@deriv-com/quill-ui": "1.24.6",
         "@deriv-com/translations": "1.4.0",
         "@deriv-com/ui": "1.36.4",
         "@deriv-com/utils": "^0.0.42",
         "@deriv/api": "^1.0.0",
+        "@deriv/bot-web-ui": "^1.0.0",
         "@deriv/components": "^1.0.0",
         "@deriv/deriv-api": "^1.0.15",
         "@deriv/quill-icons": "2.2.1",
@@ -106,6 +106,7 @@
         "acorn": "^6.1.1",
         "canvas-toBlob": "^1.0.0",
         "classnames": "^2.2.6",
+        "core-js": "^3.47.0",
         "crc-32": "^1.2.0",
         "dotenv-webpack": "^8.0.1",
         "extend": "^3.0.2",

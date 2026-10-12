@@ -21,7 +21,7 @@ const platform_config: TPlatformConfig[] = [
             getPlatformDescription() ||
             localize('A whole new trading experience on a powerful yet easy to use platform.'),
         // [/AI]
-        link_to: routes.index,
+        link_to: routes.trader,
     },
 ];
 

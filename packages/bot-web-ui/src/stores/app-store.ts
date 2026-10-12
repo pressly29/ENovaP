@@ -1,6 +1,6 @@
 import { action, makeObservable, reaction, when } from 'mobx';
-import { ApiHelpers, DBot, runIrreversibleEvents } from '@deriv/bot-skeleton';
-import { ContentFlag, isEuResidenceWithOnlyVRTC, routes, showDigitalOptionsUnavailableError } from '@deriv/shared';
+import { ApiHelpers, DBot, helpers_ws, runIrreversibleEvents } from '@deriv/bot-skeleton';
+import { routes, showDigitalOptionsUnavailableError } from '@deriv/shared';
 import { localize } from '@deriv-com/translations';
 import RootStore from './root-store';
 import { TStores } from '@deriv/stores/types';
@@ -59,54 +59,21 @@ export default class AppStore {
         };
     };
 
+    // The new Deriv API has no landing companies or EU/non-EU account split, so
+    // the old per-jurisdiction gating is gone; only an explicit options block
+    // on the account still stops the bot.
     handleErrorForEu = (show_default_error = false) => {
-        const { client, common, ui, traders_hub } = this.core;
+        const { client, common, ui } = this.core;
         const toggleAccountsDialog = ui?.toggleAccountsDialog;
 
-        if (!client?.is_logged_in && client?.is_eu_country) {
-            return showDigitalOptionsUnavailableError(common.showError, this.getErrorForEuClients());
-        }
-
-        if (!client.is_landing_company_loaded) {
-            return false;
-        }
-
-        if (window.location.pathname === routes.bot) {
-            if (client.should_show_eu_error) {
-                return showDigitalOptionsUnavailableError(
-                    common.showError,
-                    this.getErrorForEuClients(client.is_logged_in)
-                );
-            }
-
-            if (traders_hub.content_flag === ContentFlag.HIGH_RISK_CR) {
-                return false;
-            }
-
-            if (traders_hub.content_flag === ContentFlag.LOW_RISK_CR_EU && toggleAccountsDialog) {
-                return showDigitalOptionsUnavailableError(
-                    common.showError,
-                    this.getErrorForNonEuClients(),
-                    toggleAccountsDialog,
-                    false,
-                    false
-                );
-            }
-
-            if (
-                ((!client.is_bot_allowed && client.is_eu && client.should_show_eu_error) ||
-                    isEuResidenceWithOnlyVRTC(client.active_accounts) ||
-                    client.is_options_blocked) &&
-                toggleAccountsDialog
-            ) {
-                return showDigitalOptionsUnavailableError(
-                    common.showError,
-                    this.getErrorForNonEuClients(),
-                    toggleAccountsDialog,
-                    false,
-                    false
-                );
-            }
+        if (window.location.pathname === routes.bot && client?.is_logged_in && client.is_options_blocked) {
+            return showDigitalOptionsUnavailableError(
+                common.showError,
+                this.getErrorForNonEuClients(),
+                toggleAccountsDialog,
+                false,
+                false
+            );
         }
 
         if (show_default_error && common.has_error) {
@@ -117,7 +84,7 @@ export default class AppStore {
 
     onMount() {
         const { blockly_store, run_panel } = this.root_store;
-        const { client, ui, traders_hub } = this.core;
+        const { client, ui } = this.core;
         this.showDigitalOptionsMaltainvestError();
 
         let timer_counter = 1;
@@ -143,7 +110,6 @@ export default class AppStore {
         this.registerCurrencyReaction.call(this);
         this.registerOnAccountSwitch.call(this);
         this.registerLandingCompanyChangeReaction.call(this);
-        this.registerResidenceChangeReaction.call(this);
 
         window.addEventListener('click', this.onClickOutsideBlockly);
         window.addEventListener('beforeunload', this.onBeforeUnload);
@@ -151,12 +117,7 @@ export default class AppStore {
         blockly_store.getCachedActiveTab();
 
         when(
-            () => client?.should_show_eu_error || client?.is_landing_company_loaded,
-            () => this.showDigitalOptionsMaltainvestError()
-        );
-
-        reaction(
-            () => traders_hub?.content_flag,
+            () => client?.is_authorize,
             () => this.showDigitalOptionsMaltainvestError()
         );
     }
@@ -242,9 +203,9 @@ export default class AppStore {
         const { client } = this.core;
 
         this.disposeSwitchAccountListener = reaction(
-            () => client.switch_broadcast,
-            switch_broadcast => {
-                if (!switch_broadcast) return;
+            () => client.loginid,
+            (loginid, previous_loginid) => {
+                if (!loginid || loginid === previous_loginid) return;
                 this.showDigitalOptionsMaltainvestError();
 
                 if (ApiHelpers.instance) {
@@ -278,15 +239,6 @@ export default class AppStore {
         );
     }
 
-    registerResidenceChangeReaction() {
-        const { client } = this.core;
-
-        this.disposeResidenceChangeReaction = reaction(
-            () => client.account_settings.country_code,
-            () => this.handleErrorForEu()
-        );
-    }
-
     setDBotEngineStores() {
         // DO NOT pass the rootstore in, if you need a prop define it in dbot-skeleton-store ans pass it through.
         const { flyout, toolbar, save_modal, dashboard, load_modal, run_panel, blockly_store, summary_card } =
@@ -311,7 +263,7 @@ export default class AppStore {
 
         this.api_helpers_store = {
             server_time: this.core.common.server_time,
-            ws: this.root_store.ws,
+            ws: helpers_ws,
         };
     }
 

@@ -1,4 +1,4 @@
-import { getFormattedText } from '@deriv/shared';
+import { getFormattedText } from '../../../utils/currency';
 import { info } from '../utils/broadcast';
 import DBotStore from '../../../scratch/dbot-store';
 import { api_base } from '../../api/api-base';

@@ -63,8 +63,8 @@ const Sidebar = observer(() => {
     }, [onMount, onUnmount]);
 
     const isActiveRoute = (path: string) => {
-        if (path === routes.index) {
-            return location.pathname === routes.index;
+        if (path === routes.trader) {
+            return location.pathname === routes.trader;
         }
         return location.pathname.startsWith(path);
     };
@@ -233,7 +233,7 @@ const Sidebar = observer(() => {
             <aside
                 ref={sidebar_ref}
                 className={classNames('sidebar', {
-                    sidebar__hidden: !isActiveRoute(routes.index),
+                    sidebar__hidden: !isActiveRoute(routes.trader),
                 })}
                 data-testid='dt_sidebar'
             >

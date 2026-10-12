@@ -5,6 +5,10 @@ export const routes = {
     error404: '/404',
     endpoint: '/endpoint',
 
+    // EvPNova: the bot builder is the home page; DTrader lives at /trader
+    bot: '/',
+    trader: '/trader',
+
     // Trading routes
     menu: '/menu',
     trader_positions: '/positions',
@@ -19,6 +23,7 @@ export const routes = {
 
 export const DISABLE_LANDSCAPE_BLOCKER_ROUTES = [
     routes.index,
+    routes.trader,
     routes.reports,
     routes.endpoint,
     /** because contract route has dynamic id */

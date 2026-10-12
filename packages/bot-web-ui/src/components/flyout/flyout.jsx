@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { Icon, Input, Text, ThemedScrollbars } from '@deriv/components';
-import { getPlatformSettings } from '@deriv/shared';
+import { getPlatformName } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { help_content_config } from 'Utils/help-content/help-content.config';
@@ -54,7 +54,7 @@ const FlyoutContent = props => {
                         <span className='flyout__content-disclaimer-text'>
                             {localize(
                                 'Indicators on the chart tab are for indicative purposes only and may vary slightly from the ones on the {{platform_name_dbot}} workspace.',
-                                { platform_name_dbot: getPlatformSettings('dbot').name }
+                                { platform_name_dbot: getPlatformName() }
                             )}
                         </span>
                     </div>

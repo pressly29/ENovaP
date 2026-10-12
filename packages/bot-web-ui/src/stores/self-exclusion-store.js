@@ -58,8 +58,10 @@ export default class SelfExclusionStore {
 
     async checkRestriction() {
         const { client } = this.core;
-        await client.getSelfExclusion();
-        if (client.self_exclusion.max_losses) {
+        // get_self_exclusion is not part of the new Deriv API; only the limits the
+        // user sets in the bot's own self-exclusion form apply.
+        await client.getSelfExclusion?.();
+        if (client.self_exclusion?.max_losses) {
             this.setApiMaxLosses(client.self_exclusion.max_losses);
         }
     }

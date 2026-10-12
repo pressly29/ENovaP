@@ -32,6 +32,19 @@ const copyConfig = base => {
             from: path.resolve(__dirname, '../../../node_modules/@deriv/reports/dist/reports/js/'),
             to: 'reports/js',
         },
+        { from: path.resolve(__dirname, '../../../node_modules/@deriv/bot-web-ui/dist/bot/js/'), to: 'bot/js/' },
+        { from: path.resolve(__dirname, '../../../node_modules/@deriv/bot-web-ui/dist/bot/css/'), to: 'bot/css/' },
+        {
+            from: path.resolve(__dirname, '../../../node_modules/@deriv/bot-web-ui/dist/bot/media/'),
+            to: 'bot/media/',
+            noErrorOnMissing: true,
+        },
+        {
+            // Blockly reads its media from the public path root (DBot.initWorkspace).
+            from: path.resolve(__dirname, '../../../node_modules/@deriv/bot-web-ui/dist/bot/media/'),
+            to: 'media/',
+            noErrorOnMissing: true,
+        },
         {
             from: path.resolve(__dirname, '../../../node_modules/@deriv/reports/dist/reports/css/'),
             to: 'reports/css',
@@ -215,7 +228,7 @@ const generateSWConfig = () => ({
             },
         },
         {
-            urlPattern: /(trader|reports)\//,
+            urlPattern: /(trader|reports|bot)\//,
             handler: 'CacheFirst',
             options: {
                 cacheName: 'packages-files',

@@ -40,7 +40,7 @@ const ErrorComponent: React.FC<Partial<TErrorComponent>> = ({
         <PageErrorContainer
             error_header={header ?? ''}
             error_messages={message ? [message, refresh_message] : []}
-            redirect_urls={[routes.index]}
+            redirect_urls={[routes.trader]}
             redirect_labels={[redirect_label || localize('Refresh')]}
             buttonOnClick={redirectOnClick || (() => location.reload())}
         />

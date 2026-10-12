@@ -76,7 +76,7 @@ const AppContent = observer(() => {
     React.useEffect(() => {
         showDigitalOptionsMaltainvestError(client, common);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [client.is_options_blocked, client.account_settings.country_code, client.clients_country]);
+    }, [client.is_options_blocked]);
 
     const init = () => {
         GTM.init(combinedStore);
@@ -88,24 +88,24 @@ const AppContent = observer(() => {
     const changeActiveSymbolLoadingState = () => {
         init();
         const { active_symbols } = ApiHelpers.instance;
-        active_symbols.retrieveActiveSymbols(true).then(() => {
-            setIsLoading(false);
-        });
+        active_symbols
+            .retrieveActiveSymbols(true)
+            .catch(error => {
+                // eslint-disable-next-line no-console
+                console.error('[bot] Could not load markets:', error);
+            })
+            .finally(() => setIsLoading(false));
     };
 
+    // Load markets once the session is settled: immediately when logged out,
+    // or after the core has authorised the account (new API: first balance).
+    const is_session_ready = client.is_logged_in ? client.is_authorize : !client.is_logging_in;
     React.useEffect(() => {
         init();
-        setIsLoading(true);
-        if (!client.is_logged_in) {
-            changeActiveSymbolLoadingState();
-        }
+        if (is_session_ready) changeActiveSymbolLoadingState();
+        else setIsLoading(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // use is_landing_company_loaded to know got details of accounts to identify should show an error or not
-    if (client.is_landing_company_loaded) {
-        changeActiveSymbolLoadingState();
-    }
+    }, [is_session_ready, client.loginid]);
 
     React.useEffect(() => {
         const onDisconnectFromNetwork = () => {

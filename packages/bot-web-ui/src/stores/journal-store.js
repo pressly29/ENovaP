@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable, reaction, when } from 'mobx';
+import { action, computed, makeObservable, observable, reaction } from 'mobx';
 
 import { log_types, message_types } from '@deriv/bot-skeleton';
 import { config } from '@deriv/bot-skeleton/src/constants/config';
@@ -102,11 +102,10 @@ export default class JournalStore {
 
     pushMessage(message, message_type, className, extra = {}) {
         const { client } = this.core;
-        const { loginid, account_list } = client;
+        const { loginid } = client;
 
         if (loginid) {
-            const current_account = account_list?.find(account => account?.loginid === loginid);
-            extra.current_currency = current_account?.is_virtual ? 'Demo' : current_account?.title;
+            extra.current_currency = client.is_virtual ? 'Demo' : client.currency;
         } else if (message === log_types.WELCOME) {
             return;
         }
@@ -175,7 +174,7 @@ export default class JournalStore {
         const disposeJournalMessageListener = reaction(
             () => client?.loginid,
             async loginid => {
-                await when(() => client.account_list?.find(account => account.loginid === loginid)?.title ?? false);
+                if (!loginid) return;
                 this.unfiltered_messages = getStoredItemsByUser(this.JOURNAL_CACHE, loginid, []);
                 if (this.unfiltered_messages.length === 0) {
                     this.welcomeUser();

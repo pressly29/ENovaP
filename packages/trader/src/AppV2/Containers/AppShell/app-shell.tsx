@@ -19,7 +19,7 @@ const AppShell = observer(() => {
     const location = useLocation();
 
     React.useEffect(() => {
-        if (active_sidebar_flyout && location.pathname !== routes.index) {
+        if (active_sidebar_flyout && location.pathname !== routes.trader) {
             ui.closeSidebarFlyout();
         }
     }, [location.pathname]);

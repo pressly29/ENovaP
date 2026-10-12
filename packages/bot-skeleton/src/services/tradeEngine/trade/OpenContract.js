@@ -1,4 +1,4 @@
-import { getRoundedNumber } from '@deriv/shared';
+import { getRoundedNumber } from '../../../utils/currency';
 import { sell, openContractReceived } from './state/actions';
 import { contractStatus, contract as broadcastContract } from '../utils/broadcast';
 import { api_base, api_base2 } from '../../api/api-base';

@@ -1,4 +1,4 @@
-import { getRoundedNumber } from '@deriv/shared';
+import { getRoundedNumber } from '../../../utils/currency';
 import { localize } from '@deriv-com/translations';
 import { info, log } from '../utils/broadcast';
 import { createError } from '../../../utils/error';

@@ -1,39 +1,32 @@
 import DerivAPIBasic from '@deriv/deriv-api/dist/DerivAPIBasic';
-import { getAppId, getSocketURL, website_name } from '@deriv/shared';
-import { getInitialLanguage as getLanguage } from '@deriv-com/translations';
-import APIMiddleware from './api-middleware';
 
-export const generateDerivApiInstance = () => {
-    const socket_url = `wss://${getSocketURL()}/websockets/v3?app_id=${getAppId()}&l=${getLanguage()}&brand=${website_name.toLowerCase()}`;
-    const deriv_socket = new WebSocket(socket_url);
-    const deriv_api = new DerivAPIBasic({
+import APIMiddleware from './api-middleware';
+import { CompatSocket, getAccessToken, getActiveAccountId, getSocketUrl } from './v4/connection';
+
+/**
+ * Opens a bot API connection on the new Deriv API: an OTP-authenticated socket
+ * for the active account when logged in (and `authenticated`), otherwise the
+ * public market-data socket. Returns immediately; the socket connects once the
+ * OTP URL has been fetched.
+ */
+export const generateDerivApiInstance = ({ authenticated = true } = {}) => {
+    const deriv_socket = new CompatSocket(getSocketUrl({ authenticated }));
+    return new DerivAPIBasic({
         connection: deriv_socket,
         middleware: new APIMiddleware({}),
     });
-    return deriv_api;
 };
 
-export const getLoginId = () => {
-    const login_id = localStorage.getItem('active_loginid');
-    if (login_id && login_id !== 'null') return login_id;
-    return null;
-};
+export const getLoginId = () => getActiveAccountId();
 
-export const getToken = () => {
-    const active_loginid = getLoginId();
-    const client_accounts = JSON.parse(localStorage.getItem('client.accounts')) || undefined;
-    const active_account = (client_accounts && client_accounts[active_loginid]) || {};
-    return {
-        token: active_account?.token || undefined,
-        account_id: active_loginid || undefined,
-    };
-};
+// `token` is the OAuth access token of the logged-in user (one token covers all
+// of their accounts on the new API).
+export const getToken = () => ({
+    token: getAccessToken() || undefined,
+    account_id: getActiveAccountId() || undefined,
+});
 
-export const getLiveAccToken = active_loginid => {
-    const client_accounts = JSON.parse(localStorage.getItem('client.accounts')) || undefined;
-    const active_account = (client_accounts && client_accounts[active_loginid]) || {};
-    return {
-        token: active_account?.token || undefined,
-        account_id: active_loginid || undefined,
-    };
-};
+export const getLiveAccToken = account_id => ({
+    token: getAccessToken() || undefined,
+    account_id: account_id || undefined,
+});

@@ -15,6 +15,8 @@ const Trader = React.lazy(() => import(/* webpackChunkName: "trader" */ '@deriv/
 
 const Reports = React.lazy(() => import(/* webpackChunkName: "reports" */ '@deriv/reports'));
 
+const Bot = React.lazy(() => import(/* webpackChunkName: "bot-web-ui-app" */ '@deriv/bot-web-ui'));
+
 const getModules = () => {
     const modules = [
         {
@@ -55,9 +57,23 @@ const getModules = () => {
             protected: false,
         },
         {
-            path: routes.index,
+            path: routes.trader,
             component: Trader,
             getTitle: () => localize('Trader'),
+            protected: false,
+        },
+        {
+            path: routes.trader_positions,
+            component: Trader,
+            getTitle: () => localize('Positions'),
+            protected: true,
+        },
+        {
+            // Bot builder is the home page (routes.bot === routes.index === '/').
+            path: routes.bot,
+            exact: true,
+            component: Bot,
+            getTitle: () => localize('Bot'),
             protected: false,
         },
         {

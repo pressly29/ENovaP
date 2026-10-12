@@ -1,6 +1,7 @@
 import { observer as globalObserver } from '../../utils/observer';
 import { doUntilDone, socket_state } from '../tradeEngine/utils/helpers';
 import { generateDerivApiInstance, getLoginId, getToken } from './appId';
+import { fetchAccountInfo } from './v4/connection';
 
 class APIBase {
     api;
@@ -15,20 +16,31 @@ class APIBase {
     is_stopping = false;
 
     async init(force_update = false) {
+        // Reuse a live connection for the same account instead of opening another.
+        const is_same_account = this.account_id === (getLoginId() || undefined);
+        if (!force_update && this.api && this.api.connection.readyState <= 1 && is_same_account) return;
+        if (force_update) this.terminate();
         if (getLoginId()) {
             this.toggleRunButton(true);
-            if (force_update) this.terminate();
             this.api = generateDerivApiInstance();
             this.initEventListeners();
             await this.authorizeAndSubscribe();
             if (this.time_interval) clearInterval(this.time_interval);
             this.time_interval = null;
             this.getTime();
+        } else {
+            // Logged out: public market data, so blocks and dropdowns still load.
+            this.account_id = undefined;
+            this.account_info = {};
+            this.api = generateDerivApiInstance({ authenticated: false });
+            this.initEventListeners();
+            this.getActiveSymbols();
         }
     }
 
+    // Extra connections (analysis tools, copy trading) only need market data.
     async customInit() {
-        this.api = generateDerivApiInstance();
+        this.api = generateDerivApiInstance({ authenticated: false });
         this.initEventListeners();
     }
 
@@ -61,29 +73,29 @@ class APIBase {
 
     reconnectIfNotConnected = () => {
         // eslint-disable-next-line no-console
-        console.log('connection state: ', this.api.connection.readyState);
-        if (this.api.connection.readyState !== 1) {
+        console.log('connection state: ', this.api?.connection.readyState);
+        if (this.api && this.api.connection.readyState > 1) {
             // eslint-disable-next-line no-console
             console.log('Info: Connection to the server was closed, trying to reconnect.');
             this.init();
         }
     };
 
+    // The new API has no `authorize` call: the OTP socket is already bound to
+    // the active account, and account details come from the REST API.
     async authorizeAndSubscribe() {
         const { token, account_id } = getToken();
         if (token) {
             this.token = token;
             this.account_id = account_id;
-            this.api.authorize(this.token);
             try {
-                const { authorize } = await this.api.expectResponse('authorize');
+                this.account_info = await fetchAccountInfo(account_id);
                 if (this.has_activeSymbols) {
                     this.toggleRunButton(false);
                 } else {
                     this.getActiveSymbols();
                 }
                 await this.subscribe();
-                this.account_info = authorize;
             } catch (e) {
                 globalObserver.emit('Error', e);
             }
@@ -98,11 +110,14 @@ class APIBase {
         ]);
     }
 
-    // Custom Authorization3
+    // Logging in a second account with a raw API token (virtual hook / copy
+    // trading) is not possible on the new API, which only accepts OAuth.
+    // eslint-disable-next-line class-methods-use-this, no-unused-vars
     async authorize_3(token) {
-        await this.api.authorize(token);
-        const { authorize, error } = await this.api.expectResponse('authorize');
-        return { authorize, error };
+        return {
+            authorize: undefined,
+            error: { code: 'UnsupportedMethod', message: 'Token login is not available on the new Deriv API.' },
+        };
     }
 
     getActiveSymbols = async () => {
