@@ -342,6 +342,9 @@ export default class ClientStore extends BaseStore {
                 sessionStorage.setItem('active_loginid', active_account.account_id);
                 localStorage.setItem('active_loginid', active_account.account_id);
                 localStorage.setItem('account_type', active_account.account_type);
+                // EvPNova: the v4 balance response carries no email; premium bot
+                // checkout and entitlements need it, and the accounts API has it.
+                if (active_account.email) this.setEmail(active_account.email);
 
                 const ws_url = await fetchOTP(active_account.account_id);
                 BinarySocket.setWSUrl(ws_url);
