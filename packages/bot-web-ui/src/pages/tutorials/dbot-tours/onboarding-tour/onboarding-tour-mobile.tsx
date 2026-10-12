@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Icon, ProgressBarTracker, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon, ProgressBarTracker } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { getSetting } from 'Utils/settings';

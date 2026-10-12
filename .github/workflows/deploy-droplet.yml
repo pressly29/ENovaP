@@ -58,6 +58,5 @@ jobs:
             - name: Smoke test
               run: |
                   curl -fsS https://evpnova.com/ | grep -q '<title>'
-                  code=$(curl -s -o /dev/null -w '%{http_code}' 'https://evpnova.com/.netlify/functions/enova-auth?type=login')
-                  [ "$code" = "302" ] || { echo "functions returned $code"; exit 1; }
+                  curl -fsS 'https://evpnova.com/.netlify/functions/bot-entitlements' | grep -q '"catalog"'
                   echo "evpnova.com is up and functions respond"

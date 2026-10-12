@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { useDBotStore } from 'Stores/useDBotStore';
 

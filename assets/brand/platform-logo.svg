@@ -1,6 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Trading Platform">
-  <!-- Replace this file with your platform icon -->
-  <!-- Recommended: 64x64px square, transparent background -->
-  <circle cx="32" cy="32" r="30" fill="#118e1c"/>
-  <text x="32" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">TP</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="2 2 46 46" role="img" aria-label="EvPNova">
+  <title>EvPNova</title>
+  <g fill="none" stroke="#E0A93B" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30.5 9.2 C22.9 4.6 13.4 8.1 9.6 16.6 C5.8 25.1 8.6 35.4 15.9 39.6 C21.1 42.6 27.3 41.6 31.7 37.6" stroke-width="4.2"/>
+    <path d="M36.6 22.4 C37.4 27.6 35.9 32.9 32.4 36.8" stroke-width="4.2"/>
+    <path d="M7.5 33.5 L19 20.5 L26 28 L39.5 12.5" stroke-width="4.2"/>
+  </g>
+  <path d="M33.2 9.6 L43.6 7.4 L41.6 17.8 Z" fill="#E0A93B"/>
 </svg>

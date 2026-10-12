@@ -1,5 +1,6 @@
 import React from 'react';
-import { MobileFullPageModal, Modal, Tabs } from '@deriv/components';
+import { Modal, Tabs } from '@deriv/components';
+import { MobileFullPageModal } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { tabs_title } from 'Constants/load-modal';

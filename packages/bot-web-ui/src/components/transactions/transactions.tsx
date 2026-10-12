@@ -3,7 +3,8 @@ import classnames from 'classnames';
 import { CSSTransition } from 'react-transition-group';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ProposalOpenContract } from '@deriv/api-types';
-import { Button, DataList, Icon, Text, ThemedScrollbars } from '@deriv/components';
+import { Button, DataList, Text, ThemedScrollbars } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { useNewRowTransition } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';

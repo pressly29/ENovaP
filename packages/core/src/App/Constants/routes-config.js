@@ -15,6 +15,9 @@ const Trader = React.lazy(() => import(/* webpackChunkName: "trader" */ '@deriv/
 
 const Reports = React.lazy(() => import(/* webpackChunkName: "reports" */ '@deriv/reports'));
 
+// eslint-disable-next-line import/no-unresolved
+const ClientsAnalysis = React.lazy(() => import(/* webpackChunkName: "clients-analysis" */ 'Modules/ClientsAnalysis'));
+
 const Bot = React.lazy(() => import(/* webpackChunkName: "bot-web-ui-app" */ '@deriv/bot-web-ui'));
 
 const getModules = () => {
@@ -91,6 +94,7 @@ const getModules = () => {
 // TODO: search tag: test-route-parent-info -> Enable test for getting route parent info when there are nested routes
 const initRoutesConfig = () => [
     { path: routes.endpoint, component: Endpoint, getTitle: () => 'Endpoint' }, // doesn't need localization as it's for internal use
+    { path: routes.clients_analysis, component: ClientsAnalysis, getTitle: () => localize('Clients Analysis') },
     ...getModules(),
 ];
 

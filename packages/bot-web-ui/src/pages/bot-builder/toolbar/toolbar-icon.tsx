@@ -1,5 +1,6 @@
 import React from 'react';
-import { DesktopWrapper, Icon, MobileWrapper, Popover } from '@deriv/components';
+import { DesktopWrapper, MobileWrapper, Popover } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { popover_zindex } from 'Constants/z-indexes';
 
 type TToolbarIcon = {

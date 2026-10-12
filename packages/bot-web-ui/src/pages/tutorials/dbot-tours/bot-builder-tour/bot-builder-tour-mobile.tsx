@@ -1,5 +1,6 @@
 import React from 'react';
-import { ProgressBarTracker, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { ProgressBarTracker } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { getSetting } from 'Utils/settings';

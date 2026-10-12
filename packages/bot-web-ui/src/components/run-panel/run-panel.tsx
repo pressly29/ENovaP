@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Button, Drawer, Modal, Money, Tabs, Text, ThemedScrollbars } from '@deriv/components';
+import { Button, Modal, Money, Tabs, Text, ThemedScrollbars } from '@deriv/components';
+import { Drawer } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { Localize, localize } from '@deriv-com/translations';
 import Journal from 'Components/journal';

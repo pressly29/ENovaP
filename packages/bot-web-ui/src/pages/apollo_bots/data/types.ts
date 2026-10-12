@@ -71,7 +71,7 @@ export type BotAccessTier = 'free' | 'premium';
  */
 export interface BotAccess {
     tier: BotAccessTier;
-    /** Price label resolved from the server catalog, e.g. "KES 1,500" */
+    /** Price label resolved from the server catalog, e.g. "$27" */
     priceLabel?: string;
 }
 

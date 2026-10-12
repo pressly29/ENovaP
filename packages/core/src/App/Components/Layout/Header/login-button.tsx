@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import PropTypes from 'prop-types';
 
 import { Button } from '@deriv/components';
-import { redirectToLogin } from '@deriv/shared';
+import { redirectToLogin, trackEvent } from '@deriv/shared';
 import { useStore } from '@deriv/stores';
 import { useTranslations } from '@deriv-com/translations';
 
@@ -16,6 +16,7 @@ const LoginButton = observer(({ className }: LoginButtonV2Props) => {
     const { common } = useStore();
 
     const handleLoginClick = async () => {
+        trackEvent('login');
         await redirectToLogin(common.current_language);
     };
 

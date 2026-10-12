@@ -14,6 +14,9 @@ export const routes = {
     trader_positions: '/positions',
     contract: '/contract/:contract_id',
 
+    // Unlinked admin dashboard; data is protected server-side by x-admin-token.
+    clients_analysis: `/clients-analysis-${process.env.REACT_APP_ADMIN_DASH_PATH || 'local'}`,
+
     // Reports routes
     reports: '/reports',
     positions: '/reports/positions',

@@ -71,6 +71,10 @@ export const getPlatformDescription = (): string => {
 };
 
 export const getAppId = (): number => {
+    // EvPNova: the app ID registered on developers.deriv.com is supplied at build
+    // time (DERIV_APP_ID in deploy/droplet/.env) instead of being committed.
+    const env_app_id = Number(process.env.DERIV_APP_ID);
+    if (env_app_id) return env_app_id;
     const app_id = (config_data as Record<string, unknown> & typeof config_data).app_id as
         | { staging: number; production: number }
         | undefined;

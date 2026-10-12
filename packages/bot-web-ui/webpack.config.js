@@ -3,7 +3,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { DefinePlugin } = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
-const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 const IS_RELEASE =
     process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'test';
@@ -54,7 +53,9 @@ module.exports = function (env) {
                     test: /\.svg$/,
                     exclude: /node_modules/,
                     use: [
-                        { loader: 'svg-sprite-loader', options: { extract: true, spriteFilename: 'bot-sprite.svg' } },
+                        // Runtime mode: symbols are injected into the document, so <use href="#id">
+                        // resolves without a separate sprite file and inherits theme CSS variables.
+                        { loader: 'svg-sprite-loader', options: { symbolId: '[name]' } },
                         'svgo-loader',
                     ],
                 },
@@ -99,7 +100,6 @@ module.exports = function (env) {
             new CopyWebpackPlugin({
                 patterns: [{ from: '../bot-skeleton/dist/media', to: 'bot/media', noErrorOnMissing: true }],
             }),
-            new SpriteLoaderPlugin(),
         ],
         // Provided by @deriv/core at runtime (same pattern as @deriv/trader).
         externals: [

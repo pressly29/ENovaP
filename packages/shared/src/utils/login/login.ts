@@ -40,7 +40,7 @@ const storePKCEVerifier = (verifier: string): void => {
  * Uses window.location.replace() so the authorize URL does not appear
  * in browser history (prevents back-button returning to a broken state).
  */
-export const redirectToLogin = async (_language?: string): Promise<void> => {
+const buildAuthUrl = async (extra_params: Record<string, string> = {}): Promise<string> => {
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
     storePKCEVerifier(verifier);
@@ -59,12 +59,35 @@ export const redirectToLogin = async (_language?: string): Promise<void> => {
     });
     const oauth_app_id = getOAuthAppId();
     if (oauth_app_id) params.set('app_id', oauth_app_id);
+    Object.entries(extra_params).forEach(([key, value]) => value && params.set(key, value));
 
-    const auth_url = `${getAuthBaseUrl()}/oauth2/auth?${params}`;
-    window.location.replace(auth_url);
+    return `${getAuthBaseUrl()}/oauth2/auth?${params}`;
 };
 
-export const redirectToSignUp = (_language?: string): void => {
-    const signup_url = getSignupUrl();
-    if (signup_url) window.open(signup_url, '_blank', 'noopener,noreferrer');
+export const redirectToLogin = async (_language?: string): Promise<void> => {
+    window.location.replace(await buildAuthUrl());
+};
+
+/**
+ * EvPNova: sign-up runs through the same OAuth flow (`prompt=registration`), so
+ * new users come back logged in, and carries the affiliate token so sign-ups
+ * are attributed to EvPNova's Deriv partner account.
+ */
+export const redirectToSignUp = async (_language?: string): Promise<void> => {
+    try {
+        const affiliate_token = process.env.REACT_APP_AFFILIATE_TOKEN || '';
+        window.location.replace(
+            await buildAuthUrl({
+                prompt: 'registration',
+                t: affiliate_token,
+                utm_medium: affiliate_token ? 'affiliate' : '',
+                utm_campaign: process.env.REACT_APP_AFFILIATE_CAMPAIGN || '',
+                utm_source: process.env.REACT_APP_AFFILIATE_SOURCE || '',
+            })
+        );
+    } catch {
+        // OAuth client not configured: fall back to Deriv's own sign-up page.
+        const signup_url = getSignupUrl();
+        if (signup_url) window.open(signup_url, '_blank', 'noopener,noreferrer');
+    }
 };

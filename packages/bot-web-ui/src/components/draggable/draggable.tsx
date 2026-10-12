@@ -1,7 +1,7 @@
 import React, { PropsWithChildren, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { CSSTransition } from 'react-transition-group';
-import { Icon } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { localize } from '@deriv-com/translations';
 
 type DraggableProps = {

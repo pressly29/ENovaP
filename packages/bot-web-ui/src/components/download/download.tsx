@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Icon, Popover } from '@deriv/components';
+import { Button, Popover } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';

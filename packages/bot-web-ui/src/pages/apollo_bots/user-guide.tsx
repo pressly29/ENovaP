@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
 import { DBOT_TABS } from 'Constants/bot-contents';

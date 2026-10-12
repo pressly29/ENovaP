@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
-import { DataList, Icon, Text } from '@deriv/components';
+import { DataList, Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { contract_stages } from 'Constants/contract-stage';

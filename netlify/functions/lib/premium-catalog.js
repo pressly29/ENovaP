@@ -5,51 +5,33 @@
 // Bot IDs must match packages/bot-web-ui/src/pages/apollo_bots/data/premium-bots.ts
 // (the client-side list that decides which cards render as locked).
 //
-// Prices are in MAJOR units (e.g. 2000 = KES 2,000). Paystack is charged in
-// subunits (amount * 100). The active currency is picked with the
-// PAYSTACK_CURRENCY env var (default KES) — it must be a currency enabled on
-// your Paystack business account.
-
-// Pricing is anchored in GBP (£20–£30 per bot). Local-currency amounts use a
-// buffered rate (£30 ≈ KES 5,500, i.e. ~183 KES/£) so conversion fees and FX
-// drift are covered; all currencies for a bot are equivalent in value.
-// Tiers: £20 | £24 | £27 | £30.
+// Prices are in MAJOR units (US dollars). Paystack is charged in subunits
+// (cents, amount * 100). USD must be enabled on the Paystack business account;
+// PAYSTACK_CURRENCY can override the charge currency only if a price for it is
+// added below.
+//
+// Pricing (USD, one-time): $25 | $27 | $29 | $30.
 const PREMIUM_BOTS = {
-    8: {
-        name: 'Lightning Scalper',
-        prices: { GBP: 24, KES: 4400, NGN: 52800, GHS: 530, ZAR: 635, USD: 35 },
-    },
-    9: {
-        name: 'Fibonacci Recovery',
-        prices: { GBP: 24, KES: 4400, NGN: 52800, GHS: 530, ZAR: 635, USD: 35 },
-    },
-    10: {
-        name: 'Neural Network Predictor',
-        prices: { GBP: 30, KES: 5500, NGN: 66000, GHS: 660, ZAR: 790, USD: 44 },
-    },
-    11: {
-        name: 'Grid Master',
-        prices: { GBP: 27, KES: 4950, NGN: 59400, GHS: 595, ZAR: 715, USD: 40 },
-    },
-    12: {
-        name: 'Algo Sniper',
-        prices: { GBP: 24, KES: 4400, NGN: 52800, GHS: 530, ZAR: 635, USD: 35 },
-    },
-    13: {
-        name: 'Signal Sniper Auto Bot',
-        prices: { GBP: 24, KES: 4400, NGN: 52800, GHS: 530, ZAR: 635, USD: 35 },
-    },
-    14: {
-        name: 'BRAM Even/Odd Printer',
-        prices: { GBP: 20, KES: 3700, NGN: 44400, GHS: 445, ZAR: 535, USD: 30 },
-    },
-    15: {
-        name: 'Dollar Print AI',
-        prices: { GBP: 30, KES: 5500, NGN: 66000, GHS: 660, ZAR: 790, USD: 44 },
-    },
+    8: { name: 'Lightning Scalper', prices: { USD: 27 } },
+    9: { name: 'Fibonacci Recovery', prices: { USD: 27 } },
+    10: { name: 'Neural Network Predictor', prices: { USD: 30 } },
+    11: { name: 'Grid Master', prices: { USD: 29 } },
+    12: { name: 'Algo Sniper', prices: { USD: 27 } },
+    13: { name: 'Signal Sniper Auto Bot', prices: { USD: 27 } },
+    14: { name: 'BRAM Even/Odd Printer', prices: { USD: 25 } },
+    15: { name: 'Dollar Print AI', prices: { USD: 30 } },
 };
 
-const getCurrency = () => (process.env.PAYSTACK_CURRENCY || 'KES').toUpperCase();
+const CURRENCY_SYMBOLS = { USD: '$' };
+
+// An env currency without prices in the catalog (e.g. a leftover
+// PAYSTACK_CURRENCY=KES) falls back to USD instead of making every bot
+// unpurchasable.
+const getCurrency = () => {
+    const configured = (process.env.PAYSTACK_CURRENCY || 'USD').toUpperCase();
+    const has_prices = Object.values(PREMIUM_BOTS).some(bot => Number.isFinite(bot.prices[configured]));
+    return has_prices ? configured : 'USD';
+};
 
 const getPremiumBot = botId => PREMIUM_BOTS[Number(botId)] || null;
 
@@ -65,7 +47,9 @@ const getPrice = botId => {
         amount_subunit: Math.round(major * 100),
         amount_major: major,
         currency,
-        display: `${currency} ${major.toLocaleString('en-US')}`,
+        display: CURRENCY_SYMBOLS[currency]
+            ? `${CURRENCY_SYMBOLS[currency]}${major.toLocaleString('en-US')}`
+            : `${currency} ${major.toLocaleString('en-US')}`,
     };
 };
 

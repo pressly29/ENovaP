@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { Localize } from '@deriv-com/translations';
 
 type TContractResultOverlayProps = {

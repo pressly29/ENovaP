@@ -1,6 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
-import { Icon } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { Localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';

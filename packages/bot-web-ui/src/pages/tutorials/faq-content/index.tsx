@@ -1,5 +1,6 @@
 import React, { KeyboardEvent } from 'react';
-import { Accordion, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Accordion } from 'Components/legacy';
 import { useStore } from '@deriv/stores';
 import { Localize } from '@deriv-com/translations';
 import { DBOT_TABS } from 'Constants/bot-contents';

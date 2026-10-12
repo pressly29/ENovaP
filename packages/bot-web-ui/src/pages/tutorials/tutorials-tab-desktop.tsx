@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Icon, Tabs } from '@deriv/components';
+import { Tabs } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { useDBotStore } from 'Stores/useDBotStore';
 import SearchInput from './common/search-input';

@@ -1,6 +1,7 @@
 import { getImageLocation } from '../../../public-path';
 import React from 'react';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { getUrlBase } from '@deriv/shared';
 import { Localize, localize } from '@deriv-com/translations';
 import TourSteps from './common/tour-steps';

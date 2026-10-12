@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Dialog, Icon, Text } from '@deriv/components';
+import { Dialog, Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { useStore } from '@deriv/stores';
 import { Localize, localize } from '@deriv-com/translations';
 import { DBOT_TABS } from 'Constants/bot-contents';

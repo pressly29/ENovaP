@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { MobileFullPageModal } from '@deriv/components';
+import { MobileFullPageModal } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 

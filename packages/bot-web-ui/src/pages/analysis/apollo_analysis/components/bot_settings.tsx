@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dialog, Icon, Text } from '@deriv/components';
+import { Dialog, Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { localize } from '@deriv-com/translations';
 
 interface BotSettingsSType {

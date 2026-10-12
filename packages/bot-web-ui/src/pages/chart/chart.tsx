@@ -2,6 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { observer, useStore } from '@deriv/stores';
 import { useDBotStore } from 'Stores/useDBotStore';
+import { useSmartChartsAdapter } from './adapter';
 import ToolbarWidgets from './toolbar-widgets';
 import { ChartTitle, SmartChart } from './v1';
 
@@ -19,10 +20,6 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
         symbol,
         updateChartType,
         updateGranularity,
-        wsForget,
-        wsForgetStream,
-        wsSendRequest,
-        wsSubscribe,
     } = chart_store;
     const {
         ui: { is_mobile, is_desktop },
@@ -30,6 +27,11 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
     const { is_drawer_open } = run_panel;
     const { is_chart_modal_visible } = dashboard;
     const is_socket_opened = common.is_socket_opened;
+    // SmartCharts Champion pulls quotes through this adapter (core WebSocket),
+    // replacing the old requestAPI/requestSubscribe props.
+    const { chartData, getQuotes, subscribeQuotes, unsubscribeQuotes } = useSmartChartsAdapter({
+        current_language: common.current_language,
+    });
     const settings = {
         assetInformation: false, // ui.is_chart_asset_info_visible,
         countdown: true,
@@ -40,6 +42,7 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
     };
 
     return (
+        chartData?.activeSymbols?.length ? (
         <div
             className={classNames('dashboard__chart-wrapper', {
                 'dashboard__chart-wrapper--expanded': is_drawer_open && !is_mobile,
@@ -64,10 +67,10 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
                 isMobile={is_mobile}
                 enabledNavigationWidget={is_desktop}
                 granularity={granularity}
-                requestAPI={wsSendRequest}
-                requestForget={wsForget}
-                requestForgetStream={wsForgetStream}
-                requestSubscribe={wsSubscribe}
+                chartData={chartData}
+                getQuotes={getQuotes}
+                subscribeQuotes={subscribeQuotes}
+                unsubscribeQuotes={unsubscribeQuotes}
                 settings={settings}
                 symbol={symbol}
                 topWidgets={() => <ChartTitle />}
@@ -77,6 +80,7 @@ const Chart = observer(({ show_digits_stats }: { show_digits_stats: boolean }) =
                 leftMargin={80}
             />
         </div>
+        ) : null
     );
 });
 

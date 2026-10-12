@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import debounce from 'lodash.debounce';
 import { Analytics } from '@deriv-com/analytics';
 import { observer } from '@deriv/stores';

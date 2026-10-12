@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import {

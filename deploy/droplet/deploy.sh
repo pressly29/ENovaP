@@ -5,8 +5,8 @@
 #   ./deploy.sh --no-pull    build what is checked out now
 #   ./deploy.sh --rollback   switch the site back to the previous build
 #
-# The frontend is built in a throwaway node:18 container (same commands as
-# netlify.toml) and published as a new release under www/releases/. The live
+# The frontend is built in a throwaway node:24 container (npm workspaces, same
+# commands as the repo's build:all) and published as a new release under www/releases/. The live
 # site only switches to it after the build succeeds; the last 3 are kept.
 set -euo pipefail
 
@@ -58,31 +58,23 @@ if [ "${1:-}" != "--no-pull" ]; then
     git -C "$REPO_DIR" pull --ff-only origin "${DEPLOY_BRANCH:-dev}"
 fi
 
-# dotenv-webpack reads a .env next to each webpack config. Only the public
-# REACT_APP_* values go there — server secrets never enter the bundle.
-echo "==> Writing frontend build env"
-for pkg in core bot-web-ui; do
-    env | grep '^REACT_APP_' > "$REPO_DIR/packages/$pkg/.env" || true
-done
-
-# Build-time values the webpack configs read from the environment (not from
-# .env files). Only these are passed in — server secrets stay out of the build.
+# Build-time values read from the environment by the webpack configs. Only
+# these are passed in — server secrets (Paystack etc.) stay out of the build.
+#   OAUTH_CLIENT_ID / DERIV_APP_ID — from developers.deriv.com (public values)
 build_env=()
-for var in GD_CLIENT_ID GD_API_KEY GD_APP_ID RUDDERSTACK_KEY REMOTE_CONFIG_URL \
-    GROWTHBOOK_CLIENT_KEY GROWTHBOOK_DECRYPTION_KEY IS_GROWTHBOOK_ENABLED \
-    DATADOG_APPLICATION_ID DATADOG_CLIENT_TOKEN DATADOG_CLIENT_TOKEN_LOGS \
-    DATADOG_SESSION_REPLAY_SAMPLE_RATE DATADOG_SESSION_SAMPLE_RATE DATADOG_SESSION_SAMPLE_RATE_LOGS; do
+for var in OAUTH_CLIENT_ID DERIV_APP_ID GD_CLIENT_ID GD_API_KEY GD_APP_ID TRANSLATIONS_CDN_URL \
+    REACT_APP_AFFILIATE_TOKEN REACT_APP_AFFILIATE_CAMPAIGN REACT_APP_AFFILIATE_SOURCE REACT_APP_ADMIN_DASH_PATH; do
     if [ -n "${!var:-}" ]; then
         build_env+=(-e "$var")
     fi
 done
-# Leave NODE_ENV unset unless asked for: the webpack configs feed it to
-# DefinePlugin, and an empty string conflicts with webpack's own value.
-if [ -n "${BUILD_NODE_ENV:-}" ]; then
-    build_env+=(-e "NODE_ENV=$BUILD_NODE_ENV")
+if [ -z "${OAUTH_CLIENT_ID:-}" ]; then
+    echo "OAUTH_CLIENT_ID is not set in $ENV_FILE — Deriv login will not work until it is." >&2
 fi
+# Minified production build unless overridden.
+build_env+=(-e "NODE_ENV=${BUILD_NODE_ENV:-production}")
 
-echo "==> Building frontend (first run takes 20-40 min)"
+echo "==> Building frontend (takes 10-20 min)"
 docker run --rm \
     --user "$(id -u):$(id -g)" \
     -e HOME=/tmp \
@@ -92,8 +84,8 @@ docker run --rm \
     -e NODE_OPTIONS=--max-old-space-size=4096 \
     -v "$REPO_DIR":/app \
     -w /app \
-    node:18-bullseye \
-    bash -c 'npm ci && npx lerna link && npx lerna bootstrap --hoist && npm run build:all'
+    node:24-bookworm \
+    bash -c 'npm ci --include=dev --no-audit --no-fund && npm run build:all'
 
 if [ ! -f "$REPO_DIR/packages/core/dist/index.html" ]; then
     echo "Build finished without packages/core/dist/index.html — not deploying." >&2

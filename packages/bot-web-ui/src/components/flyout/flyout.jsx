@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Icon, Input, Text, ThemedScrollbars } from '@deriv/components';
+import { Input, Text, ThemedScrollbars } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { getPlatformName } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';

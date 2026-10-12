@@ -31,7 +31,7 @@ interface MarketplaceCardProps {
     is_locked?: boolean;
     /** True when the bot is paid and already purchased (shows "Owned" chip) */
     is_owned?: boolean;
-    /** Server-resolved price label, e.g. "KES 1,500" */
+    /** Server-resolved price label, e.g. "$27" */
     price_label?: string;
     /** Opens the Paystack checkout modal for this bot */
     onUnlock?: (bot: BotMetadata) => void;

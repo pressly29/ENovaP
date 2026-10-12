@@ -1,6 +1,7 @@
 import React from 'react';
 import { CSSTransition } from 'react-transition-group';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { Localize } from '@deriv-com/translations';
 import Download from 'Components/download';
 import { TJournalToolsProps } from '../journal.types';

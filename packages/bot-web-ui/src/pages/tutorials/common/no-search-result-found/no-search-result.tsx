@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { Localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';

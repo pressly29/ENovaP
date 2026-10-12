@@ -4,7 +4,8 @@ import ContentLoader from 'react-content-loader';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ProposalOpenContract } from '@deriv/api-types';
 import { getContractTypeName, config } from '@deriv/bot-skeleton';
-import { Icon, IconTradeTypes, Money, Popover } from '@deriv/components';
+import { IconTradeTypes, Money, Popover } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { convertDateFormat } from '@deriv/shared';
 import { observer } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';

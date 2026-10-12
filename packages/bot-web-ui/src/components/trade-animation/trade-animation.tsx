@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { Button, Icon } from '@deriv/components';
+import { Button } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import ContractResultOverlay from 'Components/contract-result-overlay';

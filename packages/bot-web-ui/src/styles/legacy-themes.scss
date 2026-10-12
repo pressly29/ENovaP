@@ -1,0 +1,59 @@
+/*
+ * The bot stylesheets were written against the pre-template theme variables
+ * (--general-main-1, --text-general, ...). The template replaced them with a
+ * token system (shared/src/styles/tokens). Pointing the old names at the new
+ * tokens keeps the bot UI working and gives it the same palette as the rest of
+ * the app — including brand colours from brand.config.json and dark mode.
+ */
+.theme--light,
+.theme--dark {
+    // Surfaces
+    --general-main-1: var(--color-surface-primary);
+    --general-main-2: var(--color-surface-primary);
+    --general-section-1: var(--color-surface-section);
+    --general-section-2: var(--color-surface-section);
+    --general-section-3: var(--color-interactive-default);
+    --general-section-5: var(--color-surface-section);
+    --general-section-6: var(--color-surface-section);
+    --general-hover: var(--color-interactive-hover);
+    --general-active: var(--color-interactive-active);
+    --general-disabled: var(--color-interactive-disabled);
+    --state-normal: var(--color-surface-primary);
+    --state-hover: var(--color-interactive-hover);
+    --icon-grey-background: var(--color-surface-section);
+
+    // Borders
+    --border-normal: var(--color-interactive-default);
+    --border-hover: var(--color-text-disabled);
+    --border-disabled: var(--color-interactive-disabled);
+    --border-divider: var(--color-surface-border);
+    --checkbox-disabled-grey: var(--color-interactive-disabled);
+
+    // Text
+    --text-general: var(--color-text-primary);
+    --text-prominent: var(--color-text-primary);
+    --text-less-prominent: var(--color-text-secondary);
+    --text-colored-background: var(--color-text-white);
+    --text-profit-success: var(--color-text-success);
+    --text-loss-danger: var(--color-text-danger);
+    --icon-black-plus: var(--color-text-primary);
+    --fill-normal-1: var(--color-text-secondary);
+    --sidebar-tab: var(--color-text-secondary);
+
+    // Status & brand
+    --status-success: var(--color-status-success);
+    --status-danger: var(--color-status-danger);
+    --status-warning: var(--color-status-warning);
+    --status-info: var(--color-status-info);
+    --purchase-main-1: var(--color-trade-buy);
+    --brand-red-coral: var(--brand-primary);
+    --button-primary-default: var(--color-button-primary-bg);
+
+    // Overlays & shadows
+    --overlay-inside-dialog: var(--color-surface-overlay);
+    --overlay-outside-dialog: var(--color-modal-backdrop);
+    --shadow-box: var(--color-shadow-medium);
+    --shadow-menu: var(--color-shadow-medium);
+
+    --text-size--xxxs: 0.8rem;
+}

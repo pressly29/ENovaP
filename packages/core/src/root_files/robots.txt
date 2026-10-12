@@ -1,7 +1,9 @@
 User-agent: *
-Disallow: */appstore/*
-Disallow: */cashier/*
-Disallow: */p2p/*
-Disallow: */reports/*
-Disallow: */account/*
-Disallow: */endpoint*
+Allow: /
+Allow: /trader
+Disallow: /reports
+Disallow: /endpoint
+Disallow: /callback
+Disallow: /clients-analysis-*
+
+Sitemap: https://evpnova.com/sitemap.xml

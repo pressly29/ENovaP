@@ -1,5 +1,6 @@
 import React, { KeyboardEvent } from 'react';
-import { Icon, Text } from '@deriv/components';
+import { Text } from '@deriv/components';
+import { Icon } from 'Components/legacy';
 import { observer, useStore } from '@deriv/stores';
 import { Localize } from '@deriv-com/translations';
 import { STRATEGIES } from '../../bot-builder/quick-strategy/config';

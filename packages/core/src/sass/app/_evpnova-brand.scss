@@ -1,0 +1,24 @@
+/*
+ * EvPNova brand adjustments on top of the generated tokens (brand.config.json).
+ * Gold is the primary colour, so text on primary surfaces is dark ink rather
+ * than white, and links use a deeper gold on light backgrounds for contrast.
+ */
+:root body.theme--light,
+:root body.theme--dark {
+    --color-button-primary-text: #1a1405;
+}
+
+:root body.theme--light {
+    --color-text-link: #8a6212;
+    --color-link-default: #8a6212;
+    --color-link-visited: #8a6212;
+    --color-link-hover: #6e4e0e;
+    --color-button-tertiary-text: #8a6212;
+}
+
+:root body.theme--dark {
+    --color-text-link: #f5c66b;
+    --color-link-default: #f5c66b;
+    --color-link-visited: #f5c66b;
+    --color-link-hover: #e0a93b;
+}

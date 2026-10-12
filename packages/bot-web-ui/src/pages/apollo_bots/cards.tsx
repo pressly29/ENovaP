@@ -1,7 +1,8 @@
 //kept sometihings commented beacuse of mobx to integrate popup functionality here
 import React from 'react';
 import classNames from 'classnames';
-import { DesktopWrapper, Dialog, Icon, MobileFullPageModal, MobileWrapper, Text } from '@deriv/components';
+import { DesktopWrapper, Dialog, MobileWrapper, Text } from '@deriv/components';
+import { Icon, MobileFullPageModal } from 'Components/legacy';
 import { observer } from '@deriv/stores';
 import { localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
