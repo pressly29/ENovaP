@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import OnboardTourHandler from '../tutorials/dbot-tours/onboarding-tour';
 import { rudderstackDashboardClose, rudderstackDashboardOpen } from './analytics/rudderstack-dashboard';

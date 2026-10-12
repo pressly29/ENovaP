@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
 import { useDBotStore } from 'Stores/useDBotStore';
 import NoSearchResult from './common/no-search-result-found';

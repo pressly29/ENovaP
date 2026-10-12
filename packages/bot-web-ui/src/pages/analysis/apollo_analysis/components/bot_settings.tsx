@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, Icon, Text } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 interface BotSettingsSType {
     take_profit: React.MutableRefObject<number>;

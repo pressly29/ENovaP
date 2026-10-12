@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { plusIconDark, minusIconDark } from '../images';
 
 Blockly.Blocks.controls_if = {

@@ -1,7 +1,7 @@
 import { action, makeObservable, reaction, when } from 'mobx';
 import { ApiHelpers, DBot, runIrreversibleEvents } from '@deriv/bot-skeleton';
 import { ContentFlag, isEuResidenceWithOnlyVRTC, routes, showDigitalOptionsUnavailableError } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import RootStore from './root-store';
 import { TStores } from '@deriv/stores/types';
 import { TApiHelpersStore, TDbotStore } from 'src/types/stores.types';

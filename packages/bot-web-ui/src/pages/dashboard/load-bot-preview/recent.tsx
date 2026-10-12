@@ -3,7 +3,7 @@ import { Analytics } from '@deriv-com/analytics';
 import { getSavedWorkspaces } from '@deriv/bot-skeleton';
 import { MobileWrapper, Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import DeleteDialog from './delete-dialog';
 import RecentWorkspace from './recent-workspace';

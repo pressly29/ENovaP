@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { log_types } from '@deriv/bot-skeleton';
 import { Text } from '@deriv/components';
 import { formatMoney, getCurrencyDisplayCode } from '@deriv/shared';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { TFormatMessageProps } from '../journal.types';
 
 const FormatMessage = ({ logType, className, extra }: TFormatMessageProps) => {

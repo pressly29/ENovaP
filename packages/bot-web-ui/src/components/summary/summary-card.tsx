@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { ContractCard, Text } from '@deriv/components';
 import { getCardLabels } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import ContractCardLoader from 'Components/contract-card-loading';
 import { getContractTypeDisplay } from 'Constants/contract';
 import { useDBotStore } from 'Stores/useDBotStore';

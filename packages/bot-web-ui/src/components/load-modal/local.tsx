@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { Button, Icon } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import LocalFooter from './local-footer';
 import WorkspaceControl from './workspace-control';

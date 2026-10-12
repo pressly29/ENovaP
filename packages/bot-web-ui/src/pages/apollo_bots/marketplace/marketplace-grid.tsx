@@ -7,7 +7,7 @@
 import React from 'react';
 import { Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import MarketplaceCard from './marketplace-card';
 import TabNavigator from './tab-navigator';
 import CategoryFilter from './category-filter';

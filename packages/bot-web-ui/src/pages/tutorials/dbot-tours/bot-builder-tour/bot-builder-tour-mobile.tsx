@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProgressBarTracker, Text } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { getSetting } from 'Utils/settings';
 import { useDBotStore } from 'Stores/useDBotStore';
 import TourButton from '../common/tour-button';

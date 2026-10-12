@@ -6,7 +6,7 @@ import { ProposalOpenContract } from '@deriv/api-types';
 import { Button, DataList, Icon, Text, ThemedScrollbars } from '@deriv/components';
 import { useNewRowTransition } from '@deriv/shared';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import Download from 'Components/download';
 import { contract_stages } from 'Constants/contract-stage';
 import { transaction_elements } from 'Constants/transactions';

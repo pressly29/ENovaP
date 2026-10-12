@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import Draggable from '../../../components/draggable';
 import Chart from '..';

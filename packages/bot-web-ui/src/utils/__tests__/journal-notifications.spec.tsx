@@ -2,7 +2,7 @@
 import { render } from '@testing-library/react';
 import { messageWithButton } from 'Components/notify-item';
 import { isCustomJournalMessage } from '../journal-notifications';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 describe('isCustomJournalMessage', () => {
     const centerAndHighlightBlock = jest.fn();

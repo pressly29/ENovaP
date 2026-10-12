@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, Text, Icon } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { config } from '@deriv/bot-skeleton';
 
 type StopLossDialogType = {

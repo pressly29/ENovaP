@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { useDBotStore } from '../../../../stores/useDBotStore';
 
 const TourEndDialog = observer(() => {

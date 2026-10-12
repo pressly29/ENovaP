@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import Draggable from 'Components/draggable';
 import { useDBotStore } from 'Stores/useDBotStore';
 import DesktopTransactionTable from './desktop-transaction-table';

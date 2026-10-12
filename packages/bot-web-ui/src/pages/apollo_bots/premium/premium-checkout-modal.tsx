@@ -9,7 +9,7 @@
 import React from 'react';
 import { Button, Text } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { BotMetadata } from '../data/types';
 import { TPaymentResult } from './use-premium-access';
 import './premium-checkout-modal.scss';

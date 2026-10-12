@@ -3,7 +3,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { DesktopWrapper, Dialog, Icon, MobileFullPageModal, MobileWrapper, Text } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
 import { DBOT_TABS } from 'Constants/bot-contents';
 import { useDBotStore } from 'Stores/useDBotStore';

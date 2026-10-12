@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { config } from '../../../../../../../constants';
 import { api_base2 } from '../../../../../../../services/api/api-base';
 import { notify } from '../../../../../../../services/tradeEngine/utils/broadcast';

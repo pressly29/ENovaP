@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { Button, Icon } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import ContractResultOverlay from 'Components/contract-result-overlay';
 import { contract_stages } from 'Constants/contract-stage';
 import { useDBotStore } from 'Stores/useDBotStore';

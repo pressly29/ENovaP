@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 Blockly.Blocks.std_dev_multiplier_up = {
     init() {

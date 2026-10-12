@@ -4,7 +4,7 @@ import ContentLoader from 'react-content-loader';
 import { getContractTypeName } from '@deriv/bot-skeleton';
 import { Icon, IconTradeTypes, Popover } from '@deriv/components';
 import { convertDateFormat } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { TTransaction } from './transaction-details.types';
 
 const PARENT_CLASS = 'transaction-details-modal-mobile';

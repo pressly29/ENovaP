@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 import { Icon, Text } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import {
     rudderStackSendQsLearnMoreCollapseEvent,

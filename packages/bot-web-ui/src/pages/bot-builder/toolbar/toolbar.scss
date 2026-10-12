@@ -45,7 +45,7 @@
                 align-self: center;
             }
             &-text {
-                @include typeface(--title-center-bold-active, none);
+                @include typeface(--title-center-bold-white, none);
             }
         }
     }

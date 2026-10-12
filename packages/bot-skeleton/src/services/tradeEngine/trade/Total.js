@@ -1,5 +1,5 @@
 import { getRoundedNumber } from '@deriv/shared';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { info, log } from '../utils/broadcast';
 import { createError } from '../../../utils/error';
 import { observer as globalObserver } from '../../../utils/observer';

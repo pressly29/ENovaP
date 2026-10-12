@@ -7,7 +7,7 @@ import { getContractTypeName, config } from '@deriv/bot-skeleton';
 import { Icon, IconTradeTypes, Money, Popover } from '@deriv/components';
 import { convertDateFormat } from '@deriv/shared';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { popover_zindex } from 'Constants/z-indexes';
 import { useDBotStore } from 'Stores/useDBotStore';
 

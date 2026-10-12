@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { config as qs_config } from '@deriv/bot-skeleton';
 import { MobileFullPageModal, Modal } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import { rudderStackSendQsCloseEvent } from './analytics/rudderstack-quick-strategy';
 import DesktopFormWrapper from './form-wrappers/desktop-form-wrapper';

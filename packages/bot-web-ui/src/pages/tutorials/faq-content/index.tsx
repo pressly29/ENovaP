@@ -1,7 +1,7 @@
 import React, { KeyboardEvent } from 'react';
 import { Accordion, Text } from '@deriv/components';
 import { useStore } from '@deriv/stores';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import { DBOT_TABS } from 'Constants/bot-contents';
 import { useDBotStore } from 'Stores/useDBotStore';
 import { TDescription } from '../tutorials.types';

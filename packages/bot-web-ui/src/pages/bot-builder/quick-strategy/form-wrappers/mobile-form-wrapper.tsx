@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { useFormikContext } from 'formik';
 import { Button, SelectNative, Text, ThemedScrollbars } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import {
     rudderStackSendQsRunStrategyEvent,

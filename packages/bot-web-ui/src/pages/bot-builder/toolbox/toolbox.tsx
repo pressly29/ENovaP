@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { Icon, Text } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from '../../../stores/useDBotStore';
 import { rudderStackSendQsOpenEvent } from '../quick-strategy/analytics/rudderstack-quick-strategy';
 import ToolbarButton from '../toolbar/toolbar-button';

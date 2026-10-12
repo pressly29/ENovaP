@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { finishSign } from '../../images';
 
 Blockly.Blocks.after_purchase = {

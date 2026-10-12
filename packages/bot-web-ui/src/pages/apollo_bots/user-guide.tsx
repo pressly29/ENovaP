@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon, Text } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
 import { DBOT_TABS } from 'Constants/bot-contents';
 import { rudderstackDashboardUserGuide } from './analytics/rudderstack-dashboard';

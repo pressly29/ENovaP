@@ -2,7 +2,7 @@ import React, { PropsWithChildren, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { CSSTransition } from 'react-transition-group';
 import { Icon } from '@deriv/components';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 type DraggableProps = {
     bounds?: string | Element;

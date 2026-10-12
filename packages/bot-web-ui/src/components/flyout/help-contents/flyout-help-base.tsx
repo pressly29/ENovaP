@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Icon, Text } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { help_content_config, help_content_types } from 'Utils/help-content/help-content.config';
 import { useDBotStore } from 'Stores/useDBotStore';
 import FlyoutBlock from '../flyout-block';

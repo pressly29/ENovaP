@@ -4,7 +4,7 @@ import LZString from 'lz-string';
 import { getSavedWorkspaces } from '@deriv/bot-skeleton';
 import { Dialog, Text } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { TStrategy } from 'Types';
 import { useDBotStore } from 'Stores/useDBotStore';
 import { rudderstackDashboardDeleteYourBot } from '../analytics/rudderstack-dashboard';

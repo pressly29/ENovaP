@@ -2,7 +2,7 @@ import React from 'react';
 import { action, computed, makeObservable, observable, reaction, runInAction } from 'mobx';
 import { error_types, message_types, observer, unrecoverable_errors,resetVhVariables } from '@deriv/bot-skeleton';
 import { isSafari, mobileOSDetect, routes } from '@deriv/shared';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { botNotification } from 'Components/bot-notification/bot-notification';
 import { notification_message } from 'Components/bot-notification/bot-notification-utils';
 import { contract_stages } from 'Constants/contract-stage';

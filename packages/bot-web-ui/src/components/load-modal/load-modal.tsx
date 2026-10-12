@@ -1,7 +1,7 @@
 import React from 'react';
 import { MobileFullPageModal, Modal, Tabs } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { tabs_title } from 'Constants/load-modal';
 import { useDBotStore } from 'Stores/useDBotStore';
 import GoogleDrive from '../../pages/dashboard/load-bot-preview/google-drive';

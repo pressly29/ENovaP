@@ -2,7 +2,7 @@ import React from 'react';
 import { action, computed, makeObservable, observable, reaction } from 'mobx';
 import { config, getSavedWorkspaces, load, removeExistingWorkspace, save_types, setColors } from '@deriv/bot-skeleton';
 import { TStores } from '@deriv/stores/types';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { clearInjectionDiv, tabs_title } from 'Constants/load-modal';
 import { TStrategy } from 'Types';
 import RootStore from './root-store';

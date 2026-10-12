@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { toast, ToastPosition, TypeOptions } from 'react-toastify';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 export type TNotificationContent = {
     message: string;

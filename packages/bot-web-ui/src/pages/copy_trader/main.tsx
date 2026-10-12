@@ -16,7 +16,7 @@ import {
     getToken,
 } from '@deriv/bot-skeleton';
 import { Dialog } from '@deriv/components';
-import { localize, Localize } from '@deriv/translations';
+import { localize, Localize } from '@deriv-com/translations';
 import './style.css';
 
 const CopyTrader = observer(() => {

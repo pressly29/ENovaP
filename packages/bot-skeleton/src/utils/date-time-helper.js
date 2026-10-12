@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 export const timeSince = timestamp => {
     const now = new Date();

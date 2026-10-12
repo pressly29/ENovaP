@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { PropTypes } from 'prop-types';
 import { Button, Text } from '@deriv/components';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import FlyoutBlock from './flyout-block';
 
 const FlyoutBlockGroup = ({ onInfoClick, block_node, is_active, should_hide_display_name }) => {

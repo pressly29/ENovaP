@@ -6,7 +6,7 @@ import { initTrashCan } from '@deriv/bot-skeleton/src/scratch/hooks/trashcan';
 import { api_base } from '@deriv/bot-skeleton/src/services/api/api-base';
 import { DesktopWrapper, Dialog, MobileWrapper, Tabs, UILoader } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { Analytics } from '@deriv-com/analytics';
 import TradingViewModal from 'Components/trading-view-chart/trading-view-modal';
 import { DBOT_TABS, TAB_IDS } from 'Constants/bot-contents';

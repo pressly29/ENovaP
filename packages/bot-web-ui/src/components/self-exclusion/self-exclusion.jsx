@@ -4,7 +4,7 @@ import { Field, Form, Formik } from 'formik';
 import PropTypes from 'prop-types';
 import { Button, Div100vhContainer, FadeWrapper, Input, MobileWrapper, Modal, PageOverlay } from '@deriv/components';
 import { observer, useStore } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 
 const SelfExclusionForm = props => {

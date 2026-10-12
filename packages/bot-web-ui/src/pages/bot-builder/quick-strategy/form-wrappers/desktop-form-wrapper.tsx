@@ -4,7 +4,7 @@ import { useFormikContext } from 'formik';
 import { Button, Text, ThemedScrollbars } from '@deriv/components';
 import Icon from '@deriv/components/src/components/icon/icon';
 import { observer } from '@deriv/stores';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import {
     rudderStackSendQsEditStrategyEvent,

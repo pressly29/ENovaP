@@ -1,4 +1,4 @@
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 import { config } from '../../../../../constants/config';
 
 // This block is a remnant of a very old Binary Bot version.

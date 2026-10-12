@@ -1,7 +1,7 @@
 import { action, makeObservable } from 'mobx';
 
 import { log_types } from '@deriv/bot-skeleton';
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 export default class DownloadStore {
     constructor(root_store) {

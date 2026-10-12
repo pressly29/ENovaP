@@ -1,7 +1,7 @@
 import React from 'react';
 import { Checkbox, Dialog } from '@deriv/components';
 import { observer } from '@deriv/stores';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { useDBotStore } from 'Stores/useDBotStore';
 import { LOSS_THRESHOLD_WARNING_POPUP_CTA } from '../analytics/constants';
 import { rudderStackSendQsLossThresholdWarningEvent } from '../analytics/rudderstack-quick-strategy';

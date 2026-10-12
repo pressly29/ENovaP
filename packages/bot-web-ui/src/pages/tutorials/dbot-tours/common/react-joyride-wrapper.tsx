@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactJoyride, { CallBackProps, Step, Styles } from 'react-joyride';
 
-import { localize } from '@deriv/translations';
+import { localize } from '@deriv-com/translations';
 
 const common_tour_button_properties = {
     fontWeight: '700',
