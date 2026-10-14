@@ -63,7 +63,7 @@ jobs:
 
       - name: Checkout code
         if: steps.check-bot.outputs.is-dependabot == 'true' && steps.check-status.outputs.has-failures == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
