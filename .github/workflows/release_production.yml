@@ -14,7 +14,7 @@ jobs:
       RELEASE_VERSION: ${{ steps.extract_version.outputs.RELEASE_VERSION }}
     steps:
     - name: Checkout
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
     - name: Setup Node
       uses: "./.github/actions/setup_node"
     - name: Install Dependencies
@@ -71,7 +71,7 @@ jobs:
       needs: [build_test_and_publish]
       steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Conclusion
         uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5
       - name: Create Slack Message
@@ -95,7 +95,7 @@ jobs:
     needs: [build_test_and_publish]
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Download Build Artifact
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935
         with:
