@@ -40,7 +40,7 @@ jobs:
           preview_url_regexp: \[Visit Preview\]\((.*?.sx)\)
 
       - name: Generate Lighthouse report
-        uses: treosh/lighthouse-ci-action@03becbfc543944dd6e7534f7ff768abb8a296826
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18
         id: lighthouse_report
         with:
           temporaryPublicStorage: true
